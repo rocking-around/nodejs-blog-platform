@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AuthProvider xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customMetadataTypeRecord>iManageAuthSetting__mdt.imanage</customMetadataTypeRecord>
+    <executionUser>dgeller@gdsi.com.litifydemo</executionUser>
+    <friendlyName>iManage</friendlyName>
+    <includeOrgIdInIdentifier>false</includeOrgIdInIdentifier>
+    <plugin>iManageProvider</plugin>
+    <providerType>Custom</providerType>
+    <sendAccessTokenInHeader>false</sendAccessTokenInHeader>
+    <sendClientCredentialsInHeader>false</sendClientCredentialsInHeader>
+    <sendSecretInApis>false</sendSecretInApis>
+</AuthProvider>
