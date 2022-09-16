@@ -1,4 +1,8 @@
 <template>
-    <iframe src={url} height={height} width={width} referrerpolicy={referrerPolicy} sandbox={sandbox}
-        title={title}></iframe>
+    <h3>iManageContainer. Matter = {matterId}</h3>
+
+    <template if:true={showIFrame}>
+        <iframe src={url} height={height} width={width} referrerpolicy={referrerPolicy} sandbox={sandbox}
+            title={title}></iframe>
+    </template>
 </template>

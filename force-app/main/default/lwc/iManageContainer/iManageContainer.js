@@ -4,11 +4,18 @@ import {
 } from 'lwc';
 
 export default class IManageContainer extends LightningElement {
-    //@api matterId;
+    @api matterId;
     @api height = '500px';
     @api referrerPolicy = 'no-referrer';
     @api sandbox = '';
-    @api url = '';
     @api width = '100%';
     @api title = '';
+
+    get showIFrame(){
+      return this.matterId && this.url.length;
+    }
+
+    get url(){
+      return `http://localhost:5000?m=${this.matterId}`;
+    }
 }
