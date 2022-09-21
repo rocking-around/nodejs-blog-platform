@@ -1,5 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>55.0</apiVersion>
-    <isExposed>false</isExposed>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property
+        name="url"
+        label="iFrame URL"
+        type="String"
+        description="Specifies the address of the document to embed in the iframe. Placeholders: {matterId}"
+      />
+            <property
+        name="height"
+        label="Height"
+        type="String"
+        default="500px"
+        description="Specifies the height of the iframe. Default height is 500 pixels."
+      />
+            <property
+        name="width"
+        label="Width"
+        type="String"
+        default="100%"
+        description="Specifies the width of an iframe. Default width is 100 percent."
+      />
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>

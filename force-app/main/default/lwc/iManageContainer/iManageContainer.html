@@ -1,8 +1,17 @@
 <template>
-    <h3>iManageContainer. Matter = {matterId}</h3>
+  <!-- <h2>Opportunity: {recordId}</h2>
+    <h2>objectApiName: {objectApiName}</h2>
+    <h3>iManageContainer. Url = {iManageUrl}</h3> -->
+  <h2>iManageMatter: {iManageMatter}</h2>
 
-    <template if:true={showIFrame}>
-        <iframe src={url} height={height} width={width} referrerpolicy={referrerPolicy} sandbox={sandbox}
-            title={title}></iframe>
-    </template>
+  <template if:true={showIFrame}>
+    <iframe
+      src={iManageUrl}
+      height={height}
+      width={width}
+      referrerpolicy={referrerPolicy}
+      sandbox={sandbox}
+      title={title}
+    ></iframe>
+  </template>
 </template>
