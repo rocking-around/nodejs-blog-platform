@@ -1,0 +1,20 @@
+{
+  "apiName": "Opportunity",
+  "childRelationships": {},
+  "eTag": "846fdcd21a53214d447e578adbe263c6",
+  "fields": {
+    "iManageMatter__c": {
+      "displayValue": null,
+      "value": "IM-02"
+    },
+    "Name": {
+      "displayValue": null,
+      "value": "Test 2"
+    }
+  },
+  "id": "0064x00000GC8B4AAL",
+  "lastModifiedById": "00517000002fESIAA2",
+  "lastModifiedDate": "2022-09-19T10:33:07.000Z",
+  "recordTypeInfo": null,
+  "systemModstamp": "2022-09-19T10:33:07.000Z"
+}
