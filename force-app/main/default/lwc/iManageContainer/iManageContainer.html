@@ -1,9 +1,15 @@
 <template>
-  <!-- <h2>Opportunity: {recordId}</h2>
-    <h2>objectApiName: {objectApiName}</h2>
-    <h3>iManageContainer. Url = {iManageUrl}</h3> -->
-  <h2>iManageMatter: {iManageMatter}</h2>
-
+  <template if:true={loading}>
+    <div class="spinnerContainer">
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </div>
+  </template>
+  <template if:true={error}>
+    <p class="error">{error}</p>
+  </template>
   <template if:true={showIFrame}>
     <iframe
       src={iManageUrl}

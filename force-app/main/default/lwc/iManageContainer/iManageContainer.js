@@ -1,20 +1,23 @@
 import { LightningElement, api, wire, track } from "lwc";
 
 import { getRecord } from "lightning/uiRecordApi";
+import GetIFrameFolder from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolder";
 
 const FIELDS = ["Opportunity.Name", "Opportunity.iManageMatter__c"];
 
 export default class IManageContainer extends LightningElement {
   @api recordId;
   @api objectApiName;
-  @api height = "500px";
+  @api height = "800px";
   @api referrerPolicy = "no-referrer";
-  @api sandbox = "";
+  @api sandbox = "allow-same-origin allow-scripts";
   @api width = "100%";
   @api title = "";
   @api url = "";
   @track opportunity;
   MATTER_ID_PLACEHOLDER = "{matterId}";
+  _iManageUrl = "";
+  loading = true;
 
   @wire(getRecord, {
     recordId: "$recordId",
@@ -25,9 +28,23 @@ export default class IManageContainer extends LightningElement {
     if (data) {
       this.opportunity = data;
       this.error = undefined;
+      console.log(`Call GetIFrameFolder({id: ${this.iManageMatter}})`);
+      GetIFrameFolder({ id: this.iManageMatter })
+        .then((resp) => {
+          console.log("*********** GetIFrameFolder:", resp);
+          this._iManageUrl = resp;
+        })
+        .catch((err) => {
+          this.error = err.body.message || err;
+          console.error(err);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     } else if (error) {
       this.error = error;
       this.record = undefined;
+      this.loading = false;
     }
   }
 
@@ -36,8 +53,8 @@ export default class IManageContainer extends LightningElement {
   }
 
   get iManageUrl() {
-    return this.iManageMatter
-      ? this.url.replaceAll(this.MATTER_ID_PLACEHOLDER, this.iManageMatter)
+    return this.iManageMatter && this._iManageUrl
+      ? this._iManageUrl //this.url.replaceAll(this.MATTER_ID_PLACEHOLDER, this.iManageMatter)
       : "";
   }
 
