@@ -3,7 +3,11 @@ import { LightningElement, api, wire, track } from "lwc";
 import { getRecord } from "lightning/uiRecordApi";
 import GetIFrameFolder from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolder";
 
-const FIELDS = ["Opportunity.Name", "Opportunity.iManageMatter__c"];
+const FIELDS = [
+  "Opportunity.Name",
+  "Opportunity.iManageMatter__c",
+  "Opportunity.iManage_Client__c"
+];
 
 export default class IManageContainer extends LightningElement {
   @api recordId;
@@ -28,8 +32,14 @@ export default class IManageContainer extends LightningElement {
     if (data) {
       this.opportunity = data;
       this.error = undefined;
-      console.log(`Call GetIFrameFolder({id: ${this.iManageMatter}})`);
-      GetIFrameFolder({ id: this.iManageMatter })
+
+      console.log(
+        `Call GetIFrameFolder({clientId: ${this.iManageClientId}, matterId: ${this.iManageMatter}})`
+      );
+      GetIFrameFolder({
+        clientId: this.iManageClientId,
+        matterId: this.iManageMatter
+      })
         .then((resp) => {
           console.log("*********** GetIFrameFolder:", resp);
           this._iManageUrl = resp;
@@ -61,6 +71,13 @@ export default class IManageContainer extends LightningElement {
   get iManageMatter() {
     if (this.opportunity) {
       return this.opportunity.fields.iManageMatter__c.value;
+    }
+    return "";
+  }
+
+  get iManageClientId() {
+    if (this.opportunity) {
+      return this.opportunity.fields.iManage_Client__c.value;
     }
     return "";
   }
