@@ -159,14 +159,13 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       '&client_secret=' +
       EncodingUtil.urlEncode(clientSecret, 'UTF-8') +
       '&grant_type=refresh_token&refresh_token=' +
-      EncodingUtil.urlEncode(refreshToken, 'UTF-8') +
-      '&redirect_uri=' +
-      EncodingUtil.urlEncode(redirectUri, 'UTF-8')
+      EncodingUtil.urlEncode(refreshToken, 'UTF-8')
     );
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
     String responseBody = res.getBody();
+    system.debug(responseBody);
     IManageResponse response = (IManageResponse) JSON.deserialize(
       responseBody,
       IManageResponse.class
