@@ -17,7 +17,7 @@ public class iManageIFrameDialog {
     );
   }
 
-  private static DialogTokenResult GetDialogToken(
+  public static DialogTokenResult GetDialogToken(
     iManageProvider.IManageApiDataResponse apiData
   ) {
     HttpRequest req = new HttpRequest();
@@ -39,18 +39,45 @@ public class iManageIFrameDialog {
     );
   }
 
-  /*@AuraEnabled
-    public static String GetIFrameImange() {
-        DialogTokenResult result = GetDialogToken();
-        iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-        return mc.Url__c + '/' + mc.Client_Id__c + '/dialogs/file-picker/?protocol=postmessage&dialogToken=' + EncodingUtil.urlEncode(result.data.dialog_token,'UTF-8') + '&mode=open&type=WORD,WORDX';
-    }*/
+  private static SearchResult SearchFolderId(
+    String clientId,
+    String matterId,
+    iManageProvider.IManageApiDataResponse apiData
+  ) {
+    //iManageProvider.IManageApiDataResponse apiData = GetApiData();
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint(
+      'callout:iManageCreds/work/api/v2/customers/' +
+      apiData.data.user.customer_id +
+      '/workspaces/search'
+    );
+    req.setHeader('content-type', 'application/json');
+    req.setHeader('X-Auth-Token', '{!$Credential.AuthorizationHeaderValue}');
+    req.setMethod('POST');
+    req.setBody(
+      '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
+      '"filters": { "libraries": "' +
+      apiData.data.work.preferred_library +
+      '", ' +
+      '"custom1": "' +
+      clientId +
+      '", "custom2": "' +
+      matterId +
+      '" }}'
+    );
+
+    Http http = new Http();
+    HTTPResponse res = http.send(req);
+    String responseBody = res.getBody();
+    system.debug(responseBody);
+    return (SearchResult) JSON.deserialize(responseBody, SearchResult.class);
+  }
 
   @AuraEnabled
-  public static String GetIFrameFolder(String id) {
+  public static String GetIFrameFolder(String clientId, String matterId) {
     iManageProvider.IManageApiDataResponse apiData = GetApiData();
-    system.debug(apiData);
     DialogTokenResult result = GetDialogToken(apiData);
+    SearchResult searchResult = SearchFolderId(clientId, matterId, apiData);
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     return mc.Url__c +
       '/work/partner-apps/' +
@@ -58,11 +85,7 @@ public class iManageIFrameDialog {
       '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
       EncodingUtil.urlEncode(result.data.dialog_token, 'UTF-8') +
       '&mode=emm&multiselect=false&start=' +
-      EncodingUtil.urlEncode(apiData.data.work.preferred_library, 'UTF-8') +
-      '!' +
-      EncodingUtil.urlEncode(id, 'UTF-8');
-
-    //return 'https://cloudimanage.com/work/partner-apps/894a95b7-e904-429a-a37f-467823927648/dialogs/file-picker/?protocol=postmessage&dialogToken=74bf477e-c35b-4210-9b32-9f11989a251f&mode=browse&multiselect=false&start=Active!446';
+      EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
   }
 
   public class DialogTokenResult {
@@ -71,5 +94,14 @@ public class iManageIFrameDialog {
 
   public class DialogTokenData {
     public String dialog_token;
+  }
+
+  public class SearchResult {
+    public List<SearchData> data;
+  }
+
+  public class SearchData {
+    public String id;
+    public String wstype;
   }
 }
