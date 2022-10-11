@@ -1,0 +1,50 @@
+<template>
+  <template if:true={loading}>
+    <div class="spinnerContainer">
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </div>
+  </template>
+  <template if:false={loading}>
+    <lightning-card title="iManage Mapping">
+      <div>
+        <template if:true={iManageMapping}>
+          <!-- <lightning-combobox name="matter-id-object" label="Matter Id Object"
+                        value={iManageMapping.EntityMatterIdObjectField__c} placeholder="Select" disabled="true">
+                    </lightning-combobox> -->
+          <lightning-input
+            type="text"
+            label="Matter Id Object"
+            disabled="true"
+            value={matterIdObject}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Matter Id Field"
+            disabled="true"
+            value={matterIdField}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Client Id Object"
+            disabled="true"
+            value={clientIdObject}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Client Id Field"
+            disabled="true"
+            value={clientIdField}
+          ></lightning-input>
+        </template>
+      </div>
+      <div slot="actions">
+        <lightning-button label="Edit" onclick={edit}> </lightning-button>
+        <!-- <lightning-button-icon icon-name="utility:edit" variant="bare" alternative-text="Edit" title="Edit"
+                    onclick={edit}></lightning-button-icon> -->
+      </div>
+    </lightning-card>
+  </template>
+</template>

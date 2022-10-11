@@ -1,0 +1,69 @@
+<template>
+  <template if:true={loading}>
+    <div class="spinnerContainer">
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </div>
+  </template>
+  <template if:false={loading}>
+    <lightning-card title="iManage Mapping">
+      <!-- <div>
+                <input id="matterId" list="matterIdOptions" class="slds-input matter-id-input" type="text" onchange={onMatterIdObjectChanged} />
+                <datalist id="matterIdOptions" class="matter-id-options">
+                    <template for:each={matterIdOptions} for:item='opt'>
+                        <option key={opt.key} value={opt.key}>{opt.value}</option>
+                    </template>
+                </datalist>
+            </div> -->
+      <div>
+        <lightning-combobox
+          name="matter-id-object"
+          label="Matter Id Object"
+          value={iManageMapping.EntityMatterIdObjectField__c}
+          placeholder="Select"
+          options={matterIdObjectOptions}
+          onchange={onMatterIdObjectChanged}
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="matter-id-object-field"
+          label="Matter Id Field"
+          value={iManageMapping.MatterIdField__c}
+          placeholder="Select"
+          options={matterIdObjectFieldOptions}
+          onchange={onMatterIdObjectFieldChanged}
+          required
+        ></lightning-combobox>
+      </div>
+      <div>
+        <lightning-combobox
+          name="client-id-object"
+          label="Client Id Object"
+          value={iManageMapping.EntityClientIdObjectField__c}
+          placeholder="Select"
+          options={clientIdObjectOptions}
+          onchange={onClientIdObjectChanged}
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="client-id-object-field"
+          label="Client Id Field"
+          value={iManageMapping.ClientIdField__c}
+          placeholder="Select"
+          options={clientIdObjectFieldOptions}
+          onchange={onClientIdObjectFieldChanged}
+          required
+        ></lightning-combobox>
+      </div>
+      <div slot="actions">
+        <lightning-button label="Save" onclick={save} disabled={isSaving}>
+        </lightning-button>
+        <lightning-button label="Cancel" onclick={cancel}> </lightning-button>
+      </div>
+    </lightning-card>
+  </template>
+</template>
