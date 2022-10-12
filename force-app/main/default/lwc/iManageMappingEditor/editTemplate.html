@@ -7,6 +7,14 @@
       ></lightning-spinner>
     </div>
   </template>
+  <template if:true={isSaving}>
+    <div class="spinnerContainer">
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </div>
+  </template>
   <template if:false={loading}>
     <lightning-card title="iManage Mapping">
       <!-- <div>
@@ -21,7 +29,7 @@
         <lightning-combobox
           name="matter-id-object"
           label="Matter Id Object"
-          value={iManageMapping.EntityMatterIdObjectField__c}
+          value={iManageMappingEdit.EntityMatterIdObjectField__c}
           placeholder="Select"
           options={matterIdObjectOptions}
           onchange={onMatterIdObjectChanged}
@@ -31,7 +39,7 @@
         <lightning-combobox
           name="matter-id-object-field"
           label="Matter Id Field"
-          value={iManageMapping.MatterIdField__c}
+          value={iManageMappingEdit.MatterIdField__c}
           placeholder="Select"
           options={matterIdObjectFieldOptions}
           onchange={onMatterIdObjectFieldChanged}
@@ -42,7 +50,7 @@
         <lightning-combobox
           name="client-id-object"
           label="Client Id Object"
-          value={iManageMapping.EntityClientIdObjectField__c}
+          value={iManageMappingEdit.EntityClientIdObjectField__c}
           placeholder="Select"
           options={clientIdObjectOptions}
           onchange={onClientIdObjectChanged}
@@ -52,7 +60,7 @@
         <lightning-combobox
           name="client-id-object-field"
           label="Client Id Field"
-          value={iManageMapping.ClientIdField__c}
+          value={iManageMappingEdit.ClientIdField__c}
           placeholder="Select"
           options={clientIdObjectFieldOptions}
           onchange={onClientIdObjectFieldChanged}

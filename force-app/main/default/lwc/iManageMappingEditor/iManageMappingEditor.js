@@ -8,7 +8,7 @@ import viewTemplate from "./viewTemplate.html";
 export default class IManageMappingEditor extends LightningElement {
   loading = true;
   isSaving = false;
-  initialized = false;
+  //initialized = false;
 
   defaultIManageMapping = {
     EntityType__c: "litify_pm__Matter__c",
@@ -19,6 +19,7 @@ export default class IManageMappingEditor extends LightningElement {
   };
 
   @track iManageMapping;
+  @track iManageMappingEdit;
 
   @track isEdit = false;
   @api recordId;
@@ -102,8 +103,8 @@ export default class IManageMappingEditor extends LightningElement {
           "*********** IManageMappingEditor. getIManageMapping:",
           resp
         );
-        if (resp === null) {
-          this.isEdit = true;
+        this.isEdit = resp === null;
+        if (this.isEdit) {
           this.iManageMapping = { ...this.defaultIManageMapping };
         } else {
           this.iManageMapping = resp;
@@ -192,9 +193,10 @@ export default class IManageMappingEditor extends LightningElement {
   save() {
     console.log("*********** IManageMappingEditor. save:", this.iManageMapping);
     this.isSaving = true;
-    saveMapping({ mapping: this.iManageMapping })
+    saveMapping({ mapping: this.iManageMappingEdit })
       .then((resp) => {
         console.log("*********** IManageMappingEditor. save:", resp);
+        this.getIManageMapping();
       })
       .catch((err) => {
         this.error = err.body.message || err;
@@ -207,10 +209,12 @@ export default class IManageMappingEditor extends LightningElement {
 
   cancel() {
     this.isEdit = false;
+    //this.iManageMappingEdit = null;
   }
 
   edit() {
     this.isEdit = true;
+    this.iManageMappingEdit = { ...this.iManageMapping };
     this.initEditor(this.iManageMapping);
   }
 
@@ -298,8 +302,8 @@ export default class IManageMappingEditor extends LightningElement {
         objType.referenceTo[0]
       );
     }
-    this.iManageMapping = {
-      ...this.iManageMapping,
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
       ...{ MatterIdField__c: undefined }
     };
   }
@@ -322,8 +326,8 @@ export default class IManageMappingEditor extends LightningElement {
         objType.referenceTo[0]
       );
     }
-    this.iManageMapping = {
-      ...this.iManageMapping,
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
       ...{ ClientIdField__c: undefined }
     };
   }
@@ -333,8 +337,8 @@ export default class IManageMappingEditor extends LightningElement {
     console.log(
       "*********** IManageMappingEditor. onMatterIdObjectFieldChanged: " + value
     );
-    this.iManageMapping = {
-      ...this.iManageMapping,
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
       ...{ MatterIdField__c: value }
     };
   }
@@ -344,8 +348,8 @@ export default class IManageMappingEditor extends LightningElement {
     console.log(
       "*********** IManageMappingEditor. onClientIdObjectFieldChanged: " + value
     );
-    this.iManageMapping = {
-      ...this.iManageMapping,
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
       ...{ ClientIdField__c: value }
     };
   }
