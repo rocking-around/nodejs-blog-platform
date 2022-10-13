@@ -42,11 +42,35 @@ private class iManageIFrameDialogTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
+    // Create Account
+    Account acc = new Account();
+    acc.Name = 'Test Account';
+    acc.litify_pm__Last_Name__c = 'Test LastName';
+    acc.litify_pm__First_Name__c = 'Test FirstName';
+    acc.iManage_Client_Id__c = '100';
+    insert acc;
+
+    //Create Matter
+    litify_pm__Matter__c matter = new litify_pm__Matter__c(
+      RecordTypeId = '0124x000000jwVeAAI',
+      litify_pm__Client__c = acc.Id,
+      iManage_Matter_Id__c = '10'
+    );
+    insert matter;
+
+    //Create Mapping
+    IManageMapping__c mapping = new IManageMapping__c(
+      EntityType__c = 'litify_pm__Matter__c',
+      EntityMatterIdObjectField__c = 'litify_pm__Matter__c',
+      MatterIdField__c = 'iManage_Matter_Id__c',
+      EntityClientIdObjectField__c = 'litify_pm__Client__c',
+      ClientIdField__c = 'iManage_Client_Id__c'
+    );
+    insert mapping;
+
     Test.startTest();
 
-    String matterId = '0001';
-    String clientId = '0001-11';
-    String result = iManageIFrameDialog.GetIFrameFolder(clientId, matterId);
+    String result = iManageIFrameDialog.GetIFrameFolder(matter.Id);
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     String expectedResult =
       mc.Url__c +

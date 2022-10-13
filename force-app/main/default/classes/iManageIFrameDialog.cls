@@ -42,7 +42,8 @@ public class iManageIFrameDialog {
   private static SearchResult SearchFolderId(
     String clientId,
     String matterId,
-    iManageProvider.IManageApiDataResponse apiData
+    iManageProvider.IManageApiDataResponse apiData,
+    iManageSettings__c mc
   ) {
     //iManageProvider.IManageApiDataResponse apiData = GetApiData();
     HttpRequest req = new HttpRequest();
@@ -54,18 +55,22 @@ public class iManageIFrameDialog {
     req.setHeader('content-type', 'application/json');
     req.setHeader('X-Auth-Token', '{!$Credential.AuthorizationHeaderValue}');
     req.setMethod('POST');
-    req.setBody(
+    String body =
       '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
       '"filters": { "libraries": "' +
       apiData.data.work.preferred_library +
       '", ' +
-      '"custom1": "' +
+      '"' +
+      mc.ClientField__c +
+      '": "' +
       clientId +
-      '", "custom2": "' +
+      '", "' +
+      mc.MatterField__c +
+      '": "' +
       matterId +
-      '" }}'
-    );
-
+      '" }}';
+    System.debug(body);
+    req.setBody(body);
     Http http = new Http();
     HTTPResponse res = http.send(req);
     String responseBody = res.getBody();
@@ -74,11 +79,20 @@ public class iManageIFrameDialog {
   }
 
   @AuraEnabled
-  public static String GetIFrameFolder(String clientId, String matterId) {
+  public static String GetIFrameFolder(String entityId) {
+    //IManageLink__c link = [SELECT ClientId__c, MatterId__c FROM IManageLink__c WHERE EntityId__c = :entityId];
+    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
+      entityId
+    );
     iManageProvider.IManageApiDataResponse apiData = GetApiData();
     DialogTokenResult result = GetDialogToken(apiData);
-    SearchResult searchResult = SearchFolderId(clientId, matterId, apiData);
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+    SearchResult searchResult = SearchFolderId(
+      link.ClientId,
+      link.MatterId,
+      apiData,
+      mc
+    );
     return mc.Url__c +
       '/work/partner-apps/' +
       EncodingUtil.urlEncode(mc.Client_Id__c, 'UTF-8') +
