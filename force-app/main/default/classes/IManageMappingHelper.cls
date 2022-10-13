@@ -19,6 +19,73 @@ public with sharing class IManageMappingHelper {
     return items.size() == 1 ? items[0] : null;
   }
 
+  private static String GetSObjectType(String entityId) {
+    return Id.valueOf(entityId).getSObjectType().getDescribe().getName();
+  }
+
+  public static IManageMappingHelper.IManageIFrameData getMappingData(
+    String entityId
+  ) {
+    String entityIdSObjName = GetSObjectType(entityId);
+    List<IManageMapping__c> items = [
+      SELECT
+        Id,
+        EntityType__c,
+        MatterIdField__c,
+        EntityMatterIdObjectField__c,
+        ClientIdField__c,
+        EntityClientIdObjectField__c
+      FROM IManageMapping__c
+      WHERE EntityType__c = :entityIdSObjName
+    ];
+    if (items.size() > 1) {
+      throw new IManageMappingHelper.ManageMappingException(
+        'An IManageMapping__c must not contain more than 1 record'
+      );
+    }
+    IManageMapping__c item = items[0];
+
+    SObject record = Database.query(
+      'SELECT ' +
+      item.EntityClientIdObjectField__c +
+      ', ' +
+      item.EntityMatterIdObjectField__c +
+      ' FROM ' +
+      entityIdSObjName +
+      ' WHERE Id = :entityId'
+    );
+
+    IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
+
+    result.ClientId = GetDataFromObject(
+      (String) record.get(item.EntityClientIdObjectField__c),
+      item.ClientIdField__c
+    );
+    if (item.EntityMatterIdObjectField__c == entityIdSObjName)
+      result.MatterId = GetDataFromObject(entityId, item.MatterIdField__c);
+    else
+      result.MatterId = GetDataFromObject(
+        (String) record.get(item.EntityMatterIdObjectField__c),
+        item.MatterIdField__c
+      );
+
+    return result;
+  }
+
+  private static String GetDataFromObject(String entityId, String fieldId) {
+    String sObjName = GetSObjectType(entityId);
+
+    SObject record = Database.query(
+      'SELECT ' +
+      fieldId +
+      ' FROM ' +
+      sObjName +
+      ' WHERE Id = :entityId'
+    );
+
+    return (String) record.get(fieldId);
+  }
+
   @AuraEnabled
   public static List<IManageMappingHelper.GetFieldResult> getFields(
     String objectName,
@@ -106,5 +173,10 @@ public with sharing class IManageMappingHelper {
     public String getFieldType() {
       return fieldType;
     }
+  }
+
+  public class IManageIFrameData {
+    public String ClientId;
+    public String MatterId;
   }
 }
