@@ -5,6 +5,7 @@
         <members>iManageIFrameDialog</members>
         <members>iManageIFrameDialogTests</members>
         <members>IManageMappingHelper</members>
+        <members>IManageMappingHelperTests</members>
         <name>ApexClass</name>
     </types>
     <types>

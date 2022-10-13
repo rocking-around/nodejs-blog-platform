@@ -45,11 +45,22 @@ public with sharing class IManageMappingHelper {
     }
     IManageMapping__c item = items[0];
 
+    Set<String> recordFields = new Set<String>();
+    if (entityIdSObjName.equals(item.EntityClientIdObjectField__c)) {
+      recordFields.add(item.ClientIdField__c);
+    } else {
+      recordFields.add(item.EntityClientIdObjectField__c);
+    }
+
+    if (entityIdSObjName.equals(item.EntityMatterIdObjectField__c)) {
+      recordFields.add(item.MatterIdField__c);
+    } else {
+      recordFields.add(item.EntityMatterIdObjectField__c);
+    }
+
     SObject record = Database.query(
       'SELECT ' +
-      item.EntityClientIdObjectField__c +
-      ', ' +
-      item.EntityMatterIdObjectField__c +
+      String.join(new List<String>(recordFields), ', ') +
       ' FROM ' +
       entityIdSObjName +
       ' WHERE Id = :entityId'
@@ -57,17 +68,23 @@ public with sharing class IManageMappingHelper {
 
     IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
 
-    result.ClientId = GetDataFromObject(
-      (String) record.get(item.EntityClientIdObjectField__c),
-      item.ClientIdField__c
-    );
-    if (item.EntityMatterIdObjectField__c == entityIdSObjName)
+    if (item.EntityClientIdObjectField__c == entityIdSObjName) {
+      result.ClientId = GetDataFromObject(entityId, item.ClientIdField__c);
+    } else {
+      result.ClientId = GetDataFromObject(
+        (String) record.get(item.EntityClientIdObjectField__c),
+        item.ClientIdField__c
+      );
+    }
+
+    if (item.EntityMatterIdObjectField__c == entityIdSObjName) {
       result.MatterId = GetDataFromObject(entityId, item.MatterIdField__c);
-    else
+    } else {
       result.MatterId = GetDataFromObject(
         (String) record.get(item.EntityMatterIdObjectField__c),
         item.MatterIdField__c
       );
+    }
 
     return result;
   }
