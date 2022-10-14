@@ -7,14 +7,6 @@
       ></lightning-spinner>
     </div>
   </template>
-  <template if:true={isSaving}>
-    <div class="spinnerContainer">
-      <lightning-spinner
-        alternative-text="Loading"
-        size="medium"
-      ></lightning-spinner>
-    </div>
-  </template>
   <template if:false={loading}>
     <lightning-card title="iManage Mapping">
       <!-- <div>
@@ -25,51 +17,58 @@
                     </template>
                 </datalist>
             </div> -->
-      <div>
-        <lightning-combobox
-          name="matter-id-object"
-          label="Matter Id Object"
-          value={iManageMappingEdit.EntityMatterIdObjectField__c}
-          placeholder="Select"
-          options={matterIdObjectOptions}
-          onchange={onMatterIdObjectChanged}
-          required
-        ></lightning-combobox>
-
-        <lightning-combobox
-          name="matter-id-object-field"
-          label="Matter Id Field"
-          value={iManageMappingEdit.MatterIdField__c}
-          placeholder="Select"
-          options={matterIdObjectFieldOptions}
-          onchange={onMatterIdObjectFieldChanged}
-          required
-        ></lightning-combobox>
-      </div>
-      <div>
+      <div class="imanage-mapping-container">
         <lightning-combobox
           name="client-id-object"
-          label="Client Id Object"
-          value={iManageMappingEdit.EntityClientIdObjectField__c}
+          label="Salesforce Client Id Object"
+          value={iManageMapping.EntityClientIdObjectField__c}
           placeholder="Select"
           options={clientIdObjectOptions}
           onchange={onClientIdObjectChanged}
+          dropdown-alignment="auto"
           required
         ></lightning-combobox>
 
         <lightning-combobox
           name="client-id-object-field"
-          label="Client Id Field"
-          value={iManageMappingEdit.ClientIdField__c}
+          label="Salesforce Client Id Field"
+          value={iManageMapping.ClientIdField__c}
           placeholder="Select"
           options={clientIdObjectFieldOptions}
           onchange={onClientIdObjectFieldChanged}
+          dropdown-alignment="auto"
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="matter-id-object"
+          label="Salesforce Matter Id Object"
+          value={iManageMapping.EntityMatterIdObjectField__c}
+          placeholder="Select"
+          options={matterIdObjectOptions}
+          onchange={onMatterIdObjectChanged}
+          dropdown-alignment="auto"
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
+          name="matter-id-object-field"
+          label="Salesforce Matter Id Field"
+          value={iManageMapping.MatterIdField__c}
+          placeholder="Select"
+          options={matterIdObjectFieldOptions}
+          onchange={onMatterIdObjectFieldChanged}
+          dropdown-alignment="auto"
           required
         ></lightning-combobox>
       </div>
       <div slot="actions">
-        <lightning-button label="Save" onclick={save} disabled={isSaving}>
-        </lightning-button>
+        <lightning-button
+          label="Save"
+          onclick={save}
+          disabled={isSaving}
+          class="imanage-save-button"
+        ></lightning-button>
         <lightning-button label="Cancel" onclick={cancel}> </lightning-button>
       </div>
     </lightning-card>

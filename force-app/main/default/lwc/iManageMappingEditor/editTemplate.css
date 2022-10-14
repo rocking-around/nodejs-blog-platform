@@ -11,4 +11,9 @@
 
 .imanage-mapping-container {
   margin: 20px;
+  overflow: visible;
+}
+
+.imanage-save-button {
+  margin-right: 10px;
 }

@@ -9,34 +9,34 @@
   </template>
   <template if:false={loading}>
     <lightning-card title="iManage Mapping">
-      <div>
+      <div class="imanage-mapping-container">
         <template if:true={iManageMapping}>
           <!-- <lightning-combobox name="matter-id-object" label="Matter Id Object"
                         value={iManageMapping.EntityMatterIdObjectField__c} placeholder="Select" disabled="true">
                     </lightning-combobox> -->
           <lightning-input
             type="text"
-            label="Matter Id Object"
-            disabled="true"
-            value={matterIdObject}
-          ></lightning-input>
-          <lightning-input
-            type="text"
-            label="Matter Id Field"
-            disabled="true"
-            value={matterIdField}
-          ></lightning-input>
-          <lightning-input
-            type="text"
-            label="Client Id Object"
+            label="Salesforce Client Id Object"
             disabled="true"
             value={clientIdObject}
           ></lightning-input>
           <lightning-input
             type="text"
-            label="Client Id Field"
+            label="Salesforce Client Id Field"
             disabled="true"
             value={clientIdField}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Salesforce Matter Id Object"
+            disabled="true"
+            value={matterIdObject}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Salesforce Matter Id Field"
+            disabled="true"
+            value={matterIdField}
           ></lightning-input>
         </template>
       </div>
