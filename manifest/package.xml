@@ -9,6 +9,9 @@
         <members>iManageProviderTests</members>
         <members>iManageProviderMockRefreshCallout</members>
         <members>iManageProviderMockUserInfoCallout</members>
+        <members>IManageBaseHelper</members>
+        <members>IManageExceptions</members>
+        <members>EchoHttpMock</members>
         <name>ApexClass</name>
     </types>
     <types>

@@ -8,8 +8,9 @@ public class iManageIFrameDialog {
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
+    if(res.getStatusCode() == 401)
+      throw new IManageExceptions.IManageUnauthorizedException();
     String responseBody = res.getBody();
-    system.debug(responseBody);
 
     return (iManageProvider.IManageApiDataResponse) JSON.deserialize(
       responseBody,
@@ -17,7 +18,7 @@ public class iManageIFrameDialog {
     );
   }
 
-  public static DialogTokenResult GetDialogToken(
+  private static DialogTokenResult GetDialogToken(
     iManageProvider.IManageApiDataResponse apiData
   ) {
     HttpRequest req = new HttpRequest();
@@ -32,6 +33,9 @@ public class iManageIFrameDialog {
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
+    if(res.getStatusCode() == 401)
+      throw new IManageExceptions.IManageUnauthorizedException();
+      
     String responseBody = res.getBody();
     return (DialogTokenResult) JSON.deserialize(
       responseBody,
@@ -45,7 +49,7 @@ public class iManageIFrameDialog {
     iManageProvider.IManageApiDataResponse apiData,
     iManageSettings__c mc
   ) {
-    //iManageProvider.IManageApiDataResponse apiData = GetApiData();
+
     HttpRequest req = new HttpRequest();
     req.setEndpoint(
       'callout:iManageCreds/work/api/v2/customers/' +
@@ -69,37 +73,71 @@ public class iManageIFrameDialog {
       '": "' +
       matterId +
       '" }}';
-    System.debug(body);
+      
     req.setBody(body);
+
     Http http = new Http();
     HTTPResponse res = http.send(req);
+    if(res.getStatusCode() == 401)
+      throw new IManageExceptions.IManageUnauthorizedException();
+
     String responseBody = res.getBody();
-    system.debug(responseBody);
     return (SearchResult) JSON.deserialize(responseBody, SearchResult.class);
   }
 
   @AuraEnabled
-  public static String GetIFrameFolder(String entityId) {
-    //IManageLink__c link = [SELECT ClientId__c, MatterId__c FROM IManageLink__c WHERE EntityId__c = :entityId];
-    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
-      entityId
-    );
-    iManageProvider.IManageApiDataResponse apiData = GetApiData();
-    DialogTokenResult result = GetDialogToken(apiData);
-    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-    SearchResult searchResult = SearchFolderId(
-      link.ClientId,
-      link.MatterId,
-      apiData,
-      mc
-    );
-    return mc.Url__c +
+  public static IManageBaseResponse GetIFrameFolder(String entityId) {
+    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(entityId);
+    if(link.ClientId == null || link.MatterId == null)
+      return IManageBaseResponse.BuildError(
+        IManageBaseHelper.IManageErrors.EMPTY_CLIENT_OR_MATTER.name(),
+        'Settings should contains mapping data for the iManage Client and iManage Matter fields.'
+      );
+    try {
+      iManageProvider.IManageApiDataResponse apiData = GetApiData();
+      DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+      
+      if(mc == null)
+        return IManageBaseResponse.BuildError(
+          IManageBaseHelper.IManageErrors.EMPTY_CUSTOM_RESOURCE.name(),
+          'Missed required Custom Settings: iManageSettings.'
+        );
+
+      SearchResult searchResult = SearchFolderId(
+        link.ClientId,
+        link.MatterId,
+        apiData,
+        mc
+      );
+
+      String dialogUrl = mc.Url__c +
       '/work/partner-apps/' +
       EncodingUtil.urlEncode(mc.Client_Id__c, 'UTF-8') +
       '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
-      EncodingUtil.urlEncode(result.data.dialog_token, 'UTF-8') +
-      '&mode=emm&multiselect=false&start=' +
-      EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
+      EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
+      '&mode=emm&multiselect=false';
+
+      if(searchResult == null || searchResult.data == null ||
+          searchResult.data.size() == 0 || searchResult.data[0].id == null) {
+          IManageBaseResponse result = IManageBaseResponse.BuildError(
+            IManageBaseHelper.IManageErrors.FOLDER_NOT_FOUND.name(),
+            'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+          );
+          result.Data = dialogUrl;
+      }
+
+      IManageBaseResponse result = new IManageBaseResponse();
+      result.Data = dialogUrl + '&start=' + EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
+
+      return result;
+    }
+    catch(IManageExceptions.IManageUnauthorizedException ex) {
+      return IManageBaseResponse.BuildError(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
+        'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+      );
+    }
   }
 
   public class DialogTokenResult {

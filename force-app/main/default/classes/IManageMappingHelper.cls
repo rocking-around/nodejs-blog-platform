@@ -12,7 +12,7 @@ public with sharing class IManageMappingHelper {
       FROM IManageMapping__c
     ];
     if (items.size() > 1) {
-      throw new IManageMappingHelper.ManageMappingException(
+      throw new IManageExceptions.ManageMappingException(
         'An IManageMapping__c must not contain more than 1 record'
       );
     }
@@ -39,7 +39,7 @@ public with sharing class IManageMappingHelper {
       WHERE EntityType__c = :entityIdSObjName
     ];
     if (items.size() > 1) {
-      throw new IManageMappingHelper.ManageMappingException(
+      throw new IManageExceptions.ManageMappingException(
         'An IManageMapping__c must not contain more than 1 record'
       );
     }
@@ -149,9 +149,6 @@ public with sharing class IManageMappingHelper {
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
-  }
-
-  public class ManageMappingException extends Exception {
   }
 
   public class GetFieldResult {

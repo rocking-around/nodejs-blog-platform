@@ -53,7 +53,7 @@ private class IManageMappingHelperTests {
       IManageMapping__c mapping = IManageMappingHelper.getMapping();
     } catch (Exception ex) {
       System.assert(
-        ex instanceof IManageMappingHelper.ManageMappingException,
+        ex instanceof IManageExceptions.ManageMappingException,
         'Exception is not a ManageMappingException'
       );
       System.assertEquals(
@@ -197,7 +197,7 @@ private class IManageMappingHelperTests {
       );
     } catch (Exception ex) {
       System.assert(
-        ex instanceof IManageMappingHelper.ManageMappingException,
+        ex instanceof IManageExceptions.ManageMappingException,
         'Exception is not a ManageMappingException'
       );
       System.assertEquals(

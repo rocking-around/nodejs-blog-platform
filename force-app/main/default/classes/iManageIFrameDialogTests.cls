@@ -70,7 +70,7 @@ private class iManageIFrameDialogTests {
 
     Test.startTest();
 
-    String result = iManageIFrameDialog.GetIFrameFolder(matter.Id);
+    IManageBaseResponse result = iManageIFrameDialog.GetIFrameFolder(matter.Id);
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     String expectedResult =
       mc.Url__c +
@@ -84,7 +84,7 @@ private class iManageIFrameDialogTests {
     Test.stopTest();
 
     System.assert(
-      result == expectedResult,
+      result.Data == expectedResult,
       'The iFrame folder has wrong value'
     );
   }
