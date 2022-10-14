@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>imanage_message_codes_empty_client_or_matter</fullName>
+        <categories>iManage</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription
+    >imanage_message_codes__empty_client_or_matter</shortDescription>
+        <value>Empty Client or Matter</value>
+    </labels>
+    <labels>
+        <fullName>imanage_message_codes_empty_custom_resource</fullName>
+        <categories>iManage</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription
+    >imanage_message_codes_empty_custom_resource</shortDescription>
+        <value>Empty Custom Resource</value>
+    </labels>
+    <labels>
+        <fullName>imanage_message_codes_folder_not_found</fullName>
+        <categories>iManage</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription
+    >imanage_message_codes_folder_not_found</shortDescription>
+        <value>Folder not found</value>
+    </labels>
+    <labels>
+        <fullName>imanage_message_codes_unauthorized</fullName>
+        <categories>iManage</categories>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>imanage_message_codes_unauthorized</shortDescription>
+        <value>Unauthorized</value>
+    </labels>
+</CustomLabels>
