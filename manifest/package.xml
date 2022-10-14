@@ -6,6 +6,9 @@
         <members>iManageIFrameDialogTests</members>
         <members>IManageMappingHelper</members>
         <members>IManageMappingHelperTests</members>
+        <members>iManageProviderTests</members>
+        <members>iManageProviderMockRefreshCallout</members>
+        <members>iManageProviderMockUserInfoCallout</members>
         <name>ApexClass</name>
     </types>
     <types>

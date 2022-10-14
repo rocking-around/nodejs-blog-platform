@@ -55,7 +55,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     String sfdcState = queryParams.get('state');
 
     HttpRequest req = new HttpRequest();
-    req.setEndpoint(accessTokenURL);
+    req.setEndpoint(accessTokenUrl);
     req.setHeader('content-type', 'application/x-www-form-urlencoded');
     req.setMethod('POST');
     req.setBody(
@@ -144,13 +144,13 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     String refreshToken
   ) {
     clientId = authProviderConfiguration.get('Consumer_Key__c');
-    clientSecret = authProviderConfiguration.get('Consumer_Secret__c	');
+    clientSecret = authProviderConfiguration.get('Consumer_Secret__c');
     scope = authProviderConfiguration.get('Scope__c');
     redirectUri = authProviderConfiguration.get('Redirect_URI__c');
     accessTokenUrl = authProviderConfiguration.get('Token_Endpoint_URL__c');
 
     HttpRequest req = new HttpRequest();
-    req.setEndpoint(accessTokenURL);
+    req.setEndpoint(accessTokenUrl);
     req.setHeader('content-type', 'application/x-www-form-urlencoded');
     req.setMethod('POST');
     req.setBody(
