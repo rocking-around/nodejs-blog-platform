@@ -8,8 +8,8 @@
       ></lightning-spinner>
     </div>
   </template>
-  <template if:true={error}>
-    <p class="error">{error}</p>
+  <template if:true={errorMessage}>
+    <p class="error">{errorMessage}</p>
   </template>
   <template if:true={showIFrame}>
     <iframe
