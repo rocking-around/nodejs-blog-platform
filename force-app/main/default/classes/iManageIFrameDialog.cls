@@ -91,7 +91,7 @@ public class iManageIFrameDialog {
     if(link.ClientId == null || link.MatterId == null)
       return IManageBaseResponse.BuildError(
         IManageBaseHelper.IManageErrors.EMPTY_CLIENT_OR_MATTER.name(),
-        'Settings should contains mapping data for the iManage Client and iManage Matter fields.'
+        'Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.'
       );
     try {
       iManageProvider.IManageApiDataResponse apiData = GetApiData();

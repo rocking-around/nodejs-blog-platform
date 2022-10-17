@@ -1,5 +1,8 @@
 public class IManageBaseResponse {
+    @AuraEnabled
     public String Data;
+
+    @AuraEnabled
     public IManageBaseHelper.IManageError Error; 
 
     public static IManageBaseResponse BuildError(

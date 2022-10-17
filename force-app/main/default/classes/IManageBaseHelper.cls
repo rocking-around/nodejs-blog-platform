@@ -1,6 +1,10 @@
 public with sharing class IManageBaseHelper {
+
     public class IManageError {
+        @AuraEnabled
         public String Code;
+        
+        @AuraEnabled
         public String ErrorMessage;
     }
 
