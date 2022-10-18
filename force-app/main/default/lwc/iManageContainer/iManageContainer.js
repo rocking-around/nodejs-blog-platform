@@ -35,7 +35,7 @@ export default class IManageContainer extends LightningElement {
         if (resp.Error != null && resp.Error.ErrorMessage != null) {
           this.error = {
             code: resp.Error.Code,
-            mesage: resp.Error.ErrorMessage
+            message: resp.Error.ErrorMessage
           };
         } else this._iManageUrl = resp.Data;
       })

@@ -1,7 +1,29 @@
 import { createElement } from "lwc";
 import IManageContainer from "c/iManageContainer";
-import { getRecord } from "lightning/uiRecordApi";
-const mockGetOpportunityRecord = require("./data/getOpportunityRecord.json");
+import GetIFrameFolder from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolder";
+import messageEmptyClientOrMatter from "@salesforce/label/c.imanage_message_codes_empty_client_or_matter";
+
+// Mocking imperative Apex method call
+jest.mock(
+  "@salesforce/apex/iManageIFrameDialog.GetIFrameFolder",
+  () => {
+    return {
+      default: jest.fn()
+    };
+  },
+  { virtual: true }
+);
+
+const APEX_GetIFrameFolder_ERROR = {
+  Error: {
+    Code: "EMPTY_CLIENT_OR_MATTER",
+    ErrorMessage: "foo"
+  }
+};
+
+const APEX_GetIFrameFolder_SUCCESS = {
+  Data: "https://imanage.test"
+};
 
 describe("c-i-manage-container", () => {
   afterEach(() => {
@@ -9,50 +31,61 @@ describe("c-i-manage-container", () => {
     while (document.body.firstChild) {
       document.body.removeChild(document.body.firstChild);
     }
+    // Prevent data saved on mocks from leaking between tests
+    jest.clearAllMocks();
   });
 
-  it("iFrame shoul be visible", () => {
-    // Arrange
+  async function flushPromises() {
+    return Promise.resolve();
+  }
+
+  it("iFrame shoul be visible", async () => {
+    GetIFrameFolder.mockResolvedValue(APEX_GetIFrameFolder_SUCCESS);
+
     const element = createElement("c-i-manage-container", {
       is: IManageContainer
     });
 
-    element.url = "http://host.com?m={matterId}";
-    element.opportunity = {
-      fields: {
-        iManageMatter__c: {
-          value: "IM-TEST-01"
-        }
-      }
-    };
-    // Act
     document.body.appendChild(element);
 
-    // Emit mock record into the wired field
-    getRecord.emit(mockGetOpportunityRecord);
+    element.recordId = "test";
 
-    // Resolve a promise to wait for a rerender of the new content.
-    return Promise.resolve().then(() => {
-      const iFrame = element.shadowRoot.querySelector("iframe");
-      expect(iFrame).not.toBeNull();
-    });
+    await flushPromises();
+    const iFrame = element.shadowRoot.querySelector("iframe");
+    expect(iFrame).not.toBeNull();
   });
 
-  it("iFrame shoul be invisible", () => {
-    // Arrange
+  it("iFrame shoul be invisible", async () => {
+    GetIFrameFolder.mockResolvedValue(APEX_GetIFrameFolder_ERROR);
+
     const element = createElement("c-i-manage-container", {
       is: IManageContainer
     });
 
-    element.url = "http://host.com?m={matterId}";
-
-    // Act
     document.body.appendChild(element);
 
-    // Resolve a promise to wait for a rerender of the new content.
-    return Promise.resolve().then(() => {
-      const iFrame = element.shadowRoot.querySelector("iframe");
-      expect(iFrame).toBeNull();
+    element.recordId = "test";
+
+    await flushPromises();
+    const iFrame = element.shadowRoot.querySelector("iframe");
+    expect(iFrame).toBeNull();
+  });
+
+  it("Error by code", async () => {
+    GetIFrameFolder.mockResolvedValue(APEX_GetIFrameFolder_ERROR);
+
+    const element = createElement("c-i-manage-container", {
+      is: IManageContainer
     });
+
+    document.body.appendChild(element);
+
+    element.recordId = "test";
+
+    // Wait for any asynchronous DOM updates
+    await flushPromises();
+
+    const errElm = element.shadowRoot.querySelector(".error");
+    expect(errElm.textContent).toBe(messageEmptyClientOrMatter);
   });
 });
