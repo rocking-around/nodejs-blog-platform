@@ -6,7 +6,7 @@ import editTemplate from "./editTemplate.html";
 import viewTemplate from "./viewTemplate.html";
 
 export default class IManageMappingEditor extends LightningElement {
-  loading = true;
+  isLoading = true;
   isSaving = false;
   initialized = false;
 
@@ -21,7 +21,8 @@ export default class IManageMappingEditor extends LightningElement {
   @track iManageMapping;
 
   @track isEdit = false;
-  @api recordId;
+  _recordId;
+  _objectApiName;
   @track entityId;
 
   matterIdObjectOptionsExt;
@@ -38,10 +39,35 @@ export default class IManageMappingEditor extends LightningElement {
     referenceTo: ["litify_pm__Matter__c"]
   };
 
-  //[SELECT Id, EntityType__c, MatterIdField__c, EntityMatterIdObjectField__c, ClientIdField__c, EntityClientIdObjectField__c FROM IManageMapping__c]
+  @api set recordId(value) {
+    this._recordId = value;
+    console.log(`IManageMappingEditor. Set recordId: ${this._recordId}`);
+  }
+  get recordId() {
+    return this._recordId;
+  }
+  @api set objectApiName(value) {
+    if (value !== this._objectApiName) {
+      this._objectApiName = value;
+      console.log(`IManageMappingEditor. Set objectApiName: ${this._objectApiName}`);
+      this.initComponent();
+    }
+  }
+  get objectApiName() {
+    return this._objectApiName;
+  }
 
   connectedCallback() {
     console.log("*********** IManageMappingEditor. connectedCallback:");
+    this.initComponent();
+  }
+
+  render() {
+    return this.isEdit ? editTemplate : viewTemplate;
+  }
+
+  initComponent() {
+    console.log("*********** IManageMappingEditor. initComponent:");
     if (!this.isEdit) {
       this.getIManageMapping();
     } else {
@@ -51,20 +77,8 @@ export default class IManageMappingEditor extends LightningElement {
     }
   }
 
-  render() {
-    return this.isEdit ? editTemplate : viewTemplate;
-  }
-
-  renderedCallback() {
-    // if (this.initialized) {
-    //     return;
-    // }
-    // let matterIdOptions = this.template.querySelector('datalist.matter-id-options');
-    // if (matterIdOptions) {
-    //     let listId = matterIdOptions.id;
-    //     this.template.querySelector("input.matter-id-input").setAttribute("list", listId);
-    //     this.initialized = true;
-    // }
+  get loading() {
+    return this.isLoading || !this.objectApiName;
   }
 
   get matterIdObject() {
@@ -96,7 +110,10 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   getIManageMapping() {
-    getMapping()
+    if (!this.objectApiName) {
+      return;
+    }
+    getMapping({objectApiName: this.objectApiName})
       .then((resp) => {
         console.log(
           "*********** IManageMappingEditor. getIManageMapping:",
@@ -115,7 +132,7 @@ export default class IManageMappingEditor extends LightningElement {
         console.error(err);
       })
       .finally(() => {
-        this.loading = false;
+        this.isLoading = false;
       });
   }
 
@@ -168,24 +185,6 @@ export default class IManageMappingEditor extends LightningElement {
           resolve();
         })
         .catch((error) => reject(error));
-
-      /*this.loadIdObjectOptions('matterIdObjectOptions', this.defaultIManageMapping.EntityType__c)
-                .then(resp => {
-                    if (resp) {
-                        let objType = resp.find(x => x.fieldName === entityMatterIdObjectField);
-                        if (objType && objType.referenceTo) {
-                            this.loadIdObjFieldOptions('matterIdObjectFieldOptions', objType.referenceTo[0]);
-                        }
-                    }
-                });
-            this.loadIdObjectOptions('clientIdObjectOptions', this.defaultIManageMapping.EntityType__c).then(resp => {
-                if (resp) {
-                    let objType = resp.find(x => x.fieldName === entityClientIdObjectField);
-                    if (objType && objType.referenceTo) {
-                        this.loadIdObjFieldOptions('clientIdObjectFieldOptions', objType.referenceTo[0]);
-                    }
-                }
-            });*/
     });
   }
 
@@ -246,7 +245,6 @@ export default class IManageMappingEditor extends LightningElement {
           reject();
         })
         .finally(() => {
-          //this.loading = false;
         });
     });
   }
@@ -276,7 +274,6 @@ export default class IManageMappingEditor extends LightningElement {
         console.error(err);
       })
       .finally(() => {
-        //this.loading = false;
       });
   }
 

@@ -42,29 +42,21 @@ private class iManageIFrameDialogTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
-    // Create Account
-    Account acc = new Account();
-    acc.Name = 'Test Account';
-    acc.litify_pm__Last_Name__c = 'Test LastName';
-    acc.litify_pm__First_Name__c = 'Test FirstName';
-    acc.iManage_Client_Id__c = '100';
-    insert acc;
-
-    //Create Matter
-    litify_pm__Matter__c matter = new litify_pm__Matter__c(
-      RecordTypeId = '0124x000000jwVeAAI',
-      litify_pm__Client__c = acc.Id,
-      iManage_Matter_Id__c = '10'
+    //Create Opportunity
+    Opportunity matter = new Opportunity(
+      StageName = '100',
+      Name = '10',
+      CloseDate = date.parse('10/31/2022')
     );
     insert matter;
 
     //Create Mapping
     IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'litify_pm__Matter__c',
-      EntityMatterIdObjectField__c = 'litify_pm__Matter__c',
-      MatterIdField__c = 'iManage_Matter_Id__c',
-      EntityClientIdObjectField__c = 'litify_pm__Client__c',
-      ClientIdField__c = 'iManage_Client_Id__c'
+      EntityType__c = 'Opportunity',
+      EntityMatterIdObjectField__c = 'Opportunity',
+      MatterIdField__c = 'Name',
+      EntityClientIdObjectField__c = 'Opportunity',
+      ClientIdField__c = 'StageName'
     );
     insert mapping;
 

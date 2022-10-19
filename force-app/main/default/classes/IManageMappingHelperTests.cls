@@ -13,7 +13,7 @@ private class IManageMappingHelperTests {
     insert testData;
 
     Test.startTest();
-    IManageMapping__c mapping = IManageMappingHelper.getMapping();
+    IManageMapping__c mapping = IManageMappingHelper.getMapping('Opportunity');
     Test.stopTest();
 
     System.assert(
@@ -50,7 +50,7 @@ private class IManageMappingHelperTests {
 
     Test.startTest();
     try {
-      IManageMapping__c mapping = IManageMappingHelper.getMapping();
+      IManageMapping__c mapping = IManageMappingHelper.getMapping('Opportunity');
     } catch (Exception ex) {
       System.assert(
         ex instanceof IManageExceptions.ManageMappingException,
@@ -67,17 +67,10 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getMappingDataTest() {
-    // Create Account
-    Account acc = new Account();
-    acc.Name = 'Test Account';
-    acc.litify_pm__Last_Name__c = 'Test LastName';
-    acc.litify_pm__First_Name__c = 'Test FirstName';
-    insert acc;
-
-    // Create Oppirtunity
+      
+    // Create Opportunity
     Opportunity opp = new Opportunity();
     opp.Name = 'Test Opportunity';
-    opp.Accountid = acc.id;
     opp.Closedate = System.today();
     opp.StageName = 'Prospecting';
     insert opp;
@@ -87,8 +80,8 @@ private class IManageMappingHelperTests {
       EntityType__c = 'Opportunity',
       EntityMatterIdObjectField__c = 'Opportunity',
       MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'AccountId',
-      ClientIdField__c = 'Id'
+      EntityClientIdObjectField__c = 'Opportunity',
+      ClientIdField__c = 'StageName'
     );
     insert mapping;
 
@@ -105,24 +98,16 @@ private class IManageMappingHelperTests {
     );
     System.assertEquals(
       result.ClientId,
-      String.valueOf(acc.Id),
+      String.valueOf(opp.StageName),
       'A ClientId has wrong value'
     );
   }
 
   @isTest
   static void getMappingDataTest2() {
-    // Create Account
-    Account acc = new Account();
-    acc.Name = 'Test Account';
-    acc.litify_pm__Last_Name__c = 'Test LastName';
-    acc.litify_pm__First_Name__c = 'Test FirstName';
-    insert acc;
-
-    // Create Oppirtunity
+    // Create Opportunity
     Opportunity opp = new Opportunity();
     opp.Name = 'Test Opportunity';
-    opp.Accountid = acc.id;
     opp.Closedate = System.today();
     opp.StageName = 'Prospecting';
     insert opp;
@@ -130,8 +115,8 @@ private class IManageMappingHelperTests {
     // Create mapping
     IManageMapping__c mapping = new IManageMapping__c(
       EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'AccountId',
-      MatterIdField__c = 'Id',
+      EntityMatterIdObjectField__c = 'Opportunity',
+      MatterIdField__c = 'StageName',
       EntityClientIdObjectField__c = 'Opportunity',
       ClientIdField__c = 'Id'
     );
@@ -145,7 +130,7 @@ private class IManageMappingHelperTests {
 
     // validations
     System.assert(
-      result.MatterId == String.valueOf(acc.Id),
+      result.MatterId == String.valueOf(opp.StageName),
       'A MatterId has wrong value'
     );
     System.assertEquals(
@@ -156,22 +141,7 @@ private class IManageMappingHelperTests {
   }
 
   @isTest
-  static void getMappingDataTestMoreThenOneMapping() {
-    // Create Account
-    Account acc = new Account();
-    acc.Name = 'Test Account';
-    acc.litify_pm__Last_Name__c = 'Test LastName';
-    acc.litify_pm__First_Name__c = 'Test FirstName';
-    insert acc;
-
-    // Create Oppirtunity
-    Opportunity opp = new Opportunity();
-    opp.Name = 'Test Opportunity';
-    opp.Accountid = acc.id;
-    opp.Closedate = System.today();
-    opp.StageName = 'Prospecting';
-    insert opp;
-
+  static void insertTwoMappingsWithTheSameEntityTypeTest() {
     // Create mappings
     IManageMapping__c mapping1 = new IManageMapping__c(
       EntityType__c = 'Opportunity',
@@ -182,27 +152,23 @@ private class IManageMappingHelperTests {
     );
     insert mapping1;
 
-    IManageMapping__c mapping2 = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'AccountId',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'Opportunity',
-      ClientIdField__c = 'Id'
-    );
-    insert mapping2;
     Test.startTest();
     try {
-      IManageMappingHelper.IManageIFrameData result = IManageMappingHelper.getMappingData(
-        opp.Id
+      IManageMapping__c mapping2 = new IManageMapping__c(
+        EntityType__c = 'Opportunity',
+        EntityMatterIdObjectField__c = 'AccountId',
+        MatterIdField__c = 'Id',
+        EntityClientIdObjectField__c = 'Opportunity',
+        ClientIdField__c = 'Id'
       );
+      insert mapping2;
     } catch (Exception ex) {
       System.assert(
-        ex instanceof IManageExceptions.ManageMappingException,
-        'Exception is not a ManageMappingException'
+        ex instanceof System.DmlException,
+        'Exception is not a System.DmlException'
       );
-      System.assertEquals(
-        ex.getMessage(),
-        'An IManageMapping__c must not contain more than 1 record',
+      System.assert(
+        ex.getMessage().contains('DUPLICATE_VALUE'),
         'Wrong exception message'
       );
     }

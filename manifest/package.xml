@@ -13,6 +13,8 @@
         <members>IManageBaseResponse</members>
         <members>IManageExceptions</members>
         <members>EchoHttpMock</members>
+        <members>DescribePackageCustomLabels</members>
+        <members>DescribePackageCustomLabelsTest</members>
         <name>ApexClass</name>
     </types>
     <types>
