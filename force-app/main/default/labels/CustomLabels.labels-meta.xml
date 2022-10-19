@@ -7,7 +7,8 @@
         <protected>false</protected>
         <shortDescription
     >imanage_message_codes__empty_client_or_matter</shortDescription>
-        <value>Empty Client or Matter</value>
+        <value
+    >Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_empty_custom_resource</fullName>
@@ -16,7 +17,7 @@
         <protected>false</protected>
         <shortDescription
     >imanage_message_codes_empty_custom_resource</shortDescription>
-        <value>Empty Custom Resource</value>
+        <value>Missed required Custom Settings: iManageSettings</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_folder_not_found</fullName>
@@ -25,7 +26,8 @@
         <protected>false</protected>
         <shortDescription
     >imanage_message_codes_folder_not_found</shortDescription>
-        <value>Folder not found</value>
+        <value
+    >Folder not found. The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_unauthorized</fullName>
@@ -33,6 +35,7 @@
         <language>en_US</language>
         <protected>false</protected>
         <shortDescription>imanage_message_codes_unauthorized</shortDescription>
-        <value>Unauthorized</value>
+        <value
+    >The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
 </CustomLabels>

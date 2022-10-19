@@ -1,6 +1,6 @@
 public with sharing class IManageMappingHelper {
   @AuraEnabled
-  public static IManageMapping__c getMapping() {
+  public static IManageMapping__c getMapping(String objectApiName) {
     List<IManageMapping__c> items = [
       SELECT
         Id,
@@ -10,6 +10,7 @@ public with sharing class IManageMappingHelper {
         ClientIdField__c,
         EntityClientIdObjectField__c
       FROM IManageMapping__c
+      WHERE EntityType__c = :objectApiName
     ];
     if (items.size() > 1) {
       throw new IManageExceptions.ManageMappingException(
@@ -42,6 +43,9 @@ public with sharing class IManageMappingHelper {
       throw new IManageExceptions.ManageMappingException(
         'An IManageMapping__c must not contain more than 1 record'
       );
+    }
+    if (items.size() == 0) {
+      return null;
     }
     IManageMapping__c item = items[0];
 

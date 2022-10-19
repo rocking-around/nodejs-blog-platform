@@ -8,7 +8,7 @@ public class iManageIFrameDialog {
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
-    if(res.getStatusCode() == 401)
+    if (res.getStatusCode() == 401)
       throw new IManageExceptions.IManageUnauthorizedException();
     String responseBody = res.getBody();
 
@@ -33,9 +33,9 @@ public class iManageIFrameDialog {
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
-    if(res.getStatusCode() == 401)
+    if (res.getStatusCode() == 401)
       throw new IManageExceptions.IManageUnauthorizedException();
-      
+
     String responseBody = res.getBody();
     return (DialogTokenResult) JSON.deserialize(
       responseBody,
@@ -49,7 +49,6 @@ public class iManageIFrameDialog {
     iManageProvider.IManageApiDataResponse apiData,
     iManageSettings__c mc
   ) {
-
     HttpRequest req = new HttpRequest();
     req.setEndpoint(
       'callout:iManageCreds/work/api/v2/customers/' +
@@ -73,12 +72,12 @@ public class iManageIFrameDialog {
       '": "' +
       matterId +
       '" }}';
-      
+
     req.setBody(body);
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
-    if(res.getStatusCode() == 401)
+    if (res.getStatusCode() == 401)
       throw new IManageExceptions.IManageUnauthorizedException();
 
     String responseBody = res.getBody();
@@ -87,8 +86,10 @@ public class iManageIFrameDialog {
 
   @AuraEnabled
   public static IManageBaseResponse GetIFrameFolder(String entityId) {
-    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(entityId);
-    if(link.ClientId == null || link.MatterId == null)
+    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
+      entityId
+    );
+    if (link == null || link.ClientId == null || link.MatterId == null)
       return IManageBaseResponse.BuildError(
         IManageBaseHelper.IManageErrors.EMPTY_CLIENT_OR_MATTER.name(),
         'Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.'
@@ -97,8 +98,8 @@ public class iManageIFrameDialog {
       iManageProvider.IManageApiDataResponse apiData = GetApiData();
       DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-      
-      if(mc == null)
+
+      if (mc == null)
         return IManageBaseResponse.BuildError(
           IManageBaseHelper.IManageErrors.EMPTY_CUSTOM_RESOURCE.name(),
           'Missed required Custom Settings: iManageSettings.'
@@ -111,28 +112,35 @@ public class iManageIFrameDialog {
         mc
       );
 
-      String dialogUrl = mc.Url__c +
-      '/work/partner-apps/' +
-      EncodingUtil.urlEncode(mc.Client_Id__c, 'UTF-8') +
-      '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
-      EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
-      '&mode=emm&multiselect=false';
+      String dialogUrl =
+        mc.Url__c +
+        '/work/partner-apps/' +
+        EncodingUtil.urlEncode(mc.Client_Id__c, 'UTF-8') +
+        '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+        EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
+        '&mode=emm&multiselect=false';
 
-      if(searchResult == null || searchResult.data == null ||
-          searchResult.data.size() == 0 || searchResult.data[0].id == null) {
-          IManageBaseResponse result = IManageBaseResponse.BuildError(
-            IManageBaseHelper.IManageErrors.FOLDER_NOT_FOUND.name(),
-            'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
-          );
-          result.Data = dialogUrl;
+      if (
+        searchResult == null ||
+        searchResult.data == null ||
+        searchResult.data.size() == 0 ||
+        searchResult.data[0].id == null
+      ) {
+        IManageBaseResponse result = IManageBaseResponse.BuildError(
+          IManageBaseHelper.IManageErrors.FOLDER_NOT_FOUND.name(),
+          'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+        );
+        result.Data = dialogUrl;
       }
 
       IManageBaseResponse result = new IManageBaseResponse();
-      result.Data = dialogUrl + '&start=' + EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
+      result.Data =
+        dialogUrl +
+        '&start=' +
+        EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
 
       return result;
-    }
-    catch(IManageExceptions.IManageUnauthorizedException ex) {
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
       return IManageBaseResponse.BuildError(
         IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
         'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
