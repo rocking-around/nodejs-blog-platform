@@ -6,9 +6,11 @@ public with sharing class IManageMappingHelper {
         Id,
         EntityType__c,
         MatterIdField__c,
+        MatterNameField__c,
         EntityMatterIdObjectField__c,
         ClientIdField__c,
-        EntityClientIdObjectField__c
+        EntityClientIdObjectField__c,
+        ClientNameField__c
       FROM IManageMapping__c
       WHERE EntityType__c = :objectApiName
     ];
@@ -33,9 +35,11 @@ public with sharing class IManageMappingHelper {
         Id,
         EntityType__c,
         MatterIdField__c,
+        MatterNameField__c,
         EntityMatterIdObjectField__c,
         ClientIdField__c,
-        EntityClientIdObjectField__c
+        EntityClientIdObjectField__c,
+        ClientNameField__c
       FROM IManageMapping__c
       WHERE EntityType__c = :entityIdSObjName
     ];

@@ -4,21 +4,33 @@ import getFields from "@salesforce/apex/IManageMappingHelper.getFields";
 import saveMapping from "@salesforce/apex/IManageMappingHelper.saveMapping";
 import editTemplate from "./editTemplate.html";
 import viewTemplate from "./viewTemplate.html";
+import mappingEntityTypeField from "@salesforce/schema/IManageMapping__c.EntityType__c";
+import mappingMatterIdField from "@salesforce/schema/IManageMapping__c.MatterIdField__c";
+import mappingMatterNameField from "@salesforce/schema/IManageMapping__c.MatterNameField__c";
+import mappingEntityMatterIdObjectField from "@salesforce/schema/IManageMapping__c.EntityMatterIdObjectField__c";
+import mappingClientIdField from "@salesforce/schema/IManageMapping__c.ClientIdField__c";
+import mappingClientNameField from "@salesforce/schema/IManageMapping__c.ClientNameField__c";
+import mappingEntityClientIdObjectField from "@salesforce/schema/IManageMapping__c.EntityClientIdObjectField__c";
 
 export default class IManageMappingEditor extends LightningElement {
+  isDebug = true;
   isLoading = true;
   isSaving = false;
   initialized = false;
+  changed = false;
 
   defaultIManageMapping = {
-    EntityType__c: "litify_pm__Matter__c",
-    MatterIdField__c: null,
-    EntityMatterIdObjectField__c: null,
-    ClientIdField__c: null,
-    EntityClientIdObjectField__c: null
+    [mappingEntityTypeField.fieldApiName]: null,
+    [mappingMatterIdField.fieldApiName]: null,
+    [mappingMatterNameField.fieldApiName]: null,
+    [mappingEntityMatterIdObjectField.fieldApiName]: null,
+    [mappingClientIdField.fieldApiName]: null,
+    [mappingClientNameField.fieldApiName]: null,
+    [mappingEntityClientIdObjectField.fieldApiName]: null
   };
 
   @track iManageMapping;
+  @track iManageMappingEdit = {};
 
   @track isEdit = false;
   _recordId;
@@ -30,18 +42,15 @@ export default class IManageMappingEditor extends LightningElement {
   clientIdObjectOptionsExt;
   @track clientIdObjectOptions;
   @track matterIdObjectFieldOptions;
+  @track matterNameObjectFieldOptions;
   @track clientIdObjectFieldOptions;
+  @track clientNameObjectFieldOptions;
 
-  entityType = {
-    fieldLabel: "Matter",
-    fieldName: "litify_pm__Matter__c",
-    fieldType: "REFERENCE",
-    referenceTo: ["litify_pm__Matter__c"]
-  };
+  entityType = {};
 
   @api set recordId(value) {
     this._recordId = value;
-    console.log(`IManageMappingEditor. Set recordId: ${this._recordId}`);
+    this.writeDebug(`IManageMappingEditor. Set recordId: ${this._recordId}`);
   }
   get recordId() {
     return this._recordId;
@@ -49,7 +58,19 @@ export default class IManageMappingEditor extends LightningElement {
   @api set objectApiName(value) {
     if (value !== this._objectApiName) {
       this._objectApiName = value;
-      console.log(`IManageMappingEditor. Set objectApiName: ${this._objectApiName}`);
+      this.writeDebug(
+        `IManageMappingEditor. Set objectApiName: ${this._objectApiName}`
+      );
+
+      this.defaultIManageMapping[mappingEntityTypeField.fieldApiName] =
+        this._objectApiName;
+      this.entityType = {
+        fieldLabel: "This object",
+        fieldName: this._objectApiName,
+        fieldType: "REFERENCE",
+        referenceTo: [this._objectApiName]
+      };
+
       this.initComponent();
     }
   }
@@ -58,7 +79,7 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   connectedCallback() {
-    console.log("*********** IManageMappingEditor. connectedCallback:");
+    this.writeDebug("*********** IManageMappingEditor. connectedCallback:");
     this.initComponent();
   }
 
@@ -67,7 +88,7 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   initComponent() {
-    console.log("*********** IManageMappingEditor. initComponent:");
+    this.writeDebug("*********** IManageMappingEditor. initComponent:");
     if (!this.isEdit) {
       this.getIManageMapping();
     } else {
@@ -82,40 +103,84 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   get matterIdObject() {
-    let opt = (this.matterIdObjectOptions || []).find(
-      (x) => x.value === this.iManageMapping.EntityMatterIdObjectField__c
-    );
-    return opt ? opt.label : this.iManageMapping.EntityMatterIdObjectField__c;
+    let val =
+      this.iManageMapping[mappingEntityMatterIdObjectField.fieldApiName];
+    let opt = (this.matterIdObjectOptions || []).find((x) => x.value === val);
+    return opt ? opt.label : val;
   }
 
   get matterIdField() {
+    let val = this.iManageMapping[mappingMatterIdField.fieldApiName];
     let opt = (this.matterIdObjectFieldOptions || []).find(
-      (x) => x.value === this.iManageMapping.MatterIdField__c
+      (x) => x.value === val
     );
-    return opt ? opt.label : this.iManageMapping.MatterIdField__c;
+    return opt ? opt.label : val;
+  }
+
+  get matterNameField() {
+    let val = this.iManageMapping[mappingMatterNameField.fieldApiName];
+    let opt = (this.matterNameObjectFieldOptions || []).find(
+      (x) => x.value === val
+    );
+    return opt ? opt.label : val;
   }
 
   get clientIdObject() {
-    let opt = (this.clientIdObjectOptions || []).find(
-      (x) => x.value === this.iManageMapping.EntityClientIdObjectField__c
-    );
-    return opt ? opt.label : this.iManageMapping.EntityClientIdObjectField__c;
+    let val =
+      this.iManageMapping[mappingEntityClientIdObjectField.fieldApiName];
+    let opt = (this.clientIdObjectOptions || []).find((x) => x.value === val);
+    return opt ? opt.label : val;
   }
 
   get clientIdField() {
+    let val = this.iManageMapping[mappingClientIdField.fieldApiName];
     let opt = (this.clientIdObjectFieldOptions || []).find(
-      (x) => x.value === this.iManageMapping.ClientIdField__c
+      (x) => x.value === val
     );
-    return opt ? opt.label : this.iManageMapping.ClientIdField__c;
+    return opt ? opt.label : val;
+  }
+
+  get clientNameField() {
+    let val = this.iManageMapping[mappingClientNameField.fieldApiName];
+    let opt = (this.clientNameObjectFieldOptions || []).find(
+      (x) => x.value === val
+    );
+    return opt ? opt.label : val;
+  }
+
+  get editEntityTypeField() {
+    return this.iManageMappingEdit[mappingEntityTypeField.fieldApiName];
+  }
+  get editMatterIdField() {
+    return this.iManageMappingEdit[mappingMatterIdField.fieldApiName];
+  }
+  get editMatterNameField() {
+    return this.iManageMappingEdit[mappingMatterNameField.fieldApiName];
+  }
+  get editEntityMatterIdObjectField() {
+    return this.iManageMappingEdit[
+      mappingEntityMatterIdObjectField.fieldApiName
+    ];
+  }
+  get editClientIdField() {
+    return this.iManageMappingEdit[mappingClientIdField.fieldApiName];
+  }
+  get editClientNameField() {
+    return this.iManageMappingEdit[mappingClientNameField.fieldApiName];
+  }
+  get editEntityClientIdObjectField() {
+    return this.iManageMappingEdit[
+      mappingEntityClientIdObjectField.fieldApiName
+    ];
   }
 
   getIManageMapping() {
     if (!this.objectApiName) {
       return;
     }
-    getMapping({objectApiName: this.objectApiName})
+    getMapping({ objectApiName: this.objectApiName })
       .then((resp) => {
-        console.log(
+        this.writeDebug(
           "*********** IManageMappingEditor. getIManageMapping:",
           resp
         );
@@ -137,26 +202,26 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   initEditor(mapping = {}) {
-    console.log("*********** IManageMappingEditor. initEditor: ", mapping);
+    this.writeDebug("*********** IManageMappingEditor. initEditor: ", mapping);
 
     return new Promise((resolve, reject) => {
       let entityMatterIdObjectField = this.getValueOrDefault(
-        mapping.EntityMatterIdObjectField__c,
-        this.defaultIManageMapping.EntityType__c
+        mapping[mappingEntityMatterIdObjectField.fieldApiName],
+        this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
       );
       let entityClientIdObjectField = this.getValueOrDefault(
-        mapping.EntityClientIdObjectField__c,
-        this.defaultIManageMapping.EntityType__c
+        mapping[mappingEntityClientIdObjectField.fieldApiName],
+        this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
       );
 
       Promise.all([
         this.loadIdObjectOptions(
           "matterIdObjectOptions",
-          this.defaultIManageMapping.EntityType__c
+          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
         ),
         this.loadIdObjectOptions(
           "clientIdObjectOptions",
-          this.defaultIManageMapping.EntityType__c
+          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
         )
       ])
         .then(([matterResponse, clientResponse]) => {
@@ -166,7 +231,7 @@ export default class IManageMappingEditor extends LightningElement {
             );
             if (objType && objType.referenceTo) {
               this.loadIdObjFieldOptions(
-                "matterIdObjectFieldOptions",
+                ["matterIdObjectFieldOptions", "matterNameObjectFieldOptions"],
                 objType.referenceTo[0]
               );
             }
@@ -177,7 +242,7 @@ export default class IManageMappingEditor extends LightningElement {
             );
             if (objType && objType.referenceTo) {
               this.loadIdObjFieldOptions(
-                "clientIdObjectFieldOptions",
+                ["clientIdObjectFieldOptions", "clientNameObjectFieldOptions"],
                 objType.referenceTo[0]
               );
             }
@@ -189,11 +254,16 @@ export default class IManageMappingEditor extends LightningElement {
   }
 
   save() {
-    console.log("*********** IManageMappingEditor. save:", this.iManageMapping);
+    this.writeDebug(
+      "*********** IManageMappingEditor. save:",
+      this.iManageMappingEdit
+    );
     this.isSaving = true;
-    saveMapping({ mapping: this.iManageMapping })
+    saveMapping({ mapping: this.iManageMappingEdit })
       .then((resp) => {
-        console.log("*********** IManageMappingEditor. save:", resp);
+        this.writeDebug("*********** IManageMappingEditor. save:", resp);
+        this.changed = false;
+        this.iManageMapping = { ...this.iManageMappingEdit };
       })
       .catch((err) => {
         this.error = err.body.message || err;
@@ -206,15 +276,18 @@ export default class IManageMappingEditor extends LightningElement {
 
   cancel() {
     this.isEdit = false;
+    this.changed = false;
+    this.iManageMappingEdit = {};
   }
 
   edit() {
     this.isEdit = true;
-    this.initEditor(this.iManageMapping);
+    this.iManageMappingEdit = { ...this.iManageMapping };
+    this.initEditor(this.iManageMappingEdit);
   }
 
   loadIdObjectOptions(name, parentObjName) {
-    console.log(
+    this.writeDebug(
       `*********** IManageMappingEditor.loadIdObjectOptions ('${name}', '${parentObjName}');`
     );
     return new Promise((resolve, reject) => {
@@ -223,7 +296,7 @@ export default class IManageMappingEditor extends LightningElement {
         fieldTypes: ["REFERENCE"]
       })
         .then((resp) => {
-          console.log(
+          this.writeDebug(
             "*********** IManageMappingEditor. loadIdObjectOptions:",
             resp
           );
@@ -244,110 +317,156 @@ export default class IManageMappingEditor extends LightningElement {
           console.error(err);
           reject();
         })
-        .finally(() => {
-        });
+        .finally(() => {});
     });
   }
 
-  loadIdObjFieldOptions(name, objName) {
-    console.log(
-      `*********** IManageMappingEditor.loadMatterIdObjFields('${name}', '${objName}');`
+  loadIdObjFieldOptions(names, objName) {
+    this.writeDebug(
+      `*********** IManageMappingEditor.loadMatterIdObjFields('${names}', '${objName}');`
     );
     getFields({
       objectName: objName,
       fieldTypes: ["ID", "STRING"]
     })
       .then((resp) => {
-        console.log(
+        this.writeDebug(
           "*********** IManageMappingEditor. loadIdObjFieldOptions:",
           resp
         );
-        this[name] = Object.entries(resp).map(
-          ([, { fieldLabel, fieldName }]) => ({
-            label: fieldLabel,
-            value: fieldName
-          })
-        );
+        names.forEach((name) => {
+          this[name] = Object.entries(resp).map(
+            ([, { fieldLabel, fieldName }]) => ({
+              label: fieldLabel,
+              value: fieldName
+            })
+          );
+        });
       })
       .catch((err) => {
         this.error = err.body.message || err;
         console.error(err);
       })
-      .finally(() => {
-      });
+      .finally(() => {});
   }
 
   onMatterIdObjectChanged(evt) {
     let value = evt.target.value;
-    console.log(
+    this.writeDebug(
       "*********** IManageMappingEditor. onMatterIdObjectChanged: " + value
     );
     let objType = this.matterIdObjectOptionsExt.find(
       (x) => x.fieldName === value
     );
     if (objType && objType.referenceTo) {
-      this.iManageMapping = {
-        ...this.iManageMapping,
-        ...{ EntityMatterIdObjectField__c: objType.fieldName }
+      this.iManageMappingEdit = {
+        ...this.iManageMappingEdit,
+        ...{
+          [mappingEntityMatterIdObjectField.fieldApiName]: objType.fieldName
+        }
       };
       this.loadIdObjFieldOptions(
-        "matterIdObjectFieldOptions",
+        ["matterIdObjectFieldOptions", "matterNameObjectFieldOptions"],
         objType.referenceTo[0]
       );
     }
-    this.iManageMapping = {
-      ...this.iManageMapping,
-      ...{ MatterIdField__c: undefined }
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{
+        [mappingMatterIdField.fieldApiName]: undefined,
+        [mappingMatterNameField.fieldApiName]: undefined
+      }
     };
+    this.changed = true;
   }
 
   onClientIdObjectChanged(evt) {
     let value = evt.target.value;
-    console.log(
+    this.writeDebug(
       "*********** IManageMappingEditor. onClientIdObjectChanged: " + value
     );
     let objType = this.matterIdObjectOptionsExt.find(
       (x) => x.fieldName === value
     );
     if (objType && objType.referenceTo) {
-      this.iManageMapping = {
-        ...this.iManageMapping,
-        ...{ EntityClientIdObjectField__c: objType.fieldName }
+      this.iManageMappingEdit = {
+        ...this.iManageMappingEdit,
+        ...{
+          [mappingEntityClientIdObjectField.fieldApiName]: objType.fieldName
+        }
       };
       this.loadIdObjFieldOptions(
-        "clientIdObjectFieldOptions",
+        ["clientIdObjectFieldOptions", "clientNameObjectFieldOptions"],
         objType.referenceTo[0]
       );
     }
-    this.iManageMapping = {
-      ...this.iManageMapping,
-      ...{ ClientIdField__c: undefined }
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{
+        [mappingClientIdField.fieldApiName]: undefined,
+        [mappingClientNameField.fieldApiName]: undefined
+      }
     };
+    this.changed = true;
   }
 
   onMatterIdObjectFieldChanged(evt) {
     let value = evt.target.value;
-    console.log(
+    this.writeDebug(
       "*********** IManageMappingEditor. onMatterIdObjectFieldChanged: " + value
     );
-    this.iManageMapping = {
-      ...this.iManageMapping,
-      ...{ MatterIdField__c: value }
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingMatterIdField.fieldApiName]: value }
     };
+    this.changed = true;
+  }
+
+  onMatterNameObjectFieldChanged(evt) {
+    let value = evt.target.value;
+    this.writeDebug(
+      "*********** IManageMappingEditor. onMatterNameObjectFieldChanged: " +
+        value
+    );
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingMatterNameField.fieldApiName]: value }
+    };
+    this.changed = true;
   }
 
   onClientIdObjectFieldChanged(evt) {
     let value = evt.target.value;
-    console.log(
+    this.writeDebug(
       "*********** IManageMappingEditor. onClientIdObjectFieldChanged: " + value
     );
-    this.iManageMapping = {
-      ...this.iManageMapping,
-      ...{ ClientIdField__c: value }
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingClientIdField.fieldApiName]: value }
     };
+    this.changed = true;
+  }
+
+  onClientNameObjectFieldChanged(evt) {
+    let value = evt.target.value;
+    this.writeDebug(
+      "*********** IManageMappingEditor. onClientNameObjectFieldChanged: " +
+        value
+    );
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingClientNameField.fieldApiName]: value }
+    };
+    this.changed = true;
   }
 
   getValueOrDefault(obj, defaultValue) {
     return obj && obj !== null ? obj : defaultValue;
+  }
+
+  writeDebug(value) {
+    if (this.isDebug) {
+      console.log(value);
+    }
   }
 }

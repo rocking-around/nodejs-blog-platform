@@ -21,7 +21,7 @@
         <lightning-combobox
           name="client-id-object"
           label="Salesforce Client Id Object"
-          value={iManageMapping.EntityClientIdObjectField__c}
+          value={editEntityClientIdObjectField}
           placeholder="Select"
           options={clientIdObjectOptions}
           onchange={onClientIdObjectChanged}
@@ -32,7 +32,7 @@
         <lightning-combobox
           name="client-id-object-field"
           label="Salesforce Client Id Field"
-          value={iManageMapping.ClientIdField__c}
+          value={editClientIdField}
           placeholder="Select"
           options={clientIdObjectFieldOptions}
           onchange={onClientIdObjectFieldChanged}
@@ -41,9 +41,20 @@
         ></lightning-combobox>
 
         <lightning-combobox
+          name="client-name-object-field"
+          label="Salesforce Client Name Field"
+          value={editClientNameField}
+          placeholder="Select"
+          options={clientNameObjectFieldOptions}
+          onchange={onClientNameObjectFieldChanged}
+          dropdown-alignment="auto"
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
           name="matter-id-object"
           label="Salesforce Matter Id Object"
-          value={iManageMapping.EntityMatterIdObjectField__c}
+          value={editEntityMatterIdObjectField}
           placeholder="Select"
           options={matterIdObjectOptions}
           onchange={onMatterIdObjectChanged}
@@ -54,22 +65,38 @@
         <lightning-combobox
           name="matter-id-object-field"
           label="Salesforce Matter Id Field"
-          value={iManageMapping.MatterIdField__c}
+          value={editMatterIdField}
           placeholder="Select"
           options={matterIdObjectFieldOptions}
           onchange={onMatterIdObjectFieldChanged}
           dropdown-alignment="auto"
           required
         ></lightning-combobox>
+
+        <lightning-combobox
+          name="matter-name-object-field"
+          label="Salesforce Matter Name Field"
+          value={editMatterNameField}
+          placeholder="Select"
+          options={matterNameObjectFieldOptions}
+          onchange={onMatterNameObjectFieldChanged}
+          dropdown-alignment="auto"
+          required
+        ></lightning-combobox>
       </div>
       <div slot="actions">
-        <lightning-button
-          label="Save"
-          onclick={save}
-          disabled={isSaving}
-          class="imanage-save-button"
-        ></lightning-button>
-        <lightning-button label="Cancel" onclick={cancel}> </lightning-button>
+        <template if:true={changed}>
+          <lightning-button
+            label="Save"
+            onclick={save}
+            disabled={isSaving}
+            class="imanage-save-button"
+          ></lightning-button>
+          <lightning-button label="Cancel" onclick={cancel}> </lightning-button>
+        </template>
+        <template if:false={changed}>
+          <lightning-button label="View" onclick={cancel}> </lightning-button>
+        </template>
       </div>
     </lightning-card>
   </template>

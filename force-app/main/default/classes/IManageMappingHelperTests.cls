@@ -50,7 +50,9 @@ private class IManageMappingHelperTests {
 
     Test.startTest();
     try {
-      IManageMapping__c mapping = IManageMappingHelper.getMapping('Opportunity');
+      IManageMapping__c mapping = IManageMappingHelper.getMapping(
+        'Opportunity'
+      );
     } catch (Exception ex) {
       System.assert(
         ex instanceof IManageExceptions.ManageMappingException,
@@ -67,7 +69,6 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getMappingDataTest() {
-      
     // Create Opportunity
     Opportunity opp = new Opportunity();
     opp.Name = 'Test Opportunity';
