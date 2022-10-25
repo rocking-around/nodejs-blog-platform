@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
+        <members>IManageCsvHelper</members>
         <members>iManageProvider</members>
         <members>iManageIFrameDialog</members>
         <members>iManageIFrameDialogTests</members>
@@ -20,6 +21,7 @@
     <types>
         <members>iManageContainer</members>
         <members>iManageMappingEditor</members>
+        <members>iManageExportToCsv</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

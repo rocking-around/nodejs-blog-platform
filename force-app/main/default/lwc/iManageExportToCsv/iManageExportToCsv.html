@@ -1,0 +1,36 @@
+<template>
+  <div class="container">
+    <template if:true={errorMessage}>
+      <p class="error">{errorMessage}</p>
+    </template>
+    <template if:true={loading}>
+      <div class="spinnerContainer">
+        <lightning-spinner
+          alternative-text="Loading"
+          size="medium"
+        ></lightning-spinner>
+      </div>
+    </template>
+    <lightning-input
+      type="date"
+      name="dateFrom"
+      label="From"
+      required
+      value={dateFrom}
+      min="1960-01-01"
+      onchange={onDateFromChange}
+    ></lightning-input>
+    <lightning-input
+      type="date"
+      name="dateTo"
+      label="To"
+      required
+      value={dateTo}
+      min="1960-01-01"
+      onchange={onDateToChange}
+    ></lightning-input>
+    <div class="buttons">
+      <lightning-button label="Export To CSV" onclick={run}> </lightning-button>
+    </div>
+  </div>
+</template>
