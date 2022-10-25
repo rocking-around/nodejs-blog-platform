@@ -259,7 +259,11 @@ export default class IManageMappingEditor extends LightningElement {
       this.iManageMappingEdit
     );
     this.isSaving = true;
-    saveMapping({ mapping: this.iManageMappingEdit })
+    saveMapping({ mapping: {
+        ...this.iManageMappingEdit,
+        [mappingEntityTypeField.fieldApiName]: this._objectApiName
+      } 
+    })
       .then((resp) => {
         this.writeDebug("*********** IManageMappingEditor. save:", resp);
         this.changed = false;
