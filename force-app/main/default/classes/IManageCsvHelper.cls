@@ -54,15 +54,25 @@ public with sharing class IManageCsvHelper {
     DateTime dateTo
   ) {
     try {
-      IManageMapping__c mapping = IManageMappingHelper.getMapping(
-        objectApiName
-      );
+      List<IManageMapping__c> mappings;
+      if (String.isNotBlank(objectApiName)) {
+        IManageMapping__c mapping = IManageMappingHelper.getMapping(
+          objectApiName
+        );
+        mappings = new List<IManageMapping__c>{ mapping };
+      } else {
+        mappings = IManageMappingHelper.getAllMappings();
+      }
 
-      Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
+      List<CsvRow> result = new List<CsvRow>();
+      for (IManageMapping__c mapping : mappings) {
+        Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
 
-      List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
+        List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
+        result.addAll(csvRows);
+      }
 
-      return csvRows;
+      return result;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }

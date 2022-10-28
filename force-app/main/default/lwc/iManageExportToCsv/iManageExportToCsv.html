@@ -3,7 +3,7 @@
     <template if:true={errorMessage}>
       <p class="error">{errorMessage}</p>
     </template>
-    <template if:true={loading}>
+    <template if:true={isLoading}>
       <div class="spinnerContainer">
         <lightning-spinner
           alternative-text="Loading"
@@ -30,7 +30,12 @@
       onchange={onDateToChange}
     ></lightning-input>
     <div class="buttons">
-      <lightning-button label="Export To CSV" onclick={run}> </lightning-button>
+      <lightning-button
+        label="Export To CSV"
+        onclick={run}
+        disabled={isLoading}
+      >
+      </lightning-button>
     </div>
   </div>
 </template>

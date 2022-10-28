@@ -22,6 +22,26 @@ public with sharing class IManageMappingHelper {
     return items.size() == 1 ? items[0] : null;
   }
 
+  @AuraEnabled
+  public static List<IManageMapping__c> getAllMappings() {
+    try {
+      return [
+        SELECT
+          Id,
+          EntityType__c,
+          MatterIdField__c,
+          MatterNameField__c,
+          EntityMatterIdObjectField__c,
+          ClientIdField__c,
+          EntityClientIdObjectField__c,
+          ClientNameField__c
+        FROM IManageMapping__c
+      ];
+    } catch (Exception e) {
+      throw new AuraHandledException(e.getMessage());
+    }
+  }
+
   private static String GetSObjectType(String entityId) {
     return Id.valueOf(entityId).getSObjectType().getDescribe().getName();
   }

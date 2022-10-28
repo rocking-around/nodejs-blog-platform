@@ -1,14 +1,29 @@
 import { LightningElement, api } from "lwc";
 import getData from "@salesforce/apex/IManageCsvHelper.getData";
-//public static List<CsvRow> getData(String objectApiName, Datetime dateFrom, DateTime dateTo)
 
+const formatDate = (date) => {
+  const dtf = new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit"
+  });
+  const [{ value: mo }, , { value: da }, , { value: ye }] =
+    dtf.formatToParts(date);
+  return `${da}-${mo}-${ye}`;
+};
+
+const addDay = (date, days) => {
+  var dt = date instanceof Date ? date : new Date(date);
+  dt.setDate(dt.getDate() + days);
+  return dt;
+};
 export default class IManageExportToCsv extends LightningElement {
   isDebug = true;
   isLoading = true;
   errorMessage;
 
   dateFrom;
-  dateTo;
+  dateTo = formatDate(new Date());
 
   _recordId;
   _objectApiName;
@@ -47,9 +62,10 @@ export default class IManageExportToCsv extends LightningElement {
   run() {
     this.isLoading = true;
     getData({
-      objectApiName: this.objectApiName,
+      objectApiName: null, //this.objectApiName,
       dateFrom: this.dateFrom,
-      dateTo: this.dateTo
+      // add day because of yyyy-MM-dd 00:00:00
+      dateTo: addDay(this.dateTo, 1)
     })
       .then((resp) => {
         this.writeDebug("*********** IManageExportToCsv. getData:", resp);
@@ -62,7 +78,7 @@ export default class IManageExportToCsv extends LightningElement {
         this.downloadFile(csv, `iManage_${this.objectApiName}.csv`);
       })
       .catch((err) => {
-        this.error = err.body.message || err;
+        this.errorMessage = err.body.message || err;
         console.error(err);
       })
       .finally(() => {
