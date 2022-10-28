@@ -1,4 +1,4 @@
-import { LightningElement, api, track } from "lwc";
+import { LightningElement, api, track, wire } from "lwc";
 import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
 import getFields from "@salesforce/apex/IManageMappingHelper.getFields";
 import saveMapping from "@salesforce/apex/IManageMappingHelper.saveMapping";
@@ -11,6 +11,7 @@ import mappingEntityMatterIdObjectField from "@salesforce/schema/IManageMapping_
 import mappingClientIdField from "@salesforce/schema/IManageMapping__c.ClientIdField__c";
 import mappingClientNameField from "@salesforce/schema/IManageMapping__c.ClientNameField__c";
 import mappingEntityClientIdObjectField from "@salesforce/schema/IManageMapping__c.EntityClientIdObjectField__c";
+import isCsvExportEnabled from "@salesforce/apex/IManageCsvHelper.isCsvExportEnabled";
 
 export default class IManageMappingEditor extends LightningElement {
   isDebug = true;
@@ -48,6 +49,9 @@ export default class IManageMappingEditor extends LightningElement {
 
   entityType = {};
 
+  @wire(isCsvExportEnabled)
+  _isCsvExportEnabled;
+
   @api set recordId(value) {
     this._recordId = value;
     this.writeDebug(`IManageMappingEditor. Set recordId: ${this._recordId}`);
@@ -76,6 +80,10 @@ export default class IManageMappingEditor extends LightningElement {
   }
   get objectApiName() {
     return this._objectApiName;
+  }
+
+  get csvExportEnabled() {
+    return !!(this._isCsvExportEnabled || {}).data;
   }
 
   connectedCallback() {
@@ -259,10 +267,11 @@ export default class IManageMappingEditor extends LightningElement {
       this.iManageMappingEdit
     );
     this.isSaving = true;
-    saveMapping({ mapping: {
+    saveMapping({
+      mapping: {
         ...this.iManageMappingEdit,
         [mappingEntityTypeField.fieldApiName]: this._objectApiName
-      } 
+      }
     })
       .then((resp) => {
         this.writeDebug("*********** IManageMappingEditor. save:", resp);

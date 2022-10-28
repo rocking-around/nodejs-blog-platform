@@ -40,16 +40,18 @@
           required
         ></lightning-combobox>
 
-        <lightning-combobox
-          name="client-name-object-field"
-          label="Salesforce Client Name Field"
-          value={editClientNameField}
-          placeholder="Select"
-          options={clientNameObjectFieldOptions}
-          onchange={onClientNameObjectFieldChanged}
-          dropdown-alignment="auto"
-          required
-        ></lightning-combobox>
+        <template if:true={csvExportEnabled}>
+          <lightning-combobox
+            name="client-name-object-field"
+            label="Salesforce Client Name Field"
+            value={editClientNameField}
+            placeholder="Select"
+            options={clientNameObjectFieldOptions}
+            onchange={onClientNameObjectFieldChanged}
+            dropdown-alignment="auto"
+            required
+          ></lightning-combobox>
+        </template>
 
         <lightning-combobox
           name="matter-id-object"
@@ -73,16 +75,18 @@
           required
         ></lightning-combobox>
 
-        <lightning-combobox
-          name="matter-name-object-field"
-          label="Salesforce Matter Name Field"
-          value={editMatterNameField}
-          placeholder="Select"
-          options={matterNameObjectFieldOptions}
-          onchange={onMatterNameObjectFieldChanged}
-          dropdown-alignment="auto"
-          required
-        ></lightning-combobox>
+        <template if:true={csvExportEnabled}>
+          <lightning-combobox
+            name="matter-name-object-field"
+            label="Salesforce Matter Name Field"
+            value={editMatterNameField}
+            placeholder="Select"
+            options={matterNameObjectFieldOptions}
+            onchange={onMatterNameObjectFieldChanged}
+            dropdown-alignment="auto"
+            required
+          ></lightning-combobox>
+        </template>
       </div>
       <div slot="actions">
         <template if:true={changed}>

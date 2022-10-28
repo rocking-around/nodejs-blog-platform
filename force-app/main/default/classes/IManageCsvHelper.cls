@@ -1,6 +1,11 @@
 public with sharing class IManageCsvHelper {
   private static Integer batchSize = 1000;
 
+  @AuraEnabled(cacheable=true)
+  public static Boolean isCsvExportEnabled() {
+    return iManageSettings__c.getOrgDefaults().Enable_CSV_Export__c;
+  }
+
   @AuraEnabled
   public static void test() {
     try {
