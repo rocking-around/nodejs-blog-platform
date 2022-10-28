@@ -10,6 +10,6 @@ global with sharing class DescribePackageCustomLabels {
         String imanage_message_codes_folder_not_found = Label.imanage_message_codes_folder_not_found;
         String imanage_message_codes_unauthorized = Label.imanage_message_codes_unauthorized;
 
-        return true ;
+        return true;
     }
 }

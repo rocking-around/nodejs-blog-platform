@@ -16,6 +16,7 @@
         <members>EchoHttpMock</members>
         <members>DescribePackageCustomLabels</members>
         <members>DescribePackageCustomLabelsTest</members>
+        <members>IManageCsvEndpoint</members>
         <name>ApexClass</name>
     </types>
     <types>
