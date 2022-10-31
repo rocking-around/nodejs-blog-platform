@@ -18,6 +18,7 @@
         <members>DescribePackageCustomLabels</members>
         <members>DescribePackageCustomLabelsTest</members>
         <members>IManageCsvEndpoint</members>
+        <members>IManageCsvEndpointTests</members>
         <name>ApexClass</name>
     </types>
     <types>
