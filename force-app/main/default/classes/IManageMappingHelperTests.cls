@@ -2,69 +2,34 @@
 private class IManageMappingHelperTests {
   @isTest
   static void getMappingTest_positive() {
-    IManageMapping__c testData = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'CreatedById',
-      ClientIdField__c = 'Id'
+    iManageSettings__c testData = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_EntityClientIdObjectField__c = 'CreatedById',
+      Mapping_ClientIdField__c = 'Id'
     );
 
     insert testData;
 
     Test.startTest();
-    IManageMapping__c mapping = IManageMappingHelper.getMapping('Opportunity');
+    IManageMapping mapping = IManageMappingHelper.getMapping();
     Test.stopTest();
 
     System.assert(
-      mapping.EntityType__c == testData.EntityType__c,
+      mapping.EntityType == testData.Mapping_EntityType__c,
       'An EntityType__c has wrong value'
     );
     System.assertEquals(
-      mapping.EntityMatterIdObjectField__c,
-      testData.EntityMatterIdObjectField__c,
+      mapping.EntityMatterIdObjectField,
+      testData.Mapping_EntityMatterIdObjectField__c,
       'An EntityMatterIdObjectField__c has wrong value'
     );
-  }
-
-  @isTest
-  static void getMappingTestWithException() {
-    IManageMapping__c testData1 = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'CreatedById',
-      ClientIdField__c = 'Id'
-    );
-
-    IManageMapping__c testData2 = new IManageMapping__c(
-      EntityType__c = 'Account',
-      EntityMatterIdObjectField__c = 'Account',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'Account',
-      ClientIdField__c = 'Id'
-    );
-
-    insert testData1;
-    insert testData2;
-
-    Test.startTest();
-    try {
-      IManageMapping__c mapping = IManageMappingHelper.getMapping(
-        'Opportunity'
-      );
-    } catch (Exception ex) {
-      System.assert(
-        ex instanceof IManageExceptions.ManageMappingException,
-        'Exception is not a ManageMappingException'
-      );
-      System.assertEquals(
-        ex.getMessage(),
-        'An IManageMapping__c must not contain more than 1 record',
-        'Wrong exception message'
-      );
-    }
-    Test.stopTest();
   }
 
   @isTest
@@ -77,12 +42,17 @@ private class IManageMappingHelperTests {
     insert opp;
 
     // Create mapping
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'Opportunity',
-      ClientIdField__c = 'StageName'
+    iManageSettings__c mapping = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
+      Mapping_ClientIdField__c = 'StageName'
     );
     insert mapping;
 
@@ -114,12 +84,17 @@ private class IManageMappingHelperTests {
     insert opp;
 
     // Create mapping
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'StageName',
-      EntityClientIdObjectField__c = 'Opportunity',
-      ClientIdField__c = 'Id'
+    iManageSettings__c mapping = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'StageName',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
+      Mapping_ClientIdField__c = 'Id'
     );
     insert mapping;
 
@@ -139,41 +114,6 @@ private class IManageMappingHelperTests {
       String.valueOf(opp.Id),
       'A ClientId has wrong value'
     );
-  }
-
-  @isTest
-  static void insertTwoMappingsWithTheSameEntityTypeTest() {
-    // Create mappings
-    IManageMapping__c mapping1 = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'AccountId',
-      ClientIdField__c = 'Id'
-    );
-    insert mapping1;
-
-    Test.startTest();
-    try {
-      IManageMapping__c mapping2 = new IManageMapping__c(
-        EntityType__c = 'Opportunity',
-        EntityMatterIdObjectField__c = 'AccountId',
-        MatterIdField__c = 'Id',
-        EntityClientIdObjectField__c = 'Opportunity',
-        ClientIdField__c = 'Id'
-      );
-      insert mapping2;
-    } catch (Exception ex) {
-      System.assert(
-        ex instanceof System.DmlException,
-        'Exception is not a System.DmlException'
-      );
-      System.assert(
-        ex.getMessage().contains('DUPLICATE_VALUE'),
-        'Wrong exception message'
-      );
-    }
-    Test.stopTest();
   }
 
   @isTest
@@ -241,22 +181,43 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void saveMappingTest() {
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      EntityClientIdObjectField__c = 'CreatedById',
-      ClientIdField__c = 'Id'
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'AccountId',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
     );
+    insert settings;
+
+    IManageMapping mapping = new IManageMapping();
+    mapping.EntityType = 'Opportunity';
+    mapping.EntityMatterIdObjectField = 'Opportunity';
+    mapping.MatterIdField = 'Id';
+    mapping.EntityClientIdObjectField = 'CreatedById';
+    mapping.ClientIdField = 'Id';
+
     Test.startTest();
     IManageMappingHelper.saveMapping(mapping);
+    IManageMapping mapping2 = IManageMappingHelper.getMapping();
     Test.stopTest();
-    System.assert(mapping.Id != null, 'Id is null');
+    System.assertEquals(
+      mapping2.EntityType,
+      mapping.EntityType,
+      'EntityType__c has wrong value'
+    );
   }
 
-  @isTest
+  /*@isTest
   static void saveMappingTestException() {
-    IManageMapping__c mapping = null;
+    IManageMapping mapping = null;
     Test.startTest();
     try {
       IManageMappingHelper.saveMapping(mapping);
@@ -267,5 +228,5 @@ private class IManageMappingHelperTests {
       );
     }
     Test.stopTest();
-  }
+  }*/
 }

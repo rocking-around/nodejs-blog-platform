@@ -62,7 +62,6 @@ export default class IManageExportToCsv extends LightningElement {
   run() {
     this.isLoading = true;
     getData({
-      objectApiName: null, //this.objectApiName,
       dateFrom: this.dateFrom,
       // add day because of yyyy-MM-dd 00:00:00
       dateTo: addDay(this.dateTo, 1)

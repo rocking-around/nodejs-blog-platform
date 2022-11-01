@@ -4,14 +4,19 @@ import getFields from "@salesforce/apex/IManageMappingHelper.getFields";
 import saveMapping from "@salesforce/apex/IManageMappingHelper.saveMapping";
 import editTemplate from "./editTemplate.html";
 import viewTemplate from "./viewTemplate.html";
-import mappingEntityTypeField from "@salesforce/schema/IManageMapping__c.EntityType__c";
-import mappingMatterIdField from "@salesforce/schema/IManageMapping__c.MatterIdField__c";
-import mappingMatterNameField from "@salesforce/schema/IManageMapping__c.MatterNameField__c";
-import mappingEntityMatterIdObjectField from "@salesforce/schema/IManageMapping__c.EntityMatterIdObjectField__c";
-import mappingClientIdField from "@salesforce/schema/IManageMapping__c.ClientIdField__c";
-import mappingClientNameField from "@salesforce/schema/IManageMapping__c.ClientNameField__c";
-import mappingEntityClientIdObjectField from "@salesforce/schema/IManageMapping__c.EntityClientIdObjectField__c";
 import isCsvExportEnabled from "@salesforce/apex/IManageCsvHelper.isCsvExportEnabled";
+
+const mappingEntityTypeField = { fieldApiName: "EntityType" };
+const mappingMatterIdField = { fieldApiName: "MatterIdField" };
+const mappingMatterNameField = { fieldApiName: "MatterNameField" };
+const mappingEntityMatterIdObjectField = {
+  fieldApiName: "EntityMatterIdObjectField"
+};
+const mappingClientIdField = { fieldApiName: "ClientIdField" };
+const mappingClientNameField = { fieldApiName: "ClientNameField" };
+const mappingEntityClientIdObjectField = {
+  fieldApiName: "EntityClientIdObjectField"
+};
 
 export default class IManageMappingEditor extends LightningElement {
   isDebug = true;
@@ -268,10 +273,7 @@ export default class IManageMappingEditor extends LightningElement {
     );
     this.isSaving = true;
     saveMapping({
-      mapping: {
-        ...this.iManageMappingEdit,
-        [mappingEntityTypeField.fieldApiName]: this._objectApiName
-      }
+      mapping: this.iManageMappingEdit
     })
       .then((resp) => {
         this.writeDebug("*********** IManageMappingEditor. save:", resp);
@@ -477,9 +479,9 @@ export default class IManageMappingEditor extends LightningElement {
     return obj && obj !== null ? obj : defaultValue;
   }
 
-  writeDebug(value) {
+  writeDebug() {
     if (this.isDebug) {
-      console.log(value);
+      console.log.apply(null, arguments);
     }
   }
 }

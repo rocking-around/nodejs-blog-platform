@@ -3,14 +3,19 @@ public class IManageCsvEndpointTests {
   @isTest
   static void testGetPositive() {
     // Create mappoing
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      MatterNameField__c = 'Name',
-      EntityClientIdObjectField__c = 'AccountId',
-      ClientIdField__c = 'Id',
-      ClientNameField__c = 'Name'
+    iManageSettings__c mapping = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'AccountId',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
 

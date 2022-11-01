@@ -1,45 +1,16 @@
 public with sharing class IManageMappingHelper {
   @AuraEnabled
-  public static IManageMapping__c getMapping(String objectApiName) {
-    List<IManageMapping__c> items = [
-      SELECT
-        Id,
-        EntityType__c,
-        MatterIdField__c,
-        MatterNameField__c,
-        EntityMatterIdObjectField__c,
-        ClientIdField__c,
-        EntityClientIdObjectField__c,
-        ClientNameField__c
-      FROM IManageMapping__c
-      WHERE EntityType__c = :objectApiName
-    ];
-    if (items.size() > 1) {
-      throw new IManageExceptions.ManageMappingException(
-        'An IManageMapping__c must not contain more than 1 record'
-      );
-    }
-    return items.size() == 1 ? items[0] : null;
-  }
-
-  @AuraEnabled
-  public static List<IManageMapping__c> getAllMappings() {
-    try {
-      return [
-        SELECT
-          Id,
-          EntityType__c,
-          MatterIdField__c,
-          MatterNameField__c,
-          EntityMatterIdObjectField__c,
-          ClientIdField__c,
-          EntityClientIdObjectField__c,
-          ClientNameField__c
-        FROM IManageMapping__c
-      ];
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+  public static IManageMapping getMapping() {
+    iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+    IManageMapping mapping = new IManageMapping();
+    mapping.EntityType = settings.Mapping_EntityType__c;
+    mapping.EntityMatterIdObjectField = settings.Mapping_EntityMatterIdObjectField__c;
+    mapping.MatterIdField = settings.Mapping_MatterIdField__c;
+    mapping.MatterNameField = settings.Mapping_MatterNameField__c;
+    mapping.EntityClientIdObjectField = settings.Mapping_EntityClientIdObjectField__c;
+    mapping.ClientIdField = settings.Mapping_ClientIdField__c;
+    mapping.ClientNameField = settings.Mapping_ClientNameField__c;
+    return mapping;
   }
 
   private static String GetSObjectType(String entityId) {
@@ -50,40 +21,27 @@ public with sharing class IManageMappingHelper {
     String entityId
   ) {
     String entityIdSObjName = GetSObjectType(entityId);
-    List<IManageMapping__c> items = [
-      SELECT
-        Id,
-        EntityType__c,
-        MatterIdField__c,
-        MatterNameField__c,
-        EntityMatterIdObjectField__c,
-        ClientIdField__c,
-        EntityClientIdObjectField__c,
-        ClientNameField__c
-      FROM IManageMapping__c
-      WHERE EntityType__c = :entityIdSObjName
-    ];
-    if (items.size() > 1) {
+    IManageMapping mapping = IManageMappingHelper.getMapping();
+
+    if (!mapping.EntityType.equals(entityIdSObjName)) {
       throw new IManageExceptions.ManageMappingException(
-        'An IManageMapping__c must not contain more than 1 record'
+        'There is no mapping for the \'' +
+        entityIdSObjName +
+        '\''
       );
     }
-    if (items.size() == 0) {
-      return null;
-    }
-    IManageMapping__c item = items[0];
 
     Set<String> recordFields = new Set<String>();
-    if (entityIdSObjName.equals(item.EntityClientIdObjectField__c)) {
-      recordFields.add(item.ClientIdField__c);
+    if (entityIdSObjName.equals(mapping.EntityClientIdObjectField)) {
+      recordFields.add(mapping.ClientIdField);
     } else {
-      recordFields.add(item.EntityClientIdObjectField__c);
+      recordFields.add(mapping.EntityClientIdObjectField);
     }
 
-    if (entityIdSObjName.equals(item.EntityMatterIdObjectField__c)) {
-      recordFields.add(item.MatterIdField__c);
+    if (entityIdSObjName.equals(mapping.EntityMatterIdObjectField)) {
+      recordFields.add(mapping.MatterIdField);
     } else {
-      recordFields.add(item.EntityMatterIdObjectField__c);
+      recordFields.add(mapping.EntityMatterIdObjectField);
     }
 
     SObject record = Database.query(
@@ -96,21 +54,21 @@ public with sharing class IManageMappingHelper {
 
     IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
 
-    if (item.EntityClientIdObjectField__c == entityIdSObjName) {
-      result.ClientId = GetDataFromObject(entityId, item.ClientIdField__c);
+    if (mapping.EntityClientIdObjectField == entityIdSObjName) {
+      result.ClientId = GetDataFromObject(entityId, mapping.ClientIdField);
     } else {
       result.ClientId = GetDataFromObject(
-        (String) record.get(item.EntityClientIdObjectField__c),
-        item.ClientIdField__c
+        (String) record.get(mapping.EntityClientIdObjectField),
+        mapping.ClientIdField
       );
     }
 
-    if (item.EntityMatterIdObjectField__c == entityIdSObjName) {
-      result.MatterId = GetDataFromObject(entityId, item.MatterIdField__c);
+    if (mapping.EntityMatterIdObjectField == entityIdSObjName) {
+      result.MatterId = GetDataFromObject(entityId, mapping.MatterIdField);
     } else {
       result.MatterId = GetDataFromObject(
-        (String) record.get(item.EntityMatterIdObjectField__c),
-        item.MatterIdField__c
+        (String) record.get(mapping.EntityMatterIdObjectField),
+        mapping.MatterIdField
       );
     }
 
@@ -169,14 +127,17 @@ public with sharing class IManageMappingHelper {
   }
 
   @AuraEnabled
-  public static void saveMapping(IManageMapping__c mapping) {
+  public static void saveMapping(IManageMapping mapping) {
     System.debug('IManageMappingHelper.saveMapping(\'' + mapping + '\')');
-    try {
-      //TODO: Validate and upsert
-      upsert mapping;
-    } catch (Exception e) {
-      throw new AuraHandledException(e.getMessage());
-    }
+    iManageSettings__c s = iManageSettings__c.getOrgDefaults();
+    s.Mapping_EntityType__c = mapping.EntityType;
+    s.Mapping_MatterIdField__c = mapping.MatterIdField;
+    s.Mapping_MatterNameField__c = mapping.MatterNameField;
+    s.Mapping_EntityMatterIdObjectField__c = mapping.EntityMatterIdObjectField;
+    s.Mapping_ClientIdField__c = mapping.ClientIdField;
+    s.Mapping_ClientNameField__c = mapping.ClientNameField;
+    s.Mapping_EntityClientIdObjectField__c = mapping.EntityClientIdObjectField;
+    upsert s;
   }
 
   public class GetFieldResult {

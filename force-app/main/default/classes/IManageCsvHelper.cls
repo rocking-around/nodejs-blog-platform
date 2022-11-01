@@ -7,53 +7,35 @@ public with sharing class IManageCsvHelper {
   }
 
   @AuraEnabled
-  public static List<CsvRow> getData(
-    String objectApiName,
-    Datetime dateFrom,
-    DateTime dateTo
-  ) {
+  public static List<CsvRow> getData(Datetime dateFrom, DateTime dateTo) {
     try {
-      List<IManageMapping__c> mappings;
-      if (String.isNotBlank(objectApiName)) {
-        IManageMapping__c mapping = IManageMappingHelper.getMapping(
-          objectApiName
-        );
-        mappings = new List<IManageMapping__c>{ mapping };
-      } else {
-        mappings = IManageMappingHelper.getAllMappings();
-      }
+      IManageMapping mapping = IManageMappingHelper.getMapping();
+      Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
+      List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
 
-      List<CsvRow> result = new List<CsvRow>();
-      for (IManageMapping__c mapping : mappings) {
-        Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
-
-        List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
-        result.addAll(csvRows);
-      }
-
-      return result;
+      return csvRows;
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
   }
 
   private static Set<Id> getChangedEntities(
-    IManageMapping__c mapping,
+    IManageMapping mapping,
     DateTime dateFrom,
     DateTime dateTo
   ) {
     Set<Id> entitiesWithChangedMatters = getChangedEntities(
-      mapping.EntityType__c,
-      mapping.EntityMatterIdObjectField__c,
-      mapping.MatterIdField__c,
+      mapping.EntityType,
+      mapping.EntityMatterIdObjectField,
+      mapping.MatterIdField,
       dateFrom,
       dateTo
     );
 
     Set<Id> entitiesWithChangedClients = getChangedEntities(
-      mapping.EntityType__c,
-      mapping.EntityClientIdObjectField__c,
-      mapping.ClientIdField__c,
+      mapping.EntityType,
+      mapping.EntityClientIdObjectField,
+      mapping.ClientIdField,
       dateFrom,
       dateTo
     );
@@ -65,16 +47,16 @@ public with sharing class IManageCsvHelper {
   }
 
   public static List<CsvRow> getEntitiesByIds(
-    IManageMapping__c mapping,
+    IManageMapping mapping,
     Set<Id> ids
   ) {
     List<CsvRow> result = new List<CsvRow>();
-    String entityObjType = String.escapeSingleQuotes(mapping.EntityType__c);
+    String entityObjType = String.escapeSingleQuotes(mapping.EntityType);
     String matterObjType = String.escapeSingleQuotes(
-      mapping.EntityMatterIdObjectField__c
+      mapping.EntityMatterIdObjectField
     );
     String clientObjType = String.escapeSingleQuotes(
-      mapping.EntityClientIdObjectField__c
+      mapping.EntityClientIdObjectField
     );
     Set<String> fields = new Set<String>{ 'id', 'lastmodifieddate' };
 
@@ -90,9 +72,9 @@ public with sharing class IManageCsvHelper {
       ? ''
       : (matterRelationshipName + '.');
     String matterIdField =
-      matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterIdField__c);
+      matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterIdField);
     String matterNameField =
-      matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterNameField__c);
+      matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterNameField);
     String matterLastModifiedDateField = matterFieldPrefix + 'LastModifiedDate';
     fields.add(matterIdField.toLowerCase());
     fields.add(matterNameField.toLowerCase());
@@ -110,10 +92,9 @@ public with sharing class IManageCsvHelper {
       ? ''
       : (clientRelationshipName + '.');
     String clientIdField =
-      clientFieldPrefix + String.escapeSingleQuotes(mapping.ClientIdField__c);
+      clientFieldPrefix + String.escapeSingleQuotes(mapping.ClientIdField);
     String clientNameField =
-      clientFieldPrefix +
-      +String.escapeSingleQuotes(mapping.ClientNameField__c);
+      clientFieldPrefix + +String.escapeSingleQuotes(mapping.ClientNameField);
     String clientLastModifiedDateField = clientFieldPrefix + 'LastModifiedDate';
     fields.add(clientIdField.toLowerCase());
     fields.add(clientNameField.toLowerCase());
@@ -136,10 +117,8 @@ public with sharing class IManageCsvHelper {
       SObject matterSObj = matterRelationshipName == null
         ? entity
         : entity.getSObject(matterRelationshipName);
-      row.MatterId = String.valueOf(matterSObj.get(mapping.MatterIdField__c));
-      row.MatterName = String.valueOf(
-        matterSObj.get(mapping.MatterNameField__c)
-      );
+      row.MatterId = String.valueOf(matterSObj.get(mapping.MatterIdField));
+      row.MatterName = String.valueOf(matterSObj.get(mapping.MatterNameField));
       row.MatterLastModifiedDate = Datetime.valueOf(
         matterSObj.get('LastModifiedDate')
       );
@@ -147,10 +126,8 @@ public with sharing class IManageCsvHelper {
       SObject clientSObj = clientRelationshipName == null
         ? entity
         : entity.getSObject(clientRelationshipName);
-      row.ClientId = String.valueOf(clientSObj.get(mapping.ClientIdField__c));
-      row.ClientName = String.valueOf(
-        clientSObj.get(mapping.ClientNameField__c)
-      );
+      row.ClientId = String.valueOf(clientSObj.get(mapping.ClientIdField));
+      row.ClientName = String.valueOf(clientSObj.get(mapping.ClientNameField));
       row.ClientLastModifiedDate = Datetime.valueOf(
         clientSObj.get('LastModifiedDate')
       );

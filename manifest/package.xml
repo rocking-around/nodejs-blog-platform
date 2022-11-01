@@ -6,6 +6,7 @@
         <members>iManageProvider</members>
         <members>iManageIFrameDialog</members>
         <members>iManageIFrameDialogTests</members>
+        <members>IManageMapping</members>
         <members>IManageMappingHelper</members>
         <members>IManageMappingHelperTests</members>
         <members>iManageProviderTests</members>
@@ -45,7 +46,6 @@
     </types>
     <types>
         <members>iManageSettings__c</members>
-        <members>IManageMapping__c</members>
         <name>CustomObject</name>
     </types>
     <types>

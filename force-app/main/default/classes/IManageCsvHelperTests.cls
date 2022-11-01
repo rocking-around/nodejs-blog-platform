@@ -20,16 +20,14 @@ private class IManageCsvHelperTests {
   @isTest
   static void getEntitiesByIdsTest() {
     // Create mappoing
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      MatterNameField__c = 'Name',
-      EntityClientIdObjectField__c = 'AccountId',
-      ClientIdField__c = 'Id',
-      ClientNameField__c = 'Name'
-    );
-    insert mapping;
+    IManageMapping mapping = new IManageMapping();
+    mapping.EntityType = 'Opportunity';
+    mapping.EntityMatterIdObjectField = 'Opportunity';
+    mapping.MatterIdField = 'Id';
+    mapping.MatterNameField = 'Name';
+    mapping.EntityClientIdObjectField = 'AccountId';
+    mapping.ClientIdField = 'Id';
+    mapping.ClientNameField = 'Name';
 
     // Create Account
     Account acc = new Account(Name = 'Donald Duck');
@@ -105,14 +103,19 @@ private class IManageCsvHelperTests {
   @isTest
   static void getDataTest() {
     // Create mappoing
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Id',
-      MatterNameField__c = 'Name',
-      EntityClientIdObjectField__c = 'AccountId',
-      ClientIdField__c = 'Id',
-      ClientNameField__c = 'Name'
+    iManageSettings__c mapping = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'AccountId',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
 
@@ -148,7 +151,6 @@ private class IManageCsvHelperTests {
 
     Test.startTest();
     List<IManageCsvHelper.CsvRow> csvRows = IManageCsvHelper.getData(
-      null,
       System.now().addDays(-10).date(),
       System.now().addDays(1).date()
     );

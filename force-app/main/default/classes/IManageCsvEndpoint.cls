@@ -32,7 +32,6 @@ global class IManageCsvEndpoint {
     );
     system.debug('endDate:' + endDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ'));
     List<IManageCsvHelper.CsvRow> data = IManageCsvHelper.getData(
-      objectName,
       startDate,
       endDate
     );

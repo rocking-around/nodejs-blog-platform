@@ -6,6 +6,13 @@ private class iManageIFrameDialogTests {
     iManageSettings__c mcSetting = new iManageSettings__c();
     mcSetting.Client_Id__c = 'https://cloudimanage.com';
     mcSetting.Url__c = '894a95b7-e904-429a-a37f-467823927648';
+    mcSetting.Mapping_EntityType__c = 'Opportunity';
+    mcSetting.Mapping_EntityMatterIdObjectField__c = 'Opportunity';
+    mcSetting.Mapping_MatterIdField__c = 'Id';
+    mcSetting.Mapping_MatterNameField__c = 'Name';
+    mcSetting.Mapping_EntityClientIdObjectField__c = 'AccountId';
+    mcSetting.Mapping_ClientIdField__c = 'Id';
+    mcSetting.Mapping_ClientNameField__c = 'Name';
     insert mcSetting;
   }
 
@@ -42,23 +49,18 @@ private class iManageIFrameDialogTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
-    //Create Opportunity
+    // Create Account
+    Account acc = new Account(Name = 'Donald Duck');
+    insert acc;
+
+    //Create Matter
     Opportunity matter = new Opportunity(
+      AccountId = acc.Id,
       StageName = '100',
       Name = '10',
-      CloseDate = date.parse('10/31/2022')
+      CloseDate = system.now().addDays(30).date()
     );
     insert matter;
-
-    //Create Mapping
-    IManageMapping__c mapping = new IManageMapping__c(
-      EntityType__c = 'Opportunity',
-      EntityMatterIdObjectField__c = 'Opportunity',
-      MatterIdField__c = 'Name',
-      EntityClientIdObjectField__c = 'Opportunity',
-      ClientIdField__c = 'StageName'
-    );
-    insert mapping;
 
     Test.startTest();
 
