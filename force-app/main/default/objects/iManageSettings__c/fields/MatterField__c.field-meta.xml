@@ -3,7 +3,7 @@
     <fullName>MatterField__c</fullName>
     <defaultValue>&quot;custom2&quot;</defaultValue>
     <externalId>false</externalId>
-    <label>MatterField</label>
+    <label>iManage Matter Field</label>
     <length>255</length>
     <required>true</required>
     <trackTrending>false</trackTrending>

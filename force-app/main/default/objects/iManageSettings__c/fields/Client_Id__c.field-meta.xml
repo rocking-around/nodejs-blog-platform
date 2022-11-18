@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Client_Id__c</fullName>
     <externalId>false</externalId>
-    <label>Client Id</label>
+    <label>iManage Client Key</label>
     <length>255</length>
     <required>true</required>
     <trackTrending>false</trackTrending>

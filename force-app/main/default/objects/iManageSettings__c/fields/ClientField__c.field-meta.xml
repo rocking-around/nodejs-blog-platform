@@ -3,7 +3,7 @@
     <fullName>ClientField__c</fullName>
     <defaultValue>&quot;custom1&quot;</defaultValue>
     <externalId>false</externalId>
-    <label>ClientField</label>
+    <label>iManage Client Field</label>
     <length>255</length>
     <required>true</required>
     <trackTrending>false</trackTrending>
