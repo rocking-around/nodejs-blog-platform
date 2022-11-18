@@ -1,0 +1,35 @@
+.preview-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  background-color: var(
+    --slds-c-button-color-background,
+    var(--sds-c-button-color-background, transparent)
+  );
+  background-clip: border-box;
+  border-color: var(
+    --slds-c-button-color-border,
+    var(--sds-c-button-color-border, transparent)
+  );
+  text-decoration: none;
+  color: var(
+    --slds-c-button-text-color,
+    var(--sds-c-button-text-color, var(--lwc-brandAccessible, rgb(1, 118, 211)))
+  );
+  white-space: normal;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0;
+  border: 0;
+}
+
+.preview-btn:hover {
+  outline-color: transparent;
+}
+
+.preview-btn:focus {
+  outline-color: transparent;
+}

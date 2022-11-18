@@ -1,0 +1,54 @@
+<template>
+  <div class="container">
+    <template if:true={loading}>
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </template>
+    <div class="buttons">
+      <lightning-button
+        label="New Document from iManage"
+        onclick={loadNewDocumentFromIManage}
+        disabled={loading}
+      ></lightning-button>
+      <lightning-button
+        label="New Link from iManage"
+        onclick={loadNewLinkFromIManage}
+        disabled={loading}
+      ></lightning-button>
+    </div>
+    <div class="paging paging-top">
+      <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
+      <lightning-button-icon
+        icon-name="utility:chevronright"
+        alternative-text="Next"
+        title="Next"
+        onclick={loadNextPage}
+        disabled={nextButtonDisabled}
+      ></lightning-button-icon>
+      <span>Total records: {recordsCount}</span>
+    </div>
+    <div class="grid">
+      <c-i-manage-links-and-files-datatable
+        key-field="id"
+        data={gridData}
+        hide-checkbox-column
+        show-row-number-column
+        columns={gridColumns}
+        onrowaction={onRowClick}
+      >
+      </c-i-manage-links-and-files-datatable>
+    </div>
+
+    <div class="paging paging-bottom">
+      <lightning-button-icon
+        icon-name="utility:chevronright"
+        alternative-text="Next"
+        title="Next"
+        onclick={loadNextPage}
+        disabled={nextButtonDisabled}
+      ></lightning-button-icon>
+    </div>
+  </div>
+</template>

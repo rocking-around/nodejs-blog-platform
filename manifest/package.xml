@@ -20,12 +20,17 @@
         <members>DescribePackageCustomLabelsTest</members>
         <members>IManageCsvEndpoint</members>
         <members>IManageCsvEndpointTests</members>
+        <members>IManageLinksAndFilesHelper</members>
+        <members>IManageLinksAndFilesHelperTests</members>
         <name>ApexClass</name>
     </types>
     <types>
         <members>iManageContainer</members>
         <members>iManageMappingEditor</members>
         <members>iManageExportToCsv</members>
+        <members>iManageLinksAndFiles</members>
+        <members>iManageLinksAndFilesDatatable</members>
+        <members>filePreview</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -45,6 +50,7 @@
         <name>NamedCredential</name>
     </types>
     <types>
+        <members>IManage_File_Link__c</members>
         <members>iManageSettings__c</members>
         <name>CustomObject</name>
     </types>
