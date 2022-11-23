@@ -148,6 +148,29 @@ public class iManageIFrameDialog {
     }
   }
 
+  @AuraEnabled
+  public static IManageBaseResponse GetIFrameFilePicker() {
+    try {
+      iManageProvider.IManageApiDataResponse apiData = GetApiData();
+      DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+      IManageBaseResponse result = new IManageBaseResponse();
+      result.Data =
+        mc.Url__c +
+        '/' +
+        mc.Client_Id__c +
+        '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+        EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
+        '&mode=open';
+      return result;
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
+      return IManageBaseResponse.BuildError(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
+        'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+      );
+    }
+  }
+
   public class DialogTokenResult {
     public DialogTokenData data;
   }

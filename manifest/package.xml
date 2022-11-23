@@ -3,6 +3,7 @@
     <types>
         <members>IManageCsvHelper</members>
         <members>IManageCsvHelperTests</members>
+        <members>iManageFileWorker</members>
         <members>iManageProvider</members>
         <members>iManageIFrameDialog</members>
         <members>iManageIFrameDialogTests</members>
@@ -30,16 +31,13 @@
         <members>iManageExportToCsv</members>
         <members>iManageLinksAndFiles</members>
         <members>iManageLinksAndFilesDatatable</members>
+        <members>iManageDocumentsIFrame</members>
         <members>filePreview</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
         <members>iManageApi</members>
         <name>StaticResource</name>
-    </types>
-    <types>
-        <members>Opportunity.iManageMatter__c</members>
-        <name>CustomField</name>
     </types>
     <types>
         <members>imanage</members>

@@ -3,6 +3,12 @@
   position: relative;
 }
 
+.empty-grid {
+  margin: 10px 0;
+  color: #c9c9c9;
+  text-align: center;
+}
+
 .paging {
   margin: 10px 0;
 }

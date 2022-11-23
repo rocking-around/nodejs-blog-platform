@@ -2,6 +2,13 @@ import { LightningElement, api, track } from "lwc";
 import { COLUMNS_DEFINITION, writeDebug } from "./helpers";
 import IManageLinksAndFilesPaging from "./paging";
 
+import { loadScript /*, loadStyle */ } from "lightning/platformResourceLoader";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import iManageApi from "@salesforce/resourceUrl/iManageApi";
+
+import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
+import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
+
 const PAGE_SIZE = 10;
 
 export default class IManageLinksAndFiles extends LightningElement {
@@ -11,6 +18,9 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   recordsCount = undefined;
   hasNextPage = undefined;
+
+  showIManageDocsIframe = false;
+  iManageApiInitialized = false;
 
   @track gridData = [];
 
@@ -28,8 +38,28 @@ export default class IManageLinksAndFiles extends LightningElement {
     super();
     this.writeDebug = writeDebug.bind(this);
   }
-  connectedCallback() {
+
+  async connectedCallback() {
     //setTimeout (()=> {this.loading = false}, 5000);
+  }
+
+  async renderedCallback() {
+    if (this.iManageApiInitialized) {
+      return;
+    }
+    this.iManageApiInitialized = true;
+    try {
+      await loadScript(this, iManageApi);
+    } catch (error) {
+      this.iManageApiInitialized = false;
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Error loading iManageApi",
+          message: error.message,
+          variant: "error"
+        })
+      );
+    }
   }
 
   loadData() {
@@ -37,6 +67,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
     this.loading = true;
     Promise.all([this.paging.getTotalRecords(), this.paging.loadPage(0)])
+      //Promise.all([Promise.resolve(0), Promise.resolve({data:[], hasNext: false})])
       .then(([totalRecords, { data, hasNext }]) => {
         this.recordsCount = totalRecords;
 
@@ -57,6 +88,10 @@ export default class IManageLinksAndFiles extends LightningElement {
     return !this.hasNextPage || this.loading;
   }
 
+  get nextButtonVisible() {
+    return this.hasNextPage;
+  }
+
   onRowClick(e) {
     const { action, row } = e.detail;
     this.writeDebug(
@@ -66,12 +101,62 @@ export default class IManageLinksAndFiles extends LightningElement {
     );
   }
 
-  loadNewDocumentFromIManage() {
-    this.writeDebug("IManageLinksAndFiles.loadNewDocumentFromIManage: START");
+  async loadNewDocumentFromIManage() {
+    try {
+      const { Data: url } = await GetIFrameFilePicker();
+
+      const result = await iManageDocumentsIFrame.open({
+        size: "large",
+        title: "Save Document",
+        recordId: this.recordId,
+        url: url,
+        action: "save-document",
+        // eslint-disable-next-line no-undef
+        imanageApi: imanage
+      });
+
+      if (result) {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Save Document...",
+            message: `The Document "${result.docName}.${result.docExtension}" saved successfuly`,
+            variant: "success"
+          })
+        );
+        this.loadData();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    }
   }
 
-  loadNewLinkFromIManage() {
-    this.writeDebug("IManageLinksAndFiles.loadNewLinkFromIManage: START");
+  async loadNewLinkFromIManage() {
+    try {
+      const { Data: url } = await GetIFrameFilePicker();
+
+      const result = await iManageDocumentsIFrame.open({
+        size: "large",
+        title: "Save Link",
+        recordId: this.recordId,
+        url: url,
+        action: "save-link",
+        // eslint-disable-next-line no-undef
+        imanageApi: imanage
+      });
+
+      if (result) {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Save Link...",
+            message: `Link saved successfuly`,
+            variant: "success"
+          })
+        );
+        this.loadData();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    }
   }
 
   loadPreviousPage() {
@@ -98,5 +183,20 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   handleErrors(err) {
     console.error(err);
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Error",
+        message: err.message,
+        variant: "error"
+      })
+    );
+  }
+
+  get disableNewFileFromImanageButton() {
+    return this.loading || !this.iManageApiInitialized;
+  }
+
+  get isGridDataEmpty() {
+    return (this.gridData || []).length === 0;
   }
 }
