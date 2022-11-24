@@ -1,4 +1,15 @@
 public class iManageIFrameDialog {
+  private static void FakeCallForRefreshToken() {
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint('callout:iManageCreds/api/v2/customers/0/dialog-tokens');
+    req.setHeader('content-type', 'application/json');
+    req.setHeader('X-Auth-Token', '{!$Credential.AuthorizationHeaderValue}');
+    req.setMethod('POST');
+
+    Http http = new Http();
+    HTTPResponse res = http.send(req);
+  }
+
   private static iManageProvider.IManageApiDataResponse GetApiData() {
     HttpRequest req = new HttpRequest();
     req.setEndpoint('callout:iManageCreds/api');
@@ -12,19 +23,29 @@ public class iManageIFrameDialog {
       throw new IManageExceptions.IManageUnauthorizedException();
     String responseBody = res.getBody();
 
-    return (iManageProvider.IManageApiDataResponse) JSON.deserialize(
+    iManageProvider.IManageApiDataResponse response = (iManageProvider.IManageApiDataResponse) JSON.deserialize(
       responseBody,
       iManageProvider.IManageApiDataResponse.class
     );
+    if (response.data.auth_status == 'not-authenticated') {
+      FakeCallForRefreshToken();
+      return GetApiData();
+    }
+
+    return response;
   }
 
   private static DialogTokenResult GetDialogToken(
     iManageProvider.IManageApiDataResponse apiData
   ) {
+    String customer_id = apiData?.data?.user?.customer_id == null
+      ? '0'
+      : apiData.data.user.customer_id;
+    System.debug('customer_id: ' + customer_id);
     HttpRequest req = new HttpRequest();
     req.setEndpoint(
       'callout:iManageCreds/api/v2/customers/' +
-      apiData.data.user.customer_id +
+      customer_id +
       '/dialog-tokens'
     );
     req.setHeader('content-type', 'application/json');
@@ -157,7 +178,7 @@ public class iManageIFrameDialog {
       IManageBaseResponse result = new IManageBaseResponse();
       result.Data =
         mc.Url__c +
-        '/' +
+        '/work/partner-apps/' +
         mc.Client_Id__c +
         '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
         EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +

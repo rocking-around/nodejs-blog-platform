@@ -8,11 +8,13 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 
 import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
 import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
+import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 
 const PAGE_SIZE = 10;
 
 export default class IManageLinksAndFiles extends LightningElement {
   loading = false;
+  saving = false;
   isDebug = true;
   gridColumns = COLUMNS_DEFINITION;
 
@@ -99,6 +101,11 @@ export default class IManageLinksAndFiles extends LightningElement {
       JSON.parse(JSON.stringify(row)),
       JSON.parse(JSON.stringify(action))
     );
+
+    if (action.name === "save_to_sf") {
+      const { id } = row;
+      this.saveIManageLinkToSalesforce(id);
+    }
   }
 
   async loadNewDocumentFromIManage() {
@@ -186,10 +193,18 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.dispatchEvent(
       new ShowToastEvent({
         title: "Error",
-        message: err.message,
+        message: err.message || err,
         variant: "error"
       })
     );
+  }
+
+  async saveIManageLinkToSalesforce(linkId) {
+    await this.save(SaveLinkToSalesforce({ linkId }), {
+      reloadOnSeccess: true,
+      showSpinner: true,
+      successMessage: "The Link saved successfully"
+    });
   }
 
   get disableNewFileFromImanageButton() {
@@ -198,5 +213,37 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   get isGridDataEmpty() {
     return (this.gridData || []).length === 0;
+  }
+
+  get showSpinner() {
+    return this.loading || this.saving;
+  }
+
+  async save(action, params) {
+    const { reloadOnSeccess, showSpinner, successMessage } = params;
+    try {
+      if (showSpinner) {
+        this.saving = true;
+      }
+      await action;
+
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Save...",
+          message: successMessage,
+          variant: "success"
+        })
+      );
+
+      if (reloadOnSeccess) {
+        this.loadData();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    } finally {
+      if (showSpinner) {
+        this.saving = false;
+      }
+    }
   }
 }
