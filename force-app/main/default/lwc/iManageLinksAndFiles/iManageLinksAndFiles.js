@@ -193,7 +193,7 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.dispatchEvent(
       new ShowToastEvent({
         title: "Error",
-        message: err.message || err,
+        message: err.message || err?.body?.message || err,
         variant: "error"
       })
     );
