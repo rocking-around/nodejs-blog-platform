@@ -10,6 +10,7 @@ public class iManageFileWorker {
     HTTPResponse res = http.send(req);
   }
 
+  @TestVisible
   private static iManageProvider.IManageApiDataResponse GetApiData() {
     HttpRequest req = new HttpRequest();
     req.setEndpoint('callout:iManageCreds/api');
