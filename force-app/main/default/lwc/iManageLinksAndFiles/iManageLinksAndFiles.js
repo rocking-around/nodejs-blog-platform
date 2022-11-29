@@ -9,6 +9,8 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
 import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
+import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
+import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
 
 const PAGE_SIZE = 10;
 
@@ -105,6 +107,9 @@ export default class IManageLinksAndFiles extends LightningElement {
     if (action.name === "save_to_sf") {
       const { id } = row;
       this.saveIManageLinkToSalesforce(id);
+    }
+    if (action.name === "delete") {
+      this.deleteFromSalesforce(row);
     }
   }
 
@@ -204,6 +209,19 @@ export default class IManageLinksAndFiles extends LightningElement {
       reloadOnSeccess: true,
       showSpinner: true,
       successMessage: "The Link saved successfully"
+    });
+  }
+
+  async deleteFromSalesforce(row) {
+    const { id, isInIManage: isLink } = row;
+    const action = isLink ? deleteLink : deleteFile;
+    const successMessage = `The ${
+      isLink ? "Link" : "File"
+    } deleted successfully`;
+    await this.save(action({ id }), {
+      reloadOnSeccess: true,
+      showSpinner: true,
+      successMessage: successMessage
     });
   }
 

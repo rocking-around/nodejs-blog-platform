@@ -1,5 +1,16 @@
 @isTest
 private class IManageLinksAndFilesHelperTests {
+  @testSetup
+  static void methodName() {
+    //insert parent Object
+    Opportunity opp = new Opportunity(
+      Name = 'Test Opportunity',
+      Closedate = System.today(),
+      StageName = 'Prospecting'
+    );
+    insert opp;
+  }
+
   @isTest
   static void getLinksTest() {
     // Insert File_Link
@@ -101,5 +112,76 @@ private class IManageLinksAndFilesHelperTests {
       fileExt
     );
     System.assert(count == 1, 'Wrong files count');
+  }
+
+  static testMethod void deleteFileTest() {
+    Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+    //insert file
+    String fileName = 'Test';
+    String fileExt = 'txt';
+    ContentVersion cv = new ContentVersion(
+      ContentLocation = 'S', // S = Stored in Salesforce
+      PathOnClient = fileName + '.' + fileExt,
+      Title = 'Test',
+      VersionData = Blob.valueof('Test content')
+    );
+    insert cv;
+    ContentVersion contentVersion = [
+      SELECT Id, ContentDocumentId
+      FROM ContentVersion
+      WHERE Id = :cv.Id
+      LIMIT 1
+    ];
+
+    ContentDocumentLink contentDocumentLink = new ContentDocumentLink(
+      ContentDocumentId = contentVersion.ContentDocumentId,
+      LinkedEntityId = opp.Id,
+      ShareType = 'I', // Inferred permission
+      Visibility = 'AllUsers'
+    );
+    insert contentDocumentLink;
+
+    Test.startTest();
+    List<SObject> files = IManageLinksAndFilesHelper.getFiles(opp.Id, 100, 0);
+
+    System.assert(files.size() > 0, 'The list is empty');
+    SObject file = files.get(0);
+
+    String fileId = (Id) file.getSObject('ContentDocument').get('Id');
+    IManageLinksAndFilesHelper.deleteFile(fileId);
+
+    Integer count = IManageLinksAndFilesHelper.getFilesCount(opp.Id);
+    Test.stopTest();
+
+    System.assert(count == 0, 'File was not deleted');
+  }
+
+  static testMethod void deleteLinkTest() {
+    Opportunity opp = [SELECT Id FROM Opportunity LIMIT 1];
+
+    String fileLinkUrl = 'http://google.com?q=test';
+    String vers = '2';
+    IManage_File_Link__c fileLink = new IManage_File_Link__c(
+      ParentId__c = opp.Id,
+      Version__c = vers,
+      File_Link__c = fileLinkUrl
+    );
+    insert fileLink;
+
+    Test.startTest();
+    List<IManage_File_Link__c> links = IManageLinksAndFilesHelper.getLinks(
+      opp.Id,
+      100,
+      0
+    );
+
+    System.assert(links.size() > 0, 'The list is empty');
+    IManage_File_Link__c link = links.get(0);
+
+    IManageLinksAndFilesHelper.deleteLink(link.Id);
+    Integer count = IManageLinksAndFilesHelper.getLinksCount(opp.Id);
+    Test.stopTest();
+
+    System.assert(count == 0, 'Link was not deleted');
   }
 }

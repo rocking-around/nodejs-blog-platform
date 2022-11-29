@@ -57,4 +57,24 @@ public with sharing class IManageLinksAndFilesHelper {
     ];
     return result;
   }
+
+  @AuraEnabled
+  public static Void deleteLink(Id id) {
+    IManage_File_Link__c[] links = [
+      SELECT Id, LastModifiedDate, Name, File_Link__c, ParentId__c, Version__c
+      FROM IManage_File_Link__c
+      WHERE Id = :id
+    ];
+    delete links;
+  }
+
+  @AuraEnabled
+  public static Void deleteFile(Id id) {
+    ContentDocument[] contentDocuments = [
+      SELECT Id
+      FROM ContentDocument
+      WHERE Id = :Id
+    ];
+    delete contentDocuments;
+  }
 }
