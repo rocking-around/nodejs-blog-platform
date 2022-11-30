@@ -165,26 +165,36 @@ private class iManageFileWorkerTests {
       docId +
       '/download';
 
-    system.debug('dock Info endpoint: ' + docInfoEndpoint);
-    system.debug('dock Download endpoint: ' + downloadDocEndpoint);
+    List<HttpResponse> authResponses = new List<HttpResponse>();
+    authResponses.add(
+      iManageFileWorkerTests.getMockAuthResponse(200, 'not-authenticated', 333)
+    );
+    authResponses.add(
+      iManageFileWorkerTests.getMockAuthResponse(200, 'authenticated', 333)
+    );
 
-    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      'callout:iManageCreds/api' => iManageFileWorkerTests.getMockAuthResponse(
-        200,
-        'authenticated',
-        333
-      ),
-      docInfoEndpoint => iManageFileWorkerTests.getMockDocInfoResponse(
-        200,
-        docName,
-        docExtension
-      ),
-      downloadDocEndpoint => iManageFileWorkerTests.getMockDownloadDocResponse(
-        200,
-        docContent
-      )
+    List<HttpResponse> dialogTokenResponses = new List<HttpResponse>();
+    HttpResponse dialogTokenResponse = new HttpResponse();
+    dialogTokenResponse.setStatusCode(200);
+    dialogTokenResponses.add(new HttpResponse());
+
+    List<HttpResponse> docInfoResponses = new List<HttpResponse>();
+    docInfoResponses.add(
+      iManageFileWorkerTests.getMockDocInfoResponse(200, docName, docExtension)
+    );
+
+    List<HttpResponse> downloadDocResponses = new List<HttpResponse>();
+    downloadDocResponses.add(
+      iManageFileWorkerTests.getMockDownloadDocResponse(200, docContent)
+    );
+
+    Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+      'callout:iManageCreds/api' => authResponses,
+      'callout:iManageCreds/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
+      docInfoEndpoint => docInfoResponses,
+      downloadDocEndpoint => downloadDocResponses
     };
-    EchoHttpMock.setTestMockResponse(responses);
+    HttpCalloutQueueMock.setTestMockResponse(responses);
 
     //Insert Link
     IManage_File_Link__c link = new IManage_File_Link__c(
@@ -336,7 +346,6 @@ private class iManageFileWorkerTests {
       extension +
       '"}}'
     );
-    system.debug('getMockDocInfoResponse: ' + resp.getBody());
     return resp;
   }
 }

@@ -17,6 +17,7 @@
         <members>IManageBaseResponse</members>
         <members>IManageExceptions</members>
         <members>EchoHttpMock</members>
+        <members>HttpCalloutQueueMock</members>
         <members>DescribePackageCustomLabels</members>
         <members>DescribePackageCustomLabelsTest</members>
         <members>IManageCsvEndpoint</members>
