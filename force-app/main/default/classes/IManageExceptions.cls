@@ -3,4 +3,6 @@ public with sharing class IManageExceptions {
   }
   public class IManageUnauthorizedException extends Exception {
   }
+  public class IManageSettingsException extends Exception {
+  }
 }
