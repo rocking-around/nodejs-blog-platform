@@ -184,4 +184,32 @@ private class IManageLinksAndFilesHelperTests {
 
     System.assert(count == 0, 'Link was not deleted');
   }
+
+  static testMethod void isEnabledForRecordTest() {
+    // add settings
+    iManageDocumentSettings__c docSettings = new iManageDocumentSettings__c();
+    docSettings.Calendar__c = true;
+    docSettings.Task__c = false;
+    docSettings.Intake_Document__c = true;
+    docSettings.Matter_Document__c = true;
+    docSettings.Matter__c = true;
+    insert docSettings;
+
+    Test.startTest();
+    // '00U4H000011y36GUAQ', - MEETING
+    Boolean isCalendarEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
+      Id.valueOf('00U4H000011y36GUAQ')
+    );
+    // '00T4H00008mUsp7UAC', - ТАСК
+    Boolean isTaskEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
+      Id.valueOf('00T4H00008mUsp7UAC')
+    );
+    // 'a0L4x00000AF5VYEA1' - МАТТЕR
+    //Boolean isMatterEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(Id.valueOf('a0L4x00000AF5VYEA1'));
+    Test.stopTest();
+
+    System.assert(isCalendarEnabled, 'Calendar is enabled');
+    System.assert(!isTaskEnabled, 'Task is not enabled');
+    //System.assert(isMatterEnabled, 'Matter is enabled');
+  }
 }

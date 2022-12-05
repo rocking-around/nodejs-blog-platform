@@ -77,4 +77,36 @@ public with sharing class IManageLinksAndFilesHelper {
     ];
     delete contentDocuments;
   }
+
+  @AuraEnabled
+  public static Boolean isEnabledForRecord(Id recordId) {
+    String sObjName = Id.valueOf(recordId)
+      .getSObjectType()
+      .getDescribe()
+      .getName();
+    Map<String, Object> config = ConfigurationHelper.getIManageDocumentSettings();
+    switch on sObjName {
+      when 'Event' {
+        return config.containsKey('iManageDocuments:Calendar') &&
+          (Boolean) config.get('iManageDocuments:Calendar');
+      }
+      when 'Task' {
+        return config.containsKey('iManageDocuments:Task') &&
+          (Boolean) config.get('iManageDocuments:Task');
+      }
+      when 'litify_pm__Matter__c' {
+        return config.containsKey('iManageDocuments:Matter') &&
+          (Boolean) config.get('iManageDocuments:Matter');
+      }
+      // when '???' {
+      //   return config.containsKey('iManageDocuments:Intake_Document');
+      // }
+      // when '???' {
+      //   return config.containsKey('iManageDocuments:Matter_Document');
+      // }
+      when else {
+        throw new IManageExceptions.IManageSettingsException('Not configured');
+      }
+    }
+  }
 }

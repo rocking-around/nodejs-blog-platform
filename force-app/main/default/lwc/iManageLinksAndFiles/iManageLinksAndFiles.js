@@ -11,6 +11,7 @@ import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameF
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
+import isEnabledForRecord from "@salesforce/apex/IManageLinksAndFilesHelper.isEnabledForRecord";
 
 const PAGE_SIZE = 10;
 
@@ -18,6 +19,7 @@ export default class IManageLinksAndFiles extends LightningElement {
   loading = false;
   saving = false;
   isDebug = true;
+  isEnabled = undefined;
   gridColumns = COLUMNS_DEFINITION;
 
   recordsCount = undefined;
@@ -32,7 +34,10 @@ export default class IManageLinksAndFiles extends LightningElement {
   @api set recordId(value) {
     this._recordId = value;
     this.writeDebug(`IManageLinksAndFiles. Set recordId: ${this._recordId}`);
-    this.loadData();
+    this.checkSettings(
+      () => this.loadData(),
+      () => this.showNotConfiguredMessage()
+    );
   }
   get recordId() {
     return this._recordId;
@@ -77,6 +82,32 @@ export default class IManageLinksAndFiles extends LightningElement {
         "c-i-manage-links-and-files-datatable.imanage-links-and-docs-dt"
       )
       .appendChild(style);
+  }
+
+  async checkSettings(onSuccess, onFail) {
+    try {
+      this.isEnabled = await isEnabledForRecord({
+        recordId: this.recordId
+      });
+      if (this.isEnabled) {
+        onSuccess();
+      } else {
+        onFail();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    }
+  }
+
+  showNotConfiguredMessage() {
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Not Configured",
+        message:
+          "The module is not configured. Please contact the Administrator.",
+        variant: "warning"
+      })
+    );
   }
 
   loadData() {
