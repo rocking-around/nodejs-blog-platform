@@ -11,17 +11,20 @@ export default class IManageConfigurationComponent extends LightningElement {
   loading = false;
   saving = false;
 
-  @track generalSettingsModel = {
+  generalSettingsModel = {
     changed: false,
     edit: false,
     fields: undefined
   };
 
-  @track iManageDocSettingsModel = {
+  iManageDocSettingsModel = {
     changed: false,
     edit: false,
     fields: undefined
   };
+
+  @track generalSettingsEdit = {};
+  @track iManageDocSettingsEdit = {};
 
   @track isGeneralSettingsChanged = false;
   @track isIManageDocSettingsChanged = false;
@@ -31,20 +34,24 @@ export default class IManageConfigurationComponent extends LightningElement {
     await this.loadIManageDocumentsSettings();
   }
 
-  get iManageDocSettings_Matter() {
-    return this.iManageDocSettingsModel?.fields?.Matter?.value;
-  }
-
-  get iManageDocSettings_MatterDocument() {
-    return this.iManageDocSettingsModel?.fields?.Matter_Document?.value;
-  }
-
-  cancelCommonSettingsChanges() {
+  cancelGeneralSettingsChanges() {
+    this.generalSettingsEdit = this.generalSettingsModel.selectFields(
+      () => true,
+      (x) => x.initialValue,
+      (x) => x.name
+    );
     this.generalSettingsModel = new GeneralSettingsForm(this.generalSettings);
+
     this.onGeneralSettingsChangedHandler(false);
   }
 
   cancelIManageDocumentSettingsChanges() {
+    this.iManageDocSettingsEdit = this.iManageDocSettingsModel.selectFields(
+      () => true,
+      (x) => x.initialValue,
+      (x) => x.name
+    );
+
     this.iManageDocSettingsModel = new IManageDocumentSettingsForm(
       this.iManageDocSettings
     );
@@ -54,6 +61,13 @@ export default class IManageConfigurationComponent extends LightningElement {
   async loadGeneralSettings() {
     this.generalSettings = await getGeneralSettings();
     this.generalSettingsModel = new GeneralSettingsForm(this.generalSettings);
+
+    this.generalSettingsEdit = this.generalSettingsModel.selectFields(
+      () => true,
+      (x) => x.initialValue,
+      (x) => x.name
+    );
+
     this.onGeneralSettingsChangedHandler(false);
   }
 
@@ -61,6 +75,11 @@ export default class IManageConfigurationComponent extends LightningElement {
     this.iManageDocSettings = await getIManageDocumentSettings();
     this.iManageDocSettingsModel = new IManageDocumentSettingsForm(
       this.iManageDocSettings
+    );
+    this.iManageDocSettingsEdit = this.iManageDocSettingsModel.selectFields(
+      () => true,
+      (x) => x.initialValue,
+      (x) => x.name
     );
     this.onIManageDocSettingsChangedHandler(false);
   }
@@ -72,6 +91,12 @@ export default class IManageConfigurationComponent extends LightningElement {
     const newValue = isCkeckbox ? checked : value;
     this.generalSettingsModel.setValue(name, newValue);
     this.onGeneralSettingsChangedHandler(this.generalSettingsModel.changed);
+
+    const changedValues = this.generalSettingsModel.getChanged();
+    this.generalSettingsEdit = {
+      ...this.generalSettingsEdit,
+      ...changedValues
+    };
   }
 
   onIManageDocumentSettingChanged(e) {
@@ -83,6 +108,12 @@ export default class IManageConfigurationComponent extends LightningElement {
     this.onIManageDocSettingsChangedHandler(
       this.iManageDocSettingsModel.changed
     );
+
+    const changedValues = this.iManageDocSettingsModel.getChanged();
+    this.iManageDocSettingsEdit = {
+      ...this.iManageDocSettingsEdit,
+      ...changedValues
+    };
   }
 
   onGeneralSettingsChangedHandler(value) {

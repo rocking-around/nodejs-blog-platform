@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <lightning-tabset variant="vertical" active-tab-value="i-manage-doc">
+    <lightning-tabset variant="vertical" active-tab-value="general">
       <lightning-tab label="General Settings" value="general">
         <template if:true={generalSettingsModel.fields}>
           <lightning-card title="General Settings">
@@ -11,7 +11,7 @@
                 label="Url"
                 name="Url"
                 disabled={saving}
-                value={generalSettingsModel.fields.Url.value}
+                value={generalSettingsEdit.Url}
                 onchange={onGeneralSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -20,7 +20,7 @@
                 label="iManage Client Key"
                 name="Client_Id"
                 disabled={saving}
-                value={generalSettingsModel.fields.Client_Id.value}
+                value={generalSettingsEdit.Client_Id}
                 onchange={onGeneralSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -29,7 +29,7 @@
                 label="iManage Client Field"
                 name="ClientField"
                 disabled={saving}
-                value={generalSettingsModel.fields.ClientField.value}
+                value={generalSettingsEdit.ClientField}
                 onchange={onGeneralSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -38,7 +38,7 @@
                 name="MatterField"
                 label="iManage Matter Field"
                 disabled={saving}
-                value={generalSettingsModel.fields.MatterField.value}
+                value={generalSettingsEdit.MatterField}
                 onchange={onGeneralSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -47,7 +47,7 @@
                 name="Enable_CSV_Export"
                 label="Enable CSV Export"
                 disabled={saving}
-                checked={generalSettingsModel.fields.Enable_CSV_Export.value}
+                checked={generalSettingsEdit.Enable_CSV_Export}
                 onchange={onGeneralSettingChanged}
               ></lightning-input>
             </div>
@@ -61,13 +61,10 @@
                 ></lightning-button>
                 <lightning-button
                   label="Cancel"
-                  onclick={cancelCommonSettingsChanges}
+                  onclick={cancelGeneralSettingsChanges}
                 >
                 </lightning-button>
               </template>
-              <!-- <template if:false={isGeneralSettingsChanged}>
-                                <lightning-button label="View" onclick={cancelCommonSettingsChanges}> </lightning-button>
-                            </template> -->
             </div>
           </lightning-card>
         </template>
@@ -88,7 +85,7 @@
                 label="Matter"
                 name="Matter"
                 disabled={saving}
-                checked={iManageDocSettings_Matter}
+                checked={iManageDocSettingsEdit.Matter}
                 onchange={onIManageDocumentSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -97,7 +94,7 @@
                 label="Calendar"
                 name="Calendar"
                 disabled={saving}
-                checked={iManageDocSettingsModel.fields.Calendar.value}
+                checked={iManageDocSettingsEdit.Calendar}
                 onchange={onIManageDocumentSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -106,7 +103,7 @@
                 label="Task"
                 name="Task"
                 disabled={saving}
-                checked={iManageDocSettingsModel.fields.Task.value}
+                checked={iManageDocSettingsEdit.Task}
                 onchange={onIManageDocumentSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -115,7 +112,7 @@
                 name="Intake_Document"
                 label="Intake Document"
                 disabled={saving}
-                checked={iManageDocSettingsModel.fields.Intake_Document.value}
+                checked={iManageDocSettingsEdit.Intake_Document}
                 onchange={onIManageDocumentSettingChanged}
               ></lightning-input>
               <lightning-input
@@ -124,7 +121,7 @@
                 name="Matter_Document"
                 label="Matter Document"
                 disabled={saving}
-                checked={iManageDocSettings_MatterDocument}
+                checked={iManageDocSettingsEdit.Matter_Document}
                 onchange={onIManageDocumentSettingChanged}
               ></lightning-input>
             </div>
