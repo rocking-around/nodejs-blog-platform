@@ -51,6 +51,8 @@ export default class IManageLinksAndFiles extends LightningElement {
     if (this.iManageApiInitialized) {
       return;
     }
+    this.overrideCss();
+
     this.iManageApiInitialized = true;
     try {
       await loadScript(this, iManageApi);
@@ -64,6 +66,17 @@ export default class IManageLinksAndFiles extends LightningElement {
         })
       );
     }
+  }
+
+  overrideCss() {
+    const style = document.createElement("style");
+    style.innerText = `.imanage-links-and-docs-dt .slds-scrollable_y[lightning-datatable_table], 
+    .imanage-links-and-docs-dt table[lightning-datatable_table] { width: 100% !important;}`;
+    this.template
+      .querySelector(
+        "c-i-manage-links-and-files-datatable.imanage-links-and-docs-dt"
+      )
+      .appendChild(style);
   }
 
   loadData() {

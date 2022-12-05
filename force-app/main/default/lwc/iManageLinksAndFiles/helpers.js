@@ -28,8 +28,8 @@ export const COLUMNS_DEFINITION = [
       name: "save_to_sf",
       title: "Save to Salesforce",
       disabled: { fieldName: "isNotInIManage" }
-    }
-    //initialWidth: 250
+    },
+    initialWidth: 250
   },
   {
     type: "action",
