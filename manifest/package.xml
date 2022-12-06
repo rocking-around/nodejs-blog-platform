@@ -40,6 +40,7 @@
         <name>LightningComponentBundle</name>
     </types>
     <types>
+        <members>AppCSS</members>
         <members>iManageApi</members>
         <name>StaticResource</name>
     </types>

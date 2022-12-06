@@ -1,6 +1,10 @@
 <template>
   <div class="container">
-    <lightning-tabset variant="vertical" active-tab-value="general">
+    <lightning-tabset
+      class="config-tab-set"
+      variant="vertical"
+      active-tab-value="general"
+    >
       <lightning-tab label="General Settings" value="general">
         <template if:true={generalSettingsModel.fields}>
           <lightning-card title="General Settings">
@@ -141,6 +145,24 @@
               </template>
             </div>
           </lightning-card>
+        </template>
+      </lightning-tab>
+      <lightning-tab
+        class="tab-i-manage-mapping"
+        label="iManage Mapping"
+        value="i-manage-mapping"
+      >
+        <template if:true={iManageMappingEntity}>
+          <c-i-manage-mapping-configuration
+            entity-api-name={iManageMappingEntity}
+          >
+          </c-i-manage-mapping-configuration>
+        </template>
+        <template if:false={iManageMappingEntity}>
+          <p>
+            The Salesforce entity type is not specified. Contact the
+            Administrator.
+          </p>
         </template>
       </lightning-tab>
     </lightning-tabset>

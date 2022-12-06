@@ -1,0 +1,15 @@
+/* Configuration Component*/
+.config-tab-set .slds-vertical-tabs {
+  overflow: visible !important;
+}
+
+/* */
+.client-id-object-cb lightning-base-combobox-item:not(:nth-child(1)),
+.matter-id-object-cb lightning-base-combobox-item:not(:nth-child(1)) {
+  padding-left: 30px;
+}
+
+/*.client-id-object-cb lightning-base-combobox-item:nth-child(1),
+.matter-id-object-cb lightning-base-combobox-item:nth-child(1) {
+  font-weight: bold;
+}*/

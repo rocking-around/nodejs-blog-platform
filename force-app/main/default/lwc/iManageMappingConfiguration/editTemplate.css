@@ -1,0 +1,19 @@
+.spinnerContainer {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 80px;
+}
+
+.error {
+  color: brown;
+}
+
+.imanage-mapping-container {
+  margin: 20px;
+  overflow: visible;
+}
+
+.imanage-save-button {
+  margin-right: 10px;
+}

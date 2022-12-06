@@ -197,12 +197,13 @@ private class IManageMappingHelperTests {
     );
     insert settings;
 
-    IManageMapping mapping = new IManageMapping();
-    mapping.EntityType = 'Opportunity';
-    mapping.EntityMatterIdObjectField = 'Opportunity';
-    mapping.MatterIdField = 'Id';
-    mapping.EntityClientIdObjectField = 'CreatedById';
-    mapping.ClientIdField = 'Id';
+    Map<String, Object> mapping = new Map<String, Object>{
+      'EntityType' => 'Opportunity',
+      'EntityMatterIdObjectField' => 'Opportunity',
+      'MatterIdField' => 'Id',
+      'EntityClientIdObjectField' => 'CreatedById',
+      'ClientIdField' => 'Id'
+    };
 
     Test.startTest();
     IManageMappingHelper.saveMapping(mapping);
@@ -210,8 +211,29 @@ private class IManageMappingHelperTests {
     Test.stopTest();
     System.assertEquals(
       mapping2.EntityType,
-      mapping.EntityType,
+      (String) mapping.get('EntityType'),
       'EntityType__c has wrong value'
+    );
+  }
+
+  //getSObjectMetadata
+  static testMethod void getSObjectMetadataTest() {
+    Test.startTest();
+    Map<String, Object> result = IManageMappingHelper.getSObjectMetadata(
+      'Opportunity'
+    );
+    Test.stopTest();
+
+    System.assert(result.containsKey('name'), 'Field "name" not exists');
+    System.assert(result.containsKey('label'), 'Field "label" not exists');
+    //System.assert(result.containsKey('sobjectType'), 'Field "sobjectType" not exists');
+    System.assert(
+      result.containsKey('associateEntityType'),
+      'Field "associateEntityType" not exists'
+    );
+    System.assert(
+      (String) result.get('name') == 'Opportunity',
+      'The field "sobjectType" has wrong value'
     );
   }
 

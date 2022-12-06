@@ -13,6 +13,20 @@ public with sharing class IManageMappingHelper {
     return mapping;
   }
 
+  @AuraEnabled
+  public static Map<String, Object> getSObjectMetadata(String objApiName) {
+    Schema.DescribeSObjectResult[] descResults = Schema.describeSObjects(
+      new List<String>{ objApiName }
+    );
+    DescribeSObjectResult describeSObjectResult = descResults.get(0);
+    return new Map<String, Object>{
+      'label' => describeSObjectResult.getLabel(),
+      'name' => describeSObjectResult.getName(),
+      //'sobjectType' => describeSObjectResult.getSobjectType(),
+      'associateEntityType' => describeSObjectResult.getAssociateEntityType()
+    };
+  }
+
   private static String GetSObjectType(String entityId) {
     return Id.valueOf(entityId).getSObjectType().getDescribe().getName();
   }
@@ -127,16 +141,21 @@ public with sharing class IManageMappingHelper {
   }
 
   @AuraEnabled
-  public static void saveMapping(IManageMapping mapping) {
+  public static void saveMapping(Map<String, Object> mapping) {
     System.debug('IManageMappingHelper.saveMapping(\'' + mapping + '\')');
     iManageSettings__c s = iManageSettings__c.getOrgDefaults();
-    s.Mapping_EntityType__c = mapping.EntityType;
-    s.Mapping_MatterIdField__c = mapping.MatterIdField;
-    s.Mapping_MatterNameField__c = mapping.MatterNameField;
-    s.Mapping_EntityMatterIdObjectField__c = mapping.EntityMatterIdObjectField;
-    s.Mapping_ClientIdField__c = mapping.ClientIdField;
-    s.Mapping_ClientNameField__c = mapping.ClientNameField;
-    s.Mapping_EntityClientIdObjectField__c = mapping.EntityClientIdObjectField;
+
+    s.Mapping_EntityType__c = (String) mapping.get('EntityType');
+    s.Mapping_MatterIdField__c = (String) mapping.get('MatterIdField');
+    s.Mapping_MatterNameField__c = (String) mapping.get('MatterNameField');
+    s.Mapping_EntityMatterIdObjectField__c = (String) mapping.get(
+      'EntityMatterIdObjectField'
+    );
+    s.Mapping_ClientIdField__c = (String) mapping.get('ClientIdField');
+    s.Mapping_ClientNameField__c = (String) mapping.get('ClientNameField');
+    s.Mapping_EntityClientIdObjectField__c = (String) mapping.get(
+      'EntityClientIdObjectField'
+    );
     upsert s;
   }
 

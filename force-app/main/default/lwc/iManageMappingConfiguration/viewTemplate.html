@@ -1,0 +1,63 @@
+<template>
+  <template if:true={loading}>
+    <div class="spinnerContainer">
+      <lightning-spinner
+        alternative-text="Loading"
+        size="medium"
+      ></lightning-spinner>
+    </div>
+  </template>
+  <template if:false={loading}>
+    <lightning-card title="iManage Mapping">
+      <div class="imanage-mapping-container">
+        <template if:true={iManageMapping}>
+          <lightning-input
+            type="text"
+            label="Salesforce Client Id Object"
+            disabled="true"
+            value={clientIdObject}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Salesforce Client Id Field"
+            disabled="true"
+            value={clientIdField}
+          ></lightning-input>
+          <template if:true={csvExportEnabled}>
+            <lightning-input
+              type="text"
+              label="Salesforce Client Name Field"
+              disabled="true"
+              value={clientNameField}
+            ></lightning-input>
+          </template>
+          <lightning-input
+            type="text"
+            label="Salesforce Matter Id Object"
+            disabled="true"
+            value={matterIdObject}
+          ></lightning-input>
+          <lightning-input
+            type="text"
+            label="Salesforce Matter Id Field"
+            disabled="true"
+            value={matterIdField}
+          ></lightning-input>
+          <template if:true={csvExportEnabled}>
+            <lightning-input
+              type="text"
+              label="Salesforce Matter Name Field"
+              disabled="true"
+              value={matterNameField}
+            ></lightning-input>
+          </template>
+        </template>
+      </div>
+      <div slot="actions">
+        <lightning-button label="Edit" onclick={edit}> </lightning-button>
+        <!-- <lightning-button-icon icon-name="utility:edit" variant="bare" alternative-text="Edit" title="Edit"
+                    onclick={edit}></lightning-button-icon> -->
+      </div>
+    </lightning-card>
+  </template>
+</template>

@@ -1,9 +1,12 @@
 import { LightningElement, track } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { loadStyle } from "lightning/platformResourceLoader";
+import AppCSS from "@salesforce/resourceUrl/AppCSS";
 import getGeneralSettings from "@salesforce/apex/ConfigurationHelper.getGeneralSettings";
 import saveGeneralSettings from "@salesforce/apex/ConfigurationHelper.saveGeneralSettings";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 import saveIManageDocumentsSettings from "@salesforce/apex/ConfigurationHelper.saveIManageDocumentsSettings";
+import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
 
 import { GeneralSettingsForm, IManageDocumentSettingsForm } from "./settings";
 
@@ -23,6 +26,8 @@ export default class IManageConfigurationComponent extends LightningElement {
     fields: undefined
   };
 
+  iManageMappingEntity = undefined;
+
   @track generalSettingsEdit = {};
   @track iManageDocSettingsEdit = {};
 
@@ -32,6 +37,20 @@ export default class IManageConfigurationComponent extends LightningElement {
   async connectedCallback() {
     await this.loadGeneralSettings();
     await this.loadIManageDocumentsSettings();
+    await this.loadImanageMapping();
+  }
+
+  async renderedCallback() {
+    if (this.isInitialized) {
+      return;
+    }
+
+    try {
+      await loadStyle(this, AppCSS);
+    } catch (err) {
+      console.log(`Can't load AppCSS`, err);
+    }
+    this.isInitialized = true;
   }
 
   cancelGeneralSettingsChanges() {
@@ -82,6 +101,11 @@ export default class IManageConfigurationComponent extends LightningElement {
       (x) => x.name
     );
     this.onIManageDocSettingsChangedHandler(false);
+  }
+
+  async loadImanageMapping() {
+    const mapping = await getMapping();
+    this.iManageMappingEntity = mapping?.EntityType;
   }
 
   onGeneralSettingChanged(e) {
