@@ -1,4 +1,102 @@
+@isTest
 public with sharing class ConfigurationHelperTests {
-  public ConfigurationHelperTests() {
+  static testMethod void saveAndGetGeneralSettingsTest() {
+    String urlKey = 'general:Url';
+    String matterFieldKey = 'general:MatterField';
+    String clientIdKey = 'general:Client_Id';
+    String clientFieldKey = 'general:ClientField';
+    String csvExportKey = 'general:Enable_CSV_Export';
+    Map<String, Object> data = new Map<String, Object>{
+      urlKey => 'http://test.test',
+      matterFieldKey => 'f1',
+      clientIdKey => 'f2',
+      clientFieldKey => 'f3',
+      csvExportKey => true
+    };
+    Test.startTest();
+    ConfigurationHelper.saveGeneralSettings(data);
+    Map<String, Object> result = ConfigurationHelper.getGeneralSettings();
+    Test.stopTest();
+    System.assert(
+      (String) result.get(urlKey) == (String) data.get(urlKey),
+      'Url has wrong value'
+    );
+    System.assert(
+      (String) result.get(matterFieldKey) == (String) data.get(matterFieldKey),
+      'MatterField has wrong value'
+    );
+    System.assert(
+      (String) result.get(clientIdKey) == (String) data.get(clientIdKey),
+      'Client_Id has wrong value'
+    );
+    System.assert(
+      (String) result.get(clientFieldKey) == (String) data.get(clientFieldKey),
+      'ClientField has wrong value'
+    );
+    System.assert(
+      (Boolean) result.get(csvExportKey) == (Boolean) data.get(csvExportKey),
+      'Enable_CSV_Export has wrong value'
+    );
+  }
+
+  static testMethod void getIManageDocumentSettingsTest() {
+    // add settings
+    iManageDocumentSettings__c docSettings = new iManageDocumentSettings__c();
+    docSettings.Calendar__c = true;
+    docSettings.Task__c = false;
+    docSettings.Intake_Document__c = true;
+    docSettings.Matter_Document__c = true;
+    docSettings.Matter__c = true;
+    insert docSettings;
+
+    Test.startTest();
+    Map<String, Object> result = ConfigurationHelper.getIManageDocumentSettings();
+    Test.stopTest();
+
+    Boolean calendar = (Boolean) result.get('iManageDocuments:Calendar');
+    Boolean task = (Boolean) result.get('iManageDocuments:Task');
+    Boolean intakeDoc = (Boolean) result.get(
+      'iManageDocuments:Intake_Document'
+    );
+    Boolean matterDoc = (Boolean) result.get(
+      'iManageDocuments:Matter_Document'
+    );
+    Boolean matter = (Boolean) result.get('iManageDocuments:Matter');
+
+    System.assert(calendar, 'Calendar should be enabled');
+    System.assert(!task, 'Task should be disabled');
+    System.assert(intakeDoc, 'Intake_Document should be enabled');
+    System.assert(matterDoc, 'Matter_Document should be enabled');
+    System.assert(matter, 'Matter should be enabled');
+  }
+
+  static testMethod void saveIManageDocumentsSettingsTest() {
+    Map<String, Object> data = new Map<String, Object>{
+      'iManageDocuments:Calendar' => false,
+      'iManageDocuments:Task' => true,
+      'iManageDocuments:Intake_Document' => false,
+      'iManageDocuments:Matter_Document' => true,
+      'iManageDocuments:Matter' => false
+    };
+    Test.startTest();
+    ConfigurationHelper.saveIManageDocumentsSettings(data);
+    Map<String, Object> result = ConfigurationHelper.getIManageDocumentSettings();
+    Test.stopTest();
+
+    Boolean calendar = (Boolean) result.get('iManageDocuments:Calendar');
+    Boolean task = (Boolean) result.get('iManageDocuments:Task');
+    Boolean intakeDoc = (Boolean) result.get(
+      'iManageDocuments:Intake_Document'
+    );
+    Boolean matterDoc = (Boolean) result.get(
+      'iManageDocuments:Matter_Document'
+    );
+    Boolean matter = (Boolean) result.get('iManageDocuments:Matter');
+
+    System.assert(!calendar, 'Calendar should be enabled');
+    System.assert(task, 'Task should be disabled');
+    System.assert(!intakeDoc, 'Intake_Document should be enabled');
+    System.assert(matterDoc, 'Matter_Document should be enabled');
+    System.assert(!matter, 'Matter should be enabled');
   }
 }
