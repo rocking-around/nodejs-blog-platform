@@ -98,12 +98,12 @@ public with sharing class IManageLinksAndFilesHelper {
         return config.containsKey('iManageDocuments:Matter') &&
           (Boolean) config.get('iManageDocuments:Matter');
       }
-      // when '???' {
-      //   return config.containsKey('iManageDocuments:Intake_Document');
-      // }
-      // when '???' {
-      //   return config.containsKey('iManageDocuments:Matter_Document');
-      // }
+      when 'litify_pm__Intake__c' {
+        return config.containsKey('iManageDocuments:Intake_Document');
+      }
+      when 'litify_pm__lit_Note__c' {
+        return config.containsKey('iManageDocuments:Matter_Document');
+      }
       when else {
         throw new IManageExceptions.IManageSettingsException('Not configured');
       }

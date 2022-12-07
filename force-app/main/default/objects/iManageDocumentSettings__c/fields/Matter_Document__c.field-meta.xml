@@ -3,7 +3,7 @@
     <fullName>Matter_Document__c</fullName>
     <defaultValue>false</defaultValue>
     <externalId>false</externalId>
-    <label>Matter Document</label>
+    <label>Matter Note</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
 </CustomField>

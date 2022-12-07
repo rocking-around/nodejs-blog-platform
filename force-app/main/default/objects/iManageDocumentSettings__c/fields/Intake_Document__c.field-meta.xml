@@ -3,7 +3,7 @@
     <fullName>Intake_Document__c</fullName>
     <defaultValue>false</defaultValue>
     <externalId>false</externalId>
-    <label>Intake Document</label>
+    <label>Intake</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
 </CustomField>
