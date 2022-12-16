@@ -1,5 +1,5 @@
 import { LightningElement, api, track } from "lwc";
-import { COLUMNS_DEFINITION, writeDebug } from "./helpers";
+import { COLUMNS_DEFINITION, ROW_ACTIONS, writeDebug } from "./helpers";
 import IManageLinksAndFilesPaging from "./paging";
 
 import { loadScript /*, loadStyle */ } from "lightning/platformResourceLoader";
@@ -58,6 +58,27 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.allowSaveIManageDocAsCopy =
       docSettings["iManageDocuments:Save_Document"];
     this.allowSaveIManageDocAsLink = docSettings["iManageDocuments:Save_Link"];
+
+    this.gridColumns = [
+      ...this.gridColumns,
+      ...[
+        {
+          type: "action",
+          typeAttributes: {
+            rowActions: (row, cb) => this.getRowActions(row, cb)
+          }
+        }
+      ]
+    ];
+  }
+
+  getRowActions(row, callback) {
+    const rowActions = ROW_ACTIONS.filter(
+      (a) =>
+        a.name !== "save_to_sf" ||
+        (!!row.isInIManage && this.allowSaveIManageDocAsCopy)
+    );
+    callback(rowActions);
   }
 
   async renderedCallback() {

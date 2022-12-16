@@ -1,6 +1,9 @@
 import FILE_LINK_FIELD from "@salesforce/schema/IManage_File_Link__c.File_Link__c";
 
-const actions = [{ label: "Delete", name: "delete" }];
+export const ROW_ACTIONS = [
+  { label: "Delete", name: "delete" },
+  { label: "Save to Salesforce", name: "save_to_sf" }
+];
 
 export const COLUMNS_DEFINITION = [
   {
@@ -20,20 +23,6 @@ export const COLUMNS_DEFINITION = [
     fieldName: "isInIManage",
     label: "iManage Link",
     initialWidth: 110
-  },
-  {
-    type: "button",
-    typeAttributes: {
-      label: "Save to Salesforce",
-      name: "save_to_sf",
-      title: "Save to Salesforce",
-      disabled: { fieldName: "isNotInIManage" }
-    },
-    initialWidth: 250
-  },
-  {
-    type: "action",
-    typeAttributes: { rowActions: actions }
   }
 ];
 
