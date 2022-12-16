@@ -132,6 +132,31 @@
                   checked={iManageDocSettingsEdit.Matter_Document}
                   onchange={onIManageDocumentSettingChanged}
                 ></lightning-input>
+                <div class="section-with-header m-t-20">
+                  <span class="section-with-header_header"
+                    >Store Document as...</span
+                  >
+                  <div>
+                    <lightning-input
+                      class="form-item"
+                      type="checkbox"
+                      name="Save_Document"
+                      label="Document copy"
+                      disabled={saving}
+                      checked={iManageDocSettingsEdit.Save_Document}
+                      onchange={onIManageDocumentSettingChanged}
+                    ></lightning-input>
+                    <lightning-input
+                      class="form-item"
+                      type="checkbox"
+                      name="Save_Link"
+                      label="Document link"
+                      disabled={saving}
+                      checked={iManageDocSettingsEdit.Save_Link}
+                      onchange={onIManageDocumentSettingChanged}
+                    ></lightning-input>
+                  </div>
+                </div>
               </div>
               <div slot="actions">
                 <template if:true={isIManageDocSettingsChanged}>

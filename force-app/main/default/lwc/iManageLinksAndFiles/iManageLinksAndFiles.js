@@ -12,6 +12,7 @@ import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToS
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
 import isEnabledForRecord from "@salesforce/apex/IManageLinksAndFilesHelper.isEnabledForRecord";
+import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 
 const PAGE_SIZE = 10;
 
@@ -27,6 +28,9 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   showIManageDocsIframe = false;
   iManageApiInitialized = false;
+
+  allowSaveIManageDocAsCopy = false;
+  allowSaveIManageDocAsLink = false;
 
   @track gridData = [];
 
@@ -50,6 +54,10 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async connectedCallback() {
     //setTimeout (()=> {this.loading = false}, 5000);
+    var docSettings = await getIManageDocumentSettings();
+    this.allowSaveIManageDocAsCopy =
+      docSettings["iManageDocuments:Save_Document"];
+    this.allowSaveIManageDocAsLink = docSettings["iManageDocuments:Save_Link"];
   }
 
   async renderedCallback() {

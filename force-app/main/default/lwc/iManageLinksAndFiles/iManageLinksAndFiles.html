@@ -10,16 +10,20 @@
       <c-i-manage-documents-i-frame> </c-i-manage-documents-i-frame>
     </template>
     <div class="buttons">
-      <lightning-button
-        label="New Document from iManage"
-        onclick={loadNewDocumentFromIManage}
-        disabled={disableNewFileFromImanageButton}
-      ></lightning-button>
-      <lightning-button
-        label="New Link from iManage"
-        onclick={loadNewLinkFromIManage}
-        disabled={loading}
-      ></lightning-button>
+      <template if:true={allowSaveIManageDocAsCopy}>
+        <lightning-button
+          label="New Document from iManage"
+          onclick={loadNewDocumentFromIManage}
+          disabled={disableNewFileFromImanageButton}
+        ></lightning-button>
+      </template>
+      <template if:true={allowSaveIManageDocAsLink}>
+        <lightning-button
+          label="New Link from iManage"
+          onclick={loadNewLinkFromIManage}
+          disabled={loading}
+        ></lightning-button>
+      </template>
     </div>
     <div class="paging paging-top">
       <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->

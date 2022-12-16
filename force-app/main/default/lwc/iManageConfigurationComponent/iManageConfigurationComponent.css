@@ -5,3 +5,22 @@
 .form-item {
   margin: 10px 0;
 }
+
+.m-t-20 {
+  margin-top: 20px;
+}
+
+/* save document/link section */
+.section-with-header {
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 5px;
+  position: relative;
+}
+
+.section-with-header_header {
+  padding: 0 10px;
+  position: absolute;
+  top: -10px;
+  background-color: #fff;
+}
