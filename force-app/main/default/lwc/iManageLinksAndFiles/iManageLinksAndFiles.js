@@ -12,6 +12,8 @@ import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToS
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
 import isEnabledForRecord from "@salesforce/apex/IManageLinksAndFilesHelper.isEnabledForRecord";
+import deleteIManageDocumentMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.deleteIManageDocumentMetadata";
+import changeIManageDocumentMetadataEntity from "@salesforce/apex/IManageLinksAndFilesHelper.changeIManageDocumentMetadataEntity";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 
 const PAGE_SIZE = 10;
@@ -278,7 +280,18 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   async saveIManageLinkToSalesforce(linkId) {
-    await this.save(SaveLinkToSalesforce({ linkId }), {
+    const action = new Promise((resolve, reject) => {
+      SaveLinkToSalesforce({ linkId })
+        .then((newLinkId) =>
+          changeIManageDocumentMetadataEntity({
+            entityId: linkId,
+            newEntityId: newLinkId
+          })
+        )
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
+    await this.save(action, {
       reloadOnSeccess: true,
       showSpinner: true,
       successMessage: "The Link saved successfully"
@@ -288,10 +301,16 @@ export default class IManageLinksAndFiles extends LightningElement {
   async deleteFromSalesforce(row) {
     const { id, isInIManage: isLink } = row;
     const action = isLink ? deleteLink : deleteFile;
+    const deleteWithMetadata = new Promise((resolve, reject) => {
+      action({ id })
+        .then(() => deleteIManageDocumentMetadata({ entityId: id }))
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    });
     const successMessage = `The ${
       isLink ? "Link" : "File"
     } deleted successfully`;
-    await this.save(action({ id }), {
+    await this.save(deleteWithMetadata, {
       reloadOnSeccess: true,
       showSpinner: true,
       successMessage: successMessage

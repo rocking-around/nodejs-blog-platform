@@ -3,6 +3,7 @@ import LightningModal from "lightning/modal";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import SaveFileFromIManage from "@salesforce/apex/iManageFileWorker.SaveFileFromIManage";
 import SaveLinkFromIManage from "@salesforce/apex/iManageFileWorker.SaveLinkFromIManage";
+import saveIManageDocumentMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.saveIManageDocumentMetadata";
 
 export default class IManageDocumentsIFrame extends LightningModal {
   @api recordId;
@@ -52,14 +53,6 @@ export default class IManageDocumentsIFrame extends LightningModal {
   //     this.close('okay');
   // }
 
-  saveFileClick() {
-    console.log(`saveFileClick`);
-  }
-
-  saveLinkClick() {
-    console.log(`saveLinkClick`);
-  }
-
   close(result) {
     if (this.unsubscribeIManage) {
       this.unsubscribeIManage();
@@ -79,7 +72,8 @@ export default class IManageDocumentsIFrame extends LightningModal {
         docName: name,
         docExtension: extension
       };
-      await SaveFileFromIManage(data);
+      const contentDocId = await SaveFileFromIManage(data);
+      await this.saveDocumentMetadata(contentDocId, doc);
       //   await new Promise((resolve) => {
       //     setTimeout(resolve, 5000);
       //   });
@@ -104,13 +98,13 @@ export default class IManageDocumentsIFrame extends LightningModal {
     this.saving = true;
     try {
       const { id, version } = doc;
-      //{recordId: any, docId: any, version: any}
       data = {
         recordId: this.recordId,
         docId: id,
         version: version
       };
-      await SaveLinkFromIManage(data);
+      const linkId = await SaveLinkFromIManage(data);
+      await this.saveDocumentMetadata(linkId, doc);
       //   await new Promise((resolve) => {
       //     setTimeout(resolve, 5000);
       //   });
@@ -128,6 +122,19 @@ export default class IManageDocumentsIFrame extends LightningModal {
     }
     this.disableClose = false;
     return data;
+  }
+
+  async saveDocumentMetadata(entityId, doc) {
+    const { author, name, document_number, version } = doc;
+    await saveIManageDocumentMetadata({
+      entityId,
+      metadata: {
+        author,
+        name,
+        document_number,
+        version
+      }
+    });
   }
 
   async handleDocumentSelected(doc) {

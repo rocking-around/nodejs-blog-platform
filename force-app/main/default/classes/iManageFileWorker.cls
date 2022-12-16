@@ -36,8 +36,16 @@ public class iManageFileWorker {
     return response;
   }
 
+  /**
+   * @description Download document from iManage and save it to the ContentVersion
+   * @param recordId Salesforce Object Id
+   * @param docId iManage Document Id
+   * @param docName iManage Document Name
+   * @param docExtension iManage Document Extension
+   * @return ContentDocument Id
+   */
   @AuraEnabled
-  public static Void SaveFileFromIManage(
+  public static Id SaveFileFromIManage(
     String recordId,
     String docId,
     String docName,
@@ -50,7 +58,8 @@ public class iManageFileWorker {
     String library = apiData?.data?.work?.preferred_library == null
       ? 'ACTIVE'
       : apiData.data.work.preferred_library;
-    SaveFileFromIManageDetails(
+
+    Id contentDocId = SaveFileFromIManageDetails(
       recordId,
       customer_id,
       library,
@@ -58,6 +67,7 @@ public class iManageFileWorker {
       docName,
       docExtension
     );
+    return contentDocId;
   }
 
   private static ContentVersion createContentVersion(
@@ -90,8 +100,15 @@ public class iManageFileWorker {
     insert contentDocumentLink;
   }
 
+  /**
+   * @description Create Link to the document in iManage and save it to the IManage_File_Link__c object
+   * @param recordId Salesforce Object Id
+   * @param docId iManage Document Id
+   * @param docName iManage Document Name
+   * @return IManage_File_Link__c Id
+   */
   @AuraEnabled
-  public static Void SaveLinkFromIManage(
+  public static Id SaveLinkFromIManage(
     String recordId,
     String docId,
     String version
@@ -103,10 +120,16 @@ public class iManageFileWorker {
       File_Link__c = mc.Url__c + '/work/web/dialogs/link/d/' + docId
     );
     insert att;
+    return att.Id;
   }
 
+  /**
+   * @description Download document from iManage and save it to the ContentVersion
+   * @param linkId IManage_File_Link__c Id
+   * @return ContentDocument Id
+   */
   @AuraEnabled
-  public static Void SaveLinkToSalesforce(String linkId) {
+  public static Id SaveLinkToSalesforce(String linkId) {
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     IManage_File_Link__c link = [
       SELECT ParentId__c, Version__c, File_Link__c
@@ -145,7 +168,7 @@ public class iManageFileWorker {
       iManageDocument.class
     );
 
-    SaveFileFromIManageDetails(
+    Id contentDocId = SaveFileFromIManageDetails(
       link.ParentId__c,
       customer_id,
       library,
@@ -155,9 +178,22 @@ public class iManageFileWorker {
     );
 
     delete link;
+
+    return contentDocId;
   }
 
-  private static Void SaveFileFromIManageDetails(
+  /**
+   * @description Download document from iManage and save it to the ContentVersion
+   * @param recordId Salesforce Object Id
+   * @param docId iManage Document Id
+   * @param customer_id iManage Customer Id
+   * @param library iManage Library
+   * @param docName iManage Document Name
+   * @param docExtension iManage Document Extension
+   * @return ContentDocument Id
+   */
+  @TestVisible
+  private static Id SaveFileFromIManageDetails(
     String recordId,
     String customer_id,
     String library,
@@ -191,6 +227,7 @@ public class iManageFileWorker {
       LIMIT 1
     ];
     createContentDocumentLink(contentVersion.ContentDocumentId, recordId);
+    return contentVersion.ContentDocumentId;
   }
 
   public class iManageDocument {

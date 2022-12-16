@@ -274,7 +274,11 @@ private class iManageFileWorkerTests {
       docId;
 
     Test.startTest();
-    iManageFileWorker.SaveLinkFromIManage(recordId, docId, version);
+    Id fileLinkId = iManageFileWorker.SaveLinkFromIManage(
+      recordId,
+      docId,
+      version
+    );
 
     List<IManage_File_Link__c> links = IManageLinksAndFilesHelper.getLinks(
       recordId,
@@ -285,6 +289,7 @@ private class iManageFileWorkerTests {
 
     System.assert(links.size() > 0, 'The list is empty');
     IManage_File_Link__c link = links.get(0);
+    System.assertEquals(link.Id, fileLinkId, 'Link Id has wrong value');
     System.assertEquals(
       link.ParentId__c,
       recordId,

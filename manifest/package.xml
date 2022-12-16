@@ -44,18 +44,19 @@
         <members>iManageApi</members>
         <name>StaticResource</name>
     </types>
-    <types>
+    <!--types>
         <members>imanage</members>
         <name>AuthProvider</name>
     </types>
     <types>
         <members>iManageCreds</members>
         <name>NamedCredential</name>
-    </types>
+    </types-->
     <types>
         <members>IManage_File_Link__c</members>
         <members>iManageSettings__c</members>
         <members>iManageDocumentSettings__c</members>
+        <members>iManageDocumentMetadata__c</members>
         <name>CustomObject</name>
     </types>
     <types>

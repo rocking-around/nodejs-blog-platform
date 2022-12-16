@@ -109,4 +109,60 @@ public with sharing class IManageLinksAndFilesHelper {
       }
     }
   }
+
+  @AuraEnabled
+  public static Id saveIManageDocumentMetadata(
+    Id entityId,
+    Map<String, Object> metadata
+  ) {
+    deleteIManageDocumentMetadata(entityId);
+
+    iManageDocumentMetadata__c md = new iManageDocumentMetadata__c(
+      EntityId__c = entityId,
+      Name = String.valueOf(metadata.get('name')),
+      Document_Version__c = String.valueOf(metadata.get('version')),
+      DocNumber__c = String.valueOf(metadata.get('document_number')),
+      Document_Author__c = String.valueOf(metadata.get('author'))
+    );
+    insert md;
+    return md.Id;
+  }
+
+  @AuraEnabled
+  public static Void deleteIManageDocumentMetadata(Id entityId) {
+    List<iManageDocumentMetadata__c> existingMetadata = [
+      SELECT
+        Id,
+        Name,
+        EntityId__c,
+        Document_Version__c,
+        DocNumber__c,
+        Document_Author__c
+      FROM iManageDocumentMetadata__c
+      WHERE EntityId__c = :entityId
+    ];
+    delete existingMetadata;
+  }
+
+  @AuraEnabled
+  public static Void changeIManageDocumentMetadataEntity(
+    Id entityId,
+    Id newEntityId
+  ) {
+    List<iManageDocumentMetadata__c> existingMetadata = [
+      SELECT
+        Id,
+        Name,
+        EntityId__c,
+        Document_Version__c,
+        DocNumber__c,
+        Document_Author__c
+      FROM iManageDocumentMetadata__c
+      WHERE EntityId__c = :entityId
+    ];
+    for (iManageDocumentMetadata__c md : existingMetadata) {
+      md.EntityId__c = newEntityId;
+    }
+    update existingMetadata;
+  }
 }
