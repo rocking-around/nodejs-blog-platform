@@ -26,6 +26,7 @@
         <members>IManageCsvEndpointTests</members>
         <members>IManageLinksAndFilesHelper</members>
         <members>IManageLinksAndFilesHelperTests</members>
+        <members>LicenseService</members>
         <name>ApexClass</name>
     </types>
     <types>
