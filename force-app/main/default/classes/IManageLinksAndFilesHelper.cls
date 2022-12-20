@@ -1,4 +1,5 @@
 public with sharing class IManageLinksAndFilesHelper {
+  
   @AuraEnabled
   public static List<IManage_File_Link__c> getLinks(
     String parentId,
@@ -56,6 +57,15 @@ public with sharing class IManageLinksAndFilesHelper {
       WHERE LinkedEntityId = :parentId
     ];
     return result;
+  }
+
+  @AuraEnabled
+  public static List<iManageDocumentMetadata__c> getIManageDocumentsMetadata(List<Id> entityIds) {
+    return [
+      SELECT Name, Document_Version__c, DocNumber__c, Document_Author__c, EntityId__c
+      FROM iManageDocumentMetadata__c
+      WHERE EntityId__c IN :entityIds
+    ];
   }
 
   @AuraEnabled

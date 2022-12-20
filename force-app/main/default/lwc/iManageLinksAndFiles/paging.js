@@ -1,5 +1,6 @@
 import getLinks from "@salesforce/apex/IManageLinksAndFilesHelper.getLinks";
 import getFiles from "@salesforce/apex/IManageLinksAndFilesHelper.getFiles";
+import getMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.getIManageDocumentsMetadata";
 import getLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getLinksCount";
 import getFilesCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFilesCount";
 import { mapLinksToGridModel, mapFilesToGridModel } from "./helpers";
@@ -105,15 +106,25 @@ export default class IManageLinksAndFilesPaging {
             return [...result, ...pageItems];
           }, []);
           this._page = page;
-
-          data.sort(this.sortByLastModifiedDate);
-
           const hasPrev = this._page !== 0;
           const hasNext = results.some((x) => x.length === this._pageSize);
-          const result = new PageResult(this._page, hasPrev, hasNext, data);
-          resolve(result);
+          this.getEntitiesMetadata(data).then(([...resultsWithMetadata]) => {
+            resultsWithMetadata.sort(this.sortByLastModifiedDate);
+            resolve(new PageResult(this._page, hasPrev, hasNext, data));
+          })
+          .catch((err) => reject(err));
         })
         .catch((err) => reject(err));
+    });
+  }
+
+  getEntitiesMetadata(data) {
+    return new Promise((resolve, reject) => {
+      getMetadata({ entityIds: data.map((x) => x.Id) })
+      .then(([...results]) => {
+        resolve(data.map((x) => ({...x, ...results.find(r => r.EntityId__c === x.Id)})));
+      })
+      .catch((err) => reject(err));
     });
   }
 

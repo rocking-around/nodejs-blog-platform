@@ -19,6 +19,22 @@ export const COLUMNS_DEFINITION = [
     }
   },
   {
+    fieldName: "metadataName",
+    label: "Document Metadata Name"
+  },
+  {
+    fieldName: "metadataVersion",
+    label: "Document Version"
+  },
+  {
+    fieldName: "metadataDocumentNumber",
+    label: "Document Number"
+  },
+  {
+    fieldName: "metadataDocumentAuthor",
+    label: "Document Author"
+  },
+  {
     type: "boolean",
     fieldName: "isInIManage",
     label: "iManage Link",
@@ -35,7 +51,11 @@ export const mapLinksToGridModel = (links) => {
     isNotInIManage: false, // OPPOSIT TO isInIManage
     fileUrl: l[FILE_LINK_FIELD.fieldApiName],
     fileUrlLabel: l.Name,
-    preview: false // always false,
+    preview: false, // always false,
+    metadataName: l.Name, 
+    metadataVersion: l.Document_Version__c, 
+    metadataDocumentNumber: l.DocNumber__c, 
+    metadataDocumentAuthor: l.Document_Author__c
   }));
 };
 
@@ -48,7 +68,11 @@ export const mapFilesToGridModel = (files = []) => {
     isNotInIManage: true, // OPPOSIT TO isInIManage
     fileUrl: `/lightning/r/ContentDocument/${cd.Id}/view`,
     fileUrlLabel: cd.Title + (cd.FileExtension ? `.${cd.FileExtension}` : ""),
-    preview: true // always true
+    preview: true, // always true
+    metadataName: cd.Name, 
+    metadataVersion: cd.Document_Version__c, 
+    metadataDocumentNumber: cd.DocNumber__c, 
+    metadataDocumentAuthor: cd.Document_Author__c
   }));
 };
 
