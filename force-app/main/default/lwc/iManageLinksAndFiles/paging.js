@@ -12,7 +12,8 @@ const DEFAULT_PAGING_SOURCE = {
   getCount: new Promise((resolve) => {
     resolve(0);
   }),
-  map: (x) => x
+  map: (x) => x,
+  metadataRef: (x) => x?.id
 };
 
 class PageResult {
@@ -69,7 +70,7 @@ export default class IManageLinksAndFilesPaging {
       );
       Promise.all(methods)
         .then(([...results]) => {
-          console.log(results);
+          // console.log(results);
           this._totalRecords = results.reduce((a, b) => a + b, 0);
           resolve(this._totalRecords);
         })
@@ -81,12 +82,14 @@ export default class IManageLinksAndFilesPaging {
     this.addSource({
       getData: getFiles,
       getCount: getFilesCount,
-      map: mapFilesToGridModel
+      map: mapFilesToGridModel,
+      metadataRef: (x) => x.ContentDocumentId
     });
     this.addSource({
       getData: getLinks,
       getCount: getLinksCount,
-      map: mapLinksToGridModel
+      map: mapLinksToGridModel,
+      metadataRef: (x) => x.Id
     });
   }
 
@@ -101,30 +104,38 @@ export default class IManageLinksAndFilesPaging {
       );
       Promise.all(methods)
         .then(([...results]) => {
-          const data = results.reduce((result, item, idx) => {
-            const pageItems = this.sources[idx].map(item);
+          const entityIds = results.reduce((result, item, idx) => {
+            const metadataRefs = item.map((x) =>
+              this.sources[idx].metadataRef(x)
+            );
+            return [...result, ...metadataRefs];
+          }, []);
+          return getMetadata({ entityIds }).then((metadata) => {
+            return { data: results, metadata };
+          });
+        })
+        .then(({ data: docsAndLinks, metadata }) => {
+          const data = docsAndLinks.reduce((result, item, idx) => {
+            const itemsWithMetadata = item.map((x) => {
+              const metadataRef = this.sources[idx].metadataRef(x);
+              const xMetadata = metadata.find(
+                (r) => r.EntityId__c === metadataRef
+              );
+              return { ...x, ...{ metadata: xMetadata } };
+            });
+            const pageItems = this.sources[idx].map(itemsWithMetadata);
             return [...result, ...pageItems];
           }, []);
           this._page = page;
+
+          data.sort(this.sortByLastModifiedDate);
+
           const hasPrev = this._page !== 0;
-          const hasNext = results.some((x) => x.length === this._pageSize);
-          this.getEntitiesMetadata(data).then(([...resultsWithMetadata]) => {
-            resultsWithMetadata.sort(this.sortByLastModifiedDate);
-            resolve(new PageResult(this._page, hasPrev, hasNext, data));
-          })
-          .catch((err) => reject(err));
+          const hasNext = docsAndLinks.some((x) => x.length === this._pageSize);
+          const result = new PageResult(this._page, hasPrev, hasNext, data);
+          resolve(result);
         })
         .catch((err) => reject(err));
-    });
-  }
-
-  getEntitiesMetadata(data) {
-    return new Promise((resolve, reject) => {
-      getMetadata({ entityIds: data.map((x) => x.Id) })
-      .then(([...results]) => {
-        resolve(data.map((x) => ({...x, ...results.find(r => r.EntityId__c === x.Id)})));
-      })
-      .catch((err) => reject(err));
     });
   }
 
