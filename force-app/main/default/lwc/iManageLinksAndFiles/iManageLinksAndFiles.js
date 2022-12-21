@@ -157,7 +157,7 @@ export default class IManageLinksAndFiles extends LightningElement {
           JSON.parse(JSON.stringify(this.gridData))
         );
       })
-      .catch(this.handleErrors)
+      .catch((err) => this.handleErrors(err))
       .finally(() => {
         this.loading = false;
       });
@@ -262,7 +262,7 @@ export default class IManageLinksAndFiles extends LightningElement {
           JSON.parse(JSON.stringify(this.gridData))
         );
       })
-      .catch(this.handleErrors)
+      .catch((err) => this.handleErrors(err))
       .finally(() => {
         this.loading = false;
       });

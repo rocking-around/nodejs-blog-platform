@@ -35,9 +35,13 @@ export default class IManageConfigurationComponent extends LightningElement {
   @track isIManageDocSettingsChanged = false;
 
   async connectedCallback() {
-    await this.loadGeneralSettings();
-    await this.loadIManageDocumentsSettings();
-    await this.loadImanageMapping();
+    try {
+      await this.loadGeneralSettings();
+      await this.loadIManageDocumentsSettings();
+      await this.loadImanageMapping();
+    } catch (error) {
+      this.handleErrors(error);
+    }
   }
 
   async renderedCallback() {
