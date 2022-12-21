@@ -1,6 +1,8 @@
 public with sharing class ConfigurationHelper {
   @AuraEnabled
   public static Map<String, Object> getGeneralSettings() {
+    LicenseService.CheckOrganizationLicense();
+
     iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
 
     Map<String, Object> result = new Map<String, Object>{
@@ -23,6 +25,8 @@ public with sharing class ConfigurationHelper {
 
   @AuraEnabled
   public static void saveGeneralSettings(Map<String, Object> data) {
+    LicenseService.CheckOrganizationLicense();
+
     iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
 
     for (String key : data.keySet()) {
@@ -50,6 +54,8 @@ public with sharing class ConfigurationHelper {
 
   @AuraEnabled
   public static Map<String, Object> getIManageDocumentSettings() {
+    LicenseService.CheckOrganizationLicense();
+
     List<iManageDocumentSettings__c> docSettings = [
       SELECT
         Id,
@@ -87,6 +93,8 @@ public with sharing class ConfigurationHelper {
 
   @AuraEnabled
   public static void saveIManageDocumentsSettings(Map<String, Object> data) {
+    LicenseService.CheckOrganizationLicense();
+
     List<iManageDocumentSettings__c> docSettings = [
       SELECT
         Id,

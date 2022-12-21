@@ -65,6 +65,8 @@
         <members>imanage_message_codes_unauthorized</members>
         <members>imanage_message_codes_empty_custom_resource</members>
         <members>imanage_message_codes_folder_not_found</members>
+        <members>imanage_message_codes_license_not_found</members>
+        <members>imanage_message_codes_license_expired</members>
         <name>CustomLabel</name>
     </types>
     <version>55.0</version>

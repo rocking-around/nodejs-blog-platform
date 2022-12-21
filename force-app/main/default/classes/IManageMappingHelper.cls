@@ -1,6 +1,8 @@
 public with sharing class IManageMappingHelper {
   @AuraEnabled
   public static IManageMapping getMapping() {
+    LicenseService.CheckOrganizationLicense();
+
     iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
     IManageMapping mapping = new IManageMapping();
     mapping.EntityType = settings.Mapping_EntityType__c;
@@ -15,6 +17,8 @@ public with sharing class IManageMappingHelper {
 
   @AuraEnabled
   public static Map<String, Object> getSObjectMetadata(String objApiName) {
+    LicenseService.CheckOrganizationLicense();
+
     Schema.DescribeSObjectResult[] descResults = Schema.describeSObjects(
       new List<String>{ objApiName }
     );
@@ -108,6 +112,8 @@ public with sharing class IManageMappingHelper {
     String objectName,
     List<String> fieldTypes
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     System.debug('IManageMappingHelper.getFields(\'' + objectName + '\')');
     List<IManageMappingHelper.GetFieldResult> result = new List<IManageMappingHelper.GetFieldResult>();
     try {
@@ -142,6 +148,8 @@ public with sharing class IManageMappingHelper {
 
   @AuraEnabled
   public static void saveMapping(Map<String, Object> mapping) {
+    LicenseService.CheckOrganizationLicense();
+
     System.debug('IManageMappingHelper.saveMapping(\'' + mapping + '\')');
     iManageSettings__c s = iManageSettings__c.getOrgDefaults();
 

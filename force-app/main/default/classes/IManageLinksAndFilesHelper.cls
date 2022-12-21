@@ -5,6 +5,8 @@ public with sharing class IManageLinksAndFilesHelper {
     Integer size,
     Integer skip
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     List<IManage_File_Link__c> result = [
       SELECT Id, LastModifiedDate, Name, File_Link__c, ParentId__c, Version__c
       FROM IManage_File_Link__c
@@ -17,6 +19,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Integer getLinksCount(String parentId) {
+    LicenseService.CheckOrganizationLicense();
+
     Integer result = [
       SELECT COUNT()
       FROM IManage_File_Link__c
@@ -31,6 +35,8 @@ public with sharing class IManageLinksAndFilesHelper {
     Integer size,
     Integer skip
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     List<SObject> result = [
       SELECT
         ContentDocumentId,
@@ -50,6 +56,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Integer getFilesCount(String parentId) {
+    LicenseService.CheckOrganizationLicense();
+
     Integer result = [
       SELECT COUNT()
       FROM ContentDocumentLink
@@ -62,6 +70,8 @@ public with sharing class IManageLinksAndFilesHelper {
   public static List<iManageDocumentMetadata__c> getIManageDocumentsMetadata(
     List<Id> entityIds
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     return [
       SELECT
         Name,
@@ -76,6 +86,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Void deleteLink(Id id) {
+    LicenseService.CheckOrganizationLicense();
+
     IManage_File_Link__c[] links = [
       SELECT Id, LastModifiedDate, Name, File_Link__c, ParentId__c, Version__c
       FROM IManage_File_Link__c
@@ -86,6 +98,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Void deleteFile(Id id) {
+    LicenseService.CheckOrganizationLicense();
+
     ContentDocument[] contentDocuments = [
       SELECT Id
       FROM ContentDocument
@@ -96,6 +110,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Boolean isEnabledForRecord(Id recordId) {
+    LicenseService.CheckOrganizationLicense();
+
     String sObjName = Id.valueOf(recordId)
       .getSObjectType()
       .getDescribe()
@@ -131,6 +147,8 @@ public with sharing class IManageLinksAndFilesHelper {
     Id entityId,
     Map<String, Object> metadata
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     deleteIManageDocumentMetadata(entityId);
 
     iManageDocumentMetadata__c md = new iManageDocumentMetadata__c(
@@ -146,6 +164,8 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @AuraEnabled
   public static Void deleteIManageDocumentMetadata(Id entityId) {
+    LicenseService.CheckOrganizationLicense();
+
     List<iManageDocumentMetadata__c> existingMetadata = [
       SELECT
         Id,
@@ -165,6 +185,8 @@ public with sharing class IManageLinksAndFilesHelper {
     Id entityId,
     Id newEntityId
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     List<iManageDocumentMetadata__c> existingMetadata = [
       SELECT
         Id,

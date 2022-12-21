@@ -51,6 +51,8 @@ public class iManageFileWorker {
     String docName,
     String docExtension
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     iManageProvider.IManageApiDataResponse apiData = GetApiData();
     String customer_id = apiData?.data?.user?.customer_id == null
       ? '0'
@@ -113,6 +115,8 @@ public class iManageFileWorker {
     String docId,
     String version
   ) {
+    LicenseService.CheckOrganizationLicense();
+
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     IManage_File_Link__c att = new IManage_File_Link__c(
       ParentId__c = recordId,
@@ -130,6 +134,8 @@ public class iManageFileWorker {
    */
   @AuraEnabled
   public static Id SaveLinkToSalesforce(String linkId) {
+    LicenseService.CheckOrganizationLicense();
+
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     IManage_File_Link__c link = [
       SELECT ParentId__c, Version__c, File_Link__c

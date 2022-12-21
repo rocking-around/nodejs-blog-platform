@@ -106,14 +106,16 @@ public class iManageIFrameDialog {
   }
 
   @AuraEnabled
-  public static IManageBaseResponse GetIFrameFolder(String entityId) {
+  public static String GetIFrameFolder(String entityId) {
+    // Check licensing
+    LicenseService.CheckOrganizationLicense();
+
     IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
       entityId
     );
     if (link == null || link.ClientId == null || link.MatterId == null)
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.EMPTY_CLIENT_OR_MATTER.name(),
-        'Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.'
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.EMPTY_CLIENT_OR_MATTER
       );
     try {
       iManageProvider.IManageApiDataResponse apiData = GetApiData();
@@ -121,9 +123,8 @@ public class iManageIFrameDialog {
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
 
       if (mc == null)
-        return IManageBaseResponse.BuildError(
-          IManageBaseHelper.IManageErrors.EMPTY_CUSTOM_RESOURCE.name(),
-          'Missed required Custom Settings: iManageSettings.'
+        throw IManageBaseHelper.BuildException(
+          IManageBaseHelper.IManageErrors.EMPTY_CUSTOM_RESOURCE
         );
 
       SearchResult searchResult = SearchFolderId(
@@ -147,47 +148,37 @@ public class iManageIFrameDialog {
         searchResult.data.size() == 0 ||
         searchResult.data[0].id == null
       ) {
-        IManageBaseResponse result = IManageBaseResponse.BuildError(
-          IManageBaseHelper.IManageErrors.FOLDER_NOT_FOUND.name(),
-          'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
-        );
-        result.Data = dialogUrl;
+        return dialogUrl;
       }
 
-      IManageBaseResponse result = new IManageBaseResponse();
-      result.Data =
-        dialogUrl +
+      return dialogUrl +
         '&start=' +
         EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
-
-      return result;
     } catch (IManageExceptions.IManageUnauthorizedException ex) {
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
-        'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED
       );
     }
   }
 
   @AuraEnabled
-  public static IManageBaseResponse GetIFrameFilePicker() {
+  public static String GetIFrameFilePicker() {
+    // Check licensing
+    LicenseService.CheckOrganizationLicense();
+
     try {
       iManageProvider.IManageApiDataResponse apiData = GetApiData();
       DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-      IManageBaseResponse result = new IManageBaseResponse();
-      result.Data =
-        mc.Url__c +
+      return mc.Url__c +
         '/work/partner-apps/' +
         mc.Client_Id__c +
         '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
         EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
         '&mode=open';
-      return result;
     } catch (IManageExceptions.IManageUnauthorizedException ex) {
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
-        'The system haven\'t access to the iManage. Please check Named Credentials or contact with Administrator.'
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED
       );
     }
   }

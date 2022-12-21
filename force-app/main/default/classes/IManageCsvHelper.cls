@@ -8,6 +8,7 @@ public with sharing class IManageCsvHelper {
 
   @AuraEnabled
   public static List<CsvRow> getData(Datetime dateFrom, DateTime dateTo) {
+    LicenseService.CheckOrganizationLicense();
     try {
       IManageMapping mapping = IManageMappingHelper.getMapping();
       Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
@@ -198,6 +199,7 @@ public with sharing class IManageCsvHelper {
 
   @AuraEnabled
   public static string getFieldRelationshipName(String obj, String field) {
+    LicenseService.CheckOrganizationLicense();
     System.debug(
       'IManageCsvHelper.getFieldRelationshipName(' +
       obj +
@@ -228,6 +230,7 @@ public with sharing class IManageCsvHelper {
 
   @AuraEnabled
   public static string getFieldReferenceName(String obj, String field) {
+    LicenseService.CheckOrganizationLicense();
     System.debug(
       'IManageCsvHelper.getFieldReferenceName(' +
       obj +
