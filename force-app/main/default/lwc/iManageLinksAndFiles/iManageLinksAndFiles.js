@@ -190,7 +190,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async loadNewDocumentFromIManage() {
     try {
-      const { Data: url } = await GetIFrameFilePicker();
+      const url = await GetIFrameFilePicker();
 
       const result = await iManageDocumentsIFrame.open({
         size: "large",
@@ -219,7 +219,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async loadNewLinkFromIManage() {
     try {
-      const { Data: url } = await GetIFrameFilePicker();
+      const url = await GetIFrameFilePicker();
 
       const result = await iManageDocumentsIFrame.open({
         size: "large",

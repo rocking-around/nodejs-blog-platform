@@ -9,7 +9,7 @@ export const COLUMNS_DEFINITION = [
   {
     type: "linkOrPreview",
     fieldName: "fileUrl",
-    label: "Document Name",
+    label: "Salesforce Name",
     //wrapText: true,
     typeAttributes: {
       target: "_blank",
@@ -20,19 +20,23 @@ export const COLUMNS_DEFINITION = [
   },
   {
     fieldName: "metadataName",
-    label: "Document Metadata Name"
-  },
-  {
-    fieldName: "metadataVersion",
-    label: "Document Version"
+    label: "iManage Name"
   },
   {
     fieldName: "metadataDocumentNumber",
-    label: "Document Number"
+    label: "Number"
+  },
+  {
+    fieldName: "metadataVersion",
+    label: "Version"
   },
   {
     fieldName: "metadataDocumentAuthor",
-    label: "Document Author"
+    label: "Author"
+  },
+  {
+    fieldName: "metadataDocumentClass",
+    label: "iManage Class"
   },
   {
     type: "boolean",
@@ -55,6 +59,7 @@ export const mapLinksToGridModel = (links) => {
     metadataName: l.metadata?.Name,
     metadataVersion: l.metadata?.Document_Version__c,
     metadataDocumentNumber: l.metadata?.DocNumber__c,
+    metadataDocumentClass: l.metadata?.Document_Class__c,
     metadataDocumentAuthor: l.metadata?.Document_Author__c
   }));
 };
@@ -72,6 +77,7 @@ export const mapFilesToGridModel = (files = []) => {
     metadataName: metadata?.Name,
     metadataVersion: metadata?.Document_Version__c,
     metadataDocumentNumber: metadata?.DocNumber__c,
+    metadataDocumentClass: metadata?.Document_Class__c,
     metadataDocumentAuthor: metadata?.Document_Author__c
   }));
 };

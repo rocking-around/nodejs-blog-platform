@@ -125,13 +125,20 @@ export default class IManageDocumentsIFrame extends LightningModal {
   }
 
   async saveDocumentMetadata(entityId, doc) {
-    const { author, name, document_number, version } = doc;
+    const {
+      author,
+      name,
+      document_number,
+      version,
+      class: document_class
+    } = doc;
     await saveIManageDocumentMetadata({
       entityId,
       metadata: {
         author,
         name,
         document_number,
+        document_class,
         version
       }
     });

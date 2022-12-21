@@ -77,6 +77,7 @@ public with sharing class IManageLinksAndFilesHelper {
         Name,
         Document_Version__c,
         DocNumber__c,
+        Document_Class__c,
         Document_Author__c,
         EntityId__c
       FROM iManageDocumentMetadata__c
@@ -156,7 +157,8 @@ public with sharing class IManageLinksAndFilesHelper {
       Name = String.valueOf(metadata.get('name')),
       Document_Version__c = String.valueOf(metadata.get('version')),
       DocNumber__c = String.valueOf(metadata.get('document_number')),
-      Document_Author__c = String.valueOf(metadata.get('author'))
+      Document_Author__c = String.valueOf(metadata.get('author')),
+      Document_Class__c = String.valueOf(metadata.get('document_class'))
     );
     insert md;
     return md.Id;
@@ -167,13 +169,7 @@ public with sharing class IManageLinksAndFilesHelper {
     LicenseService.CheckOrganizationLicense();
 
     List<iManageDocumentMetadata__c> existingMetadata = [
-      SELECT
-        Id,
-        Name,
-        EntityId__c,
-        Document_Version__c,
-        DocNumber__c,
-        Document_Author__c
+      SELECT Id
       FROM iManageDocumentMetadata__c
       WHERE EntityId__c = :entityId
     ];
@@ -193,6 +189,7 @@ public with sharing class IManageLinksAndFilesHelper {
         Name,
         EntityId__c,
         Document_Version__c,
+        Document_Class__c,
         DocNumber__c,
         Document_Author__c
       FROM iManageDocumentMetadata__c
