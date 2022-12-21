@@ -117,6 +117,12 @@ public with sharing class IManageLinksAndFilesHelper {
       .getSObjectType()
       .getDescribe()
       .getName();
+
+    return isEnabledForRecord(sObjName);
+  }
+
+  @TestVisible
+  private static Boolean isEnabledForRecord(String sObjName) {
     Map<String, Object> config = ConfigurationHelper.getIManageDocumentSettings();
     switch on sObjName {
       when 'Event' {
