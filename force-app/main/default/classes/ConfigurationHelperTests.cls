@@ -1,6 +1,8 @@
 @isTest
 public with sharing class ConfigurationHelperTests {
   static testMethod void saveAndGetGeneralSettingsTest() {
+    TestUtils.setupMockActiveLicense();
+
     String urlKey = 'general:Url';
     String matterFieldKey = 'general:MatterField';
     String clientIdKey = 'general:Client_Id';
@@ -40,6 +42,8 @@ public with sharing class ConfigurationHelperTests {
   }
 
   static testMethod void getIManageDocumentSettingsTest() {
+    TestUtils.setupMockActiveLicense();
+
     // add settings
     iManageDocumentSettings__c docSettings = new iManageDocumentSettings__c();
     docSettings.Calendar__c = true;
@@ -71,12 +75,16 @@ public with sharing class ConfigurationHelperTests {
   }
 
   static testMethod void saveIManageDocumentsSettingsTest() {
+    TestUtils.setupMockActiveLicense();
+
     Map<String, Object> data = new Map<String, Object>{
       'iManageDocuments:Calendar' => false,
       'iManageDocuments:Task' => true,
       'iManageDocuments:Intake_Document' => false,
       'iManageDocuments:Matter_Document' => true,
-      'iManageDocuments:Matter' => false
+      'iManageDocuments:Matter' => false,
+      'iManageDocuments:Save_Document' => true,
+      'iManageDocuments:Save_Link' => true
     };
     Test.startTest();
     ConfigurationHelper.saveIManageDocumentsSettings(data);
@@ -92,11 +100,15 @@ public with sharing class ConfigurationHelperTests {
       'iManageDocuments:Matter_Document'
     );
     Boolean matter = (Boolean) result.get('iManageDocuments:Matter');
+    Boolean saveDoc = (Boolean) result.get('iManageDocuments:Save_Document');
+    Boolean saveLink = (Boolean) result.get('iManageDocuments:Save_Link');
 
     System.assert(!calendar, 'Calendar should be enabled');
     System.assert(task, 'Task should be disabled');
     System.assert(!intakeDoc, 'Intake_Document should be enabled');
     System.assert(matterDoc, 'Matter_Document should be enabled');
     System.assert(!matter, 'Matter should be enabled');
+    System.assert(saveDoc, 'Save_Document should be enabled');
+    System.assert(saveLink, 'Save_Link should be enabled');
   }
 }

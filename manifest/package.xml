@@ -28,6 +28,7 @@
         <members>IManageLinksAndFilesHelperTests</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
+        <members>TestUtils</members>
         <name>ApexClass</name>
     </types>
     <types>
