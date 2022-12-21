@@ -76,7 +76,7 @@ public with sharing class LicenseService {
   }
 
   @AuraEnabled
-  public static IManageBaseResponse CheckOrganizationLicense() {
+  public static void CheckOrganizationLicense() {
     Organization org = [SELECT Id FROM Organization];
     String licenseResponseEnc = getLicenseInfo(org.Id);
     System.debug(licenseResponseEnc);
@@ -93,13 +93,10 @@ public with sharing class LicenseService {
     {
       if(Cache.Org.contains('license')) {
         Cache.Org.remove('license');
-        return CheckOrganizationLicense();
+        CheckOrganizationLicense();
       }
-
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND.name(),
-        'The organization haven&apos;t license for the iManage integration system. Please contact with Administrator.'
-      );
+      
+      throw IManageBaseHelper.BuildException(IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND);
     }
     
     System.debug(licenseResponse);
@@ -110,27 +107,18 @@ public with sharing class LicenseService {
         LicenseService.licensingInterval < ((DateTime.now().getTime() - licenseResponse.ts.getTime()) / 1000 / 60)) 
       ) {
       Cache.Org.remove('license');
-      return CheckOrganizationLicense();
+      CheckOrganizationLicense();
     }
 
     if(licenseResponse == null || licenseResponse.status == 'Inactive'|| licenseResponse.status == null) {
       Cache.Org.remove('license');
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND.name(),
-        'The organization haven&apos;t license for the iManage integration system. Please contact with Administrator.'
-      );
+      throw IManageBaseHelper.BuildException(IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND);
     }
 
     if(licenseResponse.expirationDate <= system.now() || licenseResponse.status == 'Expired') {
       Cache.Org.remove('license');
-      return IManageBaseResponse.BuildError(
-        IManageBaseHelper.IManageErrors.LICENSE_EXPIRED.name(),
-        'Organization&apos;s license for the iManage integration system was expired. Please contact with Administrator.'
-      );
+      throw IManageBaseHelper.BuildException(IManageBaseHelper.IManageErrors.LICENSE_EXPIRED);
     }
-
-    return new IManageBaseResponse();
-    //return licenseResponse.status == 'Active'; // Expired | Inactive
   }
 
   public class LicenseResponse {
