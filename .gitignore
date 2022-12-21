@@ -42,3 +42,5 @@ $RECYCLE.BIN/
 #test files
 example.work.ps1
 result.csv
+
+.vs
