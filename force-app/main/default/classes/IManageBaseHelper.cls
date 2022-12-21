@@ -11,6 +11,8 @@ public with sharing class IManageBaseHelper {
     EMPTY_CLIENT_OR_MATTER,
     UNAUTHORIZED,
     EMPTY_CUSTOM_RESOURCE,
-    FOLDER_NOT_FOUND
+    FOLDER_NOT_FOUND,
+    LICENSE_NOT_FOUND,
+    LICENSE_EXPIRED
   }
 }

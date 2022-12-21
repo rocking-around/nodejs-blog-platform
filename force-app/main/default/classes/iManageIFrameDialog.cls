@@ -107,6 +107,11 @@ public class iManageIFrameDialog {
 
   @AuraEnabled
   public static IManageBaseResponse GetIFrameFolder(String entityId) {
+    // Check licensing
+    IManageBaseResponse licensingResponse = LicenseService.CheckOrganizationLicense();
+    if(licensingResponse.Error != null)
+      return licensingResponse;
+
     IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
       entityId
     );
@@ -171,7 +176,14 @@ public class iManageIFrameDialog {
 
   @AuraEnabled
   public static IManageBaseResponse GetIFrameFilePicker() {
+      
+    // Check licensing
+    IManageBaseResponse licensingResponse = LicenseService.CheckOrganizationLicense();
+    if(licensingResponse.Error != null)
+      return licensingResponse;
+      
     try {
+
       iManageProvider.IManageApiDataResponse apiData = GetApiData();
       DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
