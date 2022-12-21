@@ -20,6 +20,15 @@ public with sharing class LicenseService {
     return decrypt(enc);
   }
 
+  @TestVisible
+  private static Blob encrypt(String str) {
+    Blob key = EncodingUtil.base64Decode(AES_KEY_BASE64);
+    Blob vector = Blob.valueOf(AES_VECTOR_STR);
+    Blob data = Blob.valueOf(str);
+    Blob encrypted = Crypto.encrypt('AES256', key, vector, data);
+    return encrypted;
+  }
+
   private static Boolean runningInASandbox {
     get {
       if (runningInASandbox == null) {
@@ -31,6 +40,7 @@ public with sharing class LicenseService {
     set;
   }
 
+  @TestVisible
   private static String baseUrl {
     get {
       if (runningInASandbox)
@@ -40,6 +50,7 @@ public with sharing class LicenseService {
     }
   }
 
+  @TestVisible
   private static Integer licensingInterval {
     get {
       if (runningInASandbox)
