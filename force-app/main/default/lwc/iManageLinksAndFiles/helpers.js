@@ -52,15 +52,15 @@ export const mapLinksToGridModel = (links) => {
     fileUrl: l[FILE_LINK_FIELD.fieldApiName],
     fileUrlLabel: l.Name,
     preview: false, // always false,
-    metadataName: l.Name, 
-    metadataVersion: l.Document_Version__c, 
-    metadataDocumentNumber: l.DocNumber__c, 
-    metadataDocumentAuthor: l.Document_Author__c
+    metadataName: l.metadata?.Name,
+    metadataVersion: l.metadata?.Document_Version__c,
+    metadataDocumentNumber: l.metadata?.DocNumber__c,
+    metadataDocumentAuthor: l.metadata?.Document_Author__c
   }));
 };
 
 export const mapFilesToGridModel = (files = []) => {
-  return files.map(({ ContentDocument: cd }) => ({
+  return files.map(({ ContentDocument: cd, metadata }) => ({
     id: cd.Id,
     lastModifiedDate: cd.LastModifiedDate,
     fileName: cd.Title,
@@ -69,10 +69,10 @@ export const mapFilesToGridModel = (files = []) => {
     fileUrl: `/lightning/r/ContentDocument/${cd.Id}/view`,
     fileUrlLabel: cd.Title + (cd.FileExtension ? `.${cd.FileExtension}` : ""),
     preview: true, // always true
-    metadataName: cd.Name, 
-    metadataVersion: cd.Document_Version__c, 
-    metadataDocumentNumber: cd.DocNumber__c, 
-    metadataDocumentAuthor: cd.Document_Author__c
+    metadataName: metadata?.Name,
+    metadataVersion: metadata?.Document_Version__c,
+    metadataDocumentNumber: metadata?.DocNumber__c,
+    metadataDocumentAuthor: metadata?.Document_Author__c
   }));
 };
 
