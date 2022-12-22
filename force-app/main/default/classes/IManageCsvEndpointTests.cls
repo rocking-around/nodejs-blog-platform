@@ -2,6 +2,7 @@
 public class IManageCsvEndpointTests {
   @isTest
   static void testGetPositive() {
+    TestUtils.setupMockActiveLicense();
     // Create mappoing
     iManageSettings__c mapping = new iManageSettings__c(
       Client_Id__c = 'val1',
@@ -21,6 +22,9 @@ public class IManageCsvEndpointTests {
 
     // Create Account
     Account acc = new Account(Name = 'Donald Duck');
+    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
+      acc.litify_pm__Last_Name__c = 'Duck';
+    }
     insert acc;
 
     // Create oppporunity

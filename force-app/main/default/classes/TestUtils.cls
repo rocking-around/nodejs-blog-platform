@@ -11,7 +11,20 @@ public class TestUtils {
     EchoHttpMock.setTestMockResponse(responses);
   }
 
-  private static HttpResponse getMockLicenseResponse(
+  public static boolean isFieldExist(String objName, string fieldName) {
+    try {
+      SObject so = Schema.getGlobalDescribe().get(objName).newSObject();
+      return so.getSobjectType()
+        .getDescribe()
+        .fields.getMap()
+        .containsKey(fieldName);
+    } catch (Exception ex) {
+    }
+
+    return false;
+  }
+
+  public static HttpResponse getMockLicenseResponse(
     Integer statusCode,
     String orgId
   ) {

@@ -42,15 +42,23 @@ private class iManageIFrameDialogTests {
       '","wstype":"workspace"}],"overflow":false}'
     );
 
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
       '/dialog-tokens' => getDialogTokenResponse,
       '/workspaces/search' => searchFolderIdResponse,
-      'callout:iManageCreds/api' => getApiDataResponse
+      'callout:iManageCreds/api' => getApiDataResponse,
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
 
     // Create Account
     Account acc = new Account(Name = 'Donald Duck');
+    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
+      acc.litify_pm__Last_Name__c = 'Duck';
+    }
     insert acc;
 
     //Create Matter
@@ -64,7 +72,7 @@ private class iManageIFrameDialogTests {
 
     Test.startTest();
 
-    IManageBaseResponse result = iManageIFrameDialog.GetIFrameFolder(matter.Id);
+    String result = iManageIFrameDialog.GetIFrameFolder(matter.Id);
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     String expectedResult =
       mc.Url__c +
@@ -78,7 +86,7 @@ private class iManageIFrameDialogTests {
     Test.stopTest();
 
     System.assert(
-      result.Data == expectedResult,
+      result == expectedResult,
       'The iFrame folder has wrong value'
     );
   }
@@ -138,17 +146,26 @@ private class iManageIFrameDialogTests {
       dialogTokenResponse
     };
 
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
       'callout:iManageCreds/api' => authResponses,
       'callout:iManageCreds/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
       'callout:iManageCreds/api/v2/customers/' +
       customerId +
-      '/dialog-tokens' => dialogTokenResponses2
+      '/dialog-tokens' => dialogTokenResponses2,
+      licenseUrl => new List<HttpResponse>{
+        TestUtils.getMockLicenseResponse(200, orgId),
+        TestUtils.getMockLicenseResponse(200, orgId),
+        TestUtils.getMockLicenseResponse(200, orgId)
+      }
     };
     HttpCalloutQueueMock.setTestMockResponse(responses);
 
     Test.startTest();
-    IManageBaseResponse result = iManageIFrameDialog.GetIFrameFilePicker();
+    String result = iManageIFrameDialog.GetIFrameFilePicker();
     Test.stopTest();
     String expectedResult =
       mc.Url__c +
@@ -158,26 +175,35 @@ private class iManageIFrameDialogTests {
       EncodingUtil.urlEncode(dialogToken, 'UTF-8') +
       '&mode=open';
     System.assert(
-      result.Data == expectedResult,
+      result == expectedResult,
       'The IFrame FilePicker has wrong value'
     );
   }
 
   static testMethod void getIFrameFilePicker401Test() {
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     HttpResponse getApiDataResponse401 = new HttpResponse();
     getApiDataResponse401.setStatusCode(401);
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      'callout:iManageCreds/api' => getApiDataResponse401
+      'callout:iManageCreds/api' => getApiDataResponse401,
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
 
     Test.startTest();
-    IManageBaseResponse result = iManageIFrameDialog.GetIFrameFilePicker();
+    try {
+      String result = iManageIFrameDialog.GetIFrameFilePicker();
+    } catch (AuraHandledException ex) {
+      System.assert(
+        ex.getMessage() ==
+        System.Label.imanage_message_codes_empty_custom_resource,
+        'Error code has wrong value'
+      );
+    }
     Test.stopTest();
-    System.assert(
-      result.Error.Code == IManageBaseHelper.IManageErrors.UNAUTHORIZED.name(),
-      'Error code has wrong value'
-    );
   }
 
   private static HttpResponse getMockAuthResponse(

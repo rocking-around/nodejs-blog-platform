@@ -1,13 +1,17 @@
 @isTest
 private class iManageFileWorkerTests {
   static testMethod void getApiDataTest() {
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
     //Setup Mock responses
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
       'callout:iManageCreds/api' => iManageFileWorkerTests.getMockAuthResponse(
         200,
         'authenticated',
         333
-      )
+      ),
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
 
@@ -23,10 +27,15 @@ private class iManageFileWorkerTests {
   }
 
   static testMethod void getApiData401Test() {
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     HttpResponse getApiDataResponse401 = new HttpResponse();
     getApiDataResponse401.setStatusCode(401);
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      'callout:iManageCreds/api' => getApiDataResponse401
+      'callout:iManageCreds/api' => getApiDataResponse401,
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
 
@@ -60,6 +69,10 @@ private class iManageFileWorkerTests {
     String docContent = 'Test content';
 
     //Setup Mock responses
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     String downloadDocEndpoint =
       'callout:iManageCreds/api/v2/customers/' +
       customerId +
@@ -78,7 +91,8 @@ private class iManageFileWorkerTests {
       downloadDocEndpoint => iManageFileWorkerTests.getMockDownloadDocResponse(
         200,
         docContent
-      )
+      ),
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
 
@@ -188,11 +202,19 @@ private class iManageFileWorkerTests {
       iManageFileWorkerTests.getMockDownloadDocResponse(200, docContent)
     );
 
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
     Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
       'callout:iManageCreds/api' => authResponses,
       'callout:iManageCreds/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
       docInfoEndpoint => docInfoResponses,
-      downloadDocEndpoint => downloadDocResponses
+      downloadDocEndpoint => downloadDocResponses,
+      licenseUrl => new List<HttpResponse>{
+        TestUtils.getMockLicenseResponse(200, orgId),
+        TestUtils.getMockLicenseResponse(200, orgId)
+      }
     };
     HttpCalloutQueueMock.setTestMockResponse(responses);
 
@@ -244,6 +266,7 @@ private class iManageFileWorkerTests {
   }
 
   static testMethod void SaveLinkFromIManageTest() {
+    TestUtils.setupMockActiveLicense();
     // Insert Custom Settings
     iManageSettings__c mcSetting = new iManageSettings__c();
     mcSetting.Client_Id__c = 'https://cloudimanage.com';

@@ -2,6 +2,7 @@
 private class IManageMappingHelperTests {
   @isTest
   static void getMappingTest_positive() {
+    TestUtils.setupMockActiveLicense();
     iManageSettings__c testData = new iManageSettings__c(
       Client_Id__c = 'val1',
       ClientField__c = 'val2',
@@ -34,6 +35,7 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getMappingDataTest() {
+    TestUtils.setupMockActiveLicense();
     // Create Opportunity
     Opportunity opp = new Opportunity();
     opp.Name = 'Test Opportunity';
@@ -76,6 +78,7 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getMappingDataTest2() {
+    TestUtils.setupMockActiveLicense();
     // Create Opportunity
     Opportunity opp = new Opportunity();
     opp.Name = 'Test Opportunity';
@@ -118,6 +121,7 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getFieldsTest() {
+    TestUtils.setupMockActiveLicense();
     Test.startTest();
     List<IManageMappingHelper.GetFieldResult> resultSrting = IManageMappingHelper.getFields(
       'Opportunity',
@@ -164,6 +168,7 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void getFieldsTestException() {
+    TestUtils.setupMockActiveLicense();
     Test.startTest();
     try {
       List<IManageMappingHelper.GetFieldResult> resultSrting = IManageMappingHelper.getFields(
@@ -181,6 +186,7 @@ private class IManageMappingHelperTests {
 
   @isTest
   static void saveMappingTest() {
+    TestUtils.setupMockActiveLicense();
     iManageSettings__c settings = new iManageSettings__c(
       Client_Id__c = 'val1',
       ClientField__c = 'val2',
@@ -218,6 +224,7 @@ private class IManageMappingHelperTests {
 
   //getSObjectMetadata
   static testMethod void getSObjectMetadataTest() {
+    TestUtils.setupMockActiveLicense();
     Test.startTest();
     Map<String, Object> result = IManageMappingHelper.getSObjectMetadata(
       'Opportunity'

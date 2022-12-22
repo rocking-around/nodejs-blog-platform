@@ -19,6 +19,7 @@ private class IManageCsvHelperTests {
 
   @isTest
   static void getEntitiesByIdsTest() {
+    TestUtils.setupMockActiveLicense();
     // Create mappoing
     IManageMapping mapping = new IManageMapping();
     mapping.EntityType = 'Opportunity';
@@ -31,6 +32,9 @@ private class IManageCsvHelperTests {
 
     // Create Account
     Account acc = new Account(Name = 'Donald Duck');
+    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
+      acc.litify_pm__Last_Name__c = 'Duck';
+    }
     insert acc;
 
     // Create oppporunity
@@ -102,6 +106,8 @@ private class IManageCsvHelperTests {
 
   @isTest
   static void getDataTest() {
+    TestUtils.setupMockActiveLicense();
+
     // Create mappoing
     iManageSettings__c mapping = new iManageSettings__c(
       Client_Id__c = 'val1',
@@ -121,6 +127,9 @@ private class IManageCsvHelperTests {
 
     // Create Account
     Account acc = new Account(Name = 'Donald Duck');
+    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
+      acc.litify_pm__Last_Name__c = 'Duck';
+    }
     insert acc;
 
     // Create oppporunity
@@ -152,7 +161,7 @@ private class IManageCsvHelperTests {
     Test.startTest();
     List<IManageCsvHelper.CsvRow> csvRows = IManageCsvHelper.getData(
       System.now().addDays(-10).date(),
-      System.now().addDays(1).date()
+      System.now().addDays(10).date()
     );
     Test.stopTest();
 
@@ -192,6 +201,8 @@ private class IManageCsvHelperTests {
 
   @isTest
   static void getFieldRelationshipNameTest() {
+    TestUtils.setupMockActiveLicense();
+
     String nullValue = IManageCsvHelper.getFieldRelationshipName(
       'Opportunity',
       'Id'
@@ -206,6 +217,8 @@ private class IManageCsvHelperTests {
 
   @isTest
   static void getFieldReferenceNameTest() {
+    TestUtils.setupMockActiveLicense();
+
     String value = IManageCsvHelper.getFieldReferenceName(
       'Opportunity',
       'AccountId'
