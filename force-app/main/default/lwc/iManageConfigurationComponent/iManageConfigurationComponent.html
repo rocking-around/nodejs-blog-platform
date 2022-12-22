@@ -13,6 +13,7 @@
                 <lightning-input
                   class="form-item"
                   type="text"
+                  required
                   label="Url"
                   name="Url"
                   disabled={saving}
@@ -23,6 +24,7 @@
                 <lightning-input
                   class="form-item"
                   type="text"
+                  required
                   label="iManage Client Key"
                   name="Client_Id"
                   disabled={saving}
@@ -32,6 +34,7 @@
                 <lightning-input
                   class="form-item"
                   type="text"
+                  required
                   label="iManage Client Field"
                   name="ClientField"
                   disabled={saving}
@@ -41,6 +44,7 @@
                 <lightning-input
                   class="form-item"
                   type="text"
+                  required
                   name="MatterField"
                   label="iManage Matter Field"
                   disabled={saving}
@@ -181,17 +185,22 @@
           label="iManage Mapping"
           value="i-manage-mapping"
         >
-          <template if:true={iManageMappingEntity}>
-            <c-i-manage-mapping-configuration
-              entity-api-name={iManageMappingEntity}
-            >
-            </c-i-manage-mapping-configuration>
+          <template if:false={areGeneralSettingsHasValuesAndSaved}>
+            First populate and save the general settings
           </template>
-          <template if:false={iManageMappingEntity}>
-            <p>
-              The Salesforce entity type is not specified. Contact the
-              Administrator.
-            </p>
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <template if:true={iManageMappingEntity}>
+              <c-i-manage-mapping-configuration
+                entity-api-name={iManageMappingEntity}
+              >
+              </c-i-manage-mapping-configuration>
+            </template>
+            <template if:false={iManageMappingEntity}>
+              <p>
+                The Salesforce entity type is not specified. Contact the
+                Administrator.
+              </p>
+            </template>
           </template>
         </lightning-tab>
       </lightning-tabset>

@@ -98,3 +98,13 @@ export class IManageDocumentSettingsForm extends SettingsForm {
     super("iManageDocuments", data);
   }
 }
+
+export const defaultGeneralSettings = {
+  "general:Url": undefined,
+  "general:MatterField": undefined,
+  "general:Client_Id": undefined,
+  "general:ClientField": undefined,
+  "general:Enable_CSV_Export": false
+};
+
+export const DEFAULT_IMANAGE_MAPPING_ENTITY = "litify_pm__Matter__c";

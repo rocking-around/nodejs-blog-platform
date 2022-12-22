@@ -326,10 +326,20 @@ export default class IManageMappingEditor extends LightningElement {
     this.iManageMappingEdit = {};
   }
 
-  edit() {
+  async edit() {
     this.isEdit = true;
     this.iManageMappingEdit = { ...this.iManageMapping };
-    this.initEditor(this.iManageMappingEdit);
+    try {
+      await this.initEditor(this.iManageMappingEdit);
+    } catch (error) {
+      if (error?.body?.message.includes(`Invalid sobject provided`)) {
+        this.handleErrors(
+          "Invalid Salesforce entity type provided. Contact the Administrator."
+        );
+      } else {
+        this.handleErrors(error);
+      }
+    }
   }
 
   loadIdObjectOptions(name, parentObjName) {
@@ -359,9 +369,7 @@ export default class IManageMappingEditor extends LightningElement {
           resolve(this[`${name}Ext`]);
         })
         .catch((err) => {
-          this.error = err.body.message || err;
-          console.error(err);
-          reject();
+          reject(err);
         })
         .finally(() => {});
     });

@@ -8,7 +8,12 @@ import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.get
 import saveIManageDocumentsSettings from "@salesforce/apex/ConfigurationHelper.saveIManageDocumentsSettings";
 import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
 
-import { GeneralSettingsForm, IManageDocumentSettingsForm } from "./settings";
+import {
+  GeneralSettingsForm,
+  IManageDocumentSettingsForm,
+  defaultGeneralSettings,
+  DEFAULT_IMANAGE_MAPPING_ENTITY
+} from "./settings";
 
 export default class IManageConfigurationComponent extends LightningElement {
   loading = false;
@@ -82,7 +87,8 @@ export default class IManageConfigurationComponent extends LightningElement {
   }
 
   async loadGeneralSettings() {
-    this.generalSettings = await getGeneralSettings();
+    const settings = await getGeneralSettings();
+    this.generalSettings = { ...defaultGeneralSettings, ...settings };
     this.generalSettingsModel = new GeneralSettingsForm(this.generalSettings);
 
     this.generalSettingsEdit = this.generalSettingsModel.selectFields(
@@ -109,7 +115,8 @@ export default class IManageConfigurationComponent extends LightningElement {
 
   async loadImanageMapping() {
     const mapping = await getMapping();
-    this.iManageMappingEntity = mapping?.EntityType;
+    this.iManageMappingEntity =
+      mapping?.EntityType || DEFAULT_IMANAGE_MAPPING_ENTITY;
   }
 
   onGeneralSettingChanged(e) {
@@ -204,12 +211,35 @@ export default class IManageConfigurationComponent extends LightningElement {
 
   handleErrors(err) {
     console.error(err);
+    let message = "";
+    const pageErrors = err?.body?.pageErrors || [];
+    if (pageErrors.length > 0) {
+      message = pageErrors[0]?.message;
+    }
+    if (!message) {
+      message = err.message || err?.body?.message || err;
+    }
     this.dispatchEvent(
       new ShowToastEvent({
         title: "Error",
-        message: err.message || err?.body?.message || err,
+        message: message,
         variant: "error"
       })
     );
+  }
+
+  get areGeneralSettingsHasValuesAndSaved() {
+    const isChanged = this.isGeneralSettingsChanged;
+    let fields;
+    if (this.generalSettingsModel.selectFields) {
+      fields = this.generalSettingsModel.selectFields(
+        () => true,
+        (x) => x.value,
+        (x) => x.name
+      );
+    }
+    const allFieldsHasValue =
+      fields && Object.values(fields).every((x) => x !== undefined);
+    return !isChanged && allFieldsHasValue;
   }
 }
