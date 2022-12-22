@@ -3,43 +3,47 @@
     <types>
         <members>ConfigurationHelper</members>
         <members>ConfigurationHelperTests</members>
+        <members>DescribePackageCustomLabels</members>
+        <members>DescribePackageCustomLabelsTest</members>
+        <members>EchoHttpMock</members>
+        <members>HttpCalloutQueueMock</members>
+        <members>IManageBaseHelper</members>
+        <members>IManageBaseResponse</members>
+        <members>IManageCsvEndpoint</members>
+        <members>IManageCsvEndpointTests</members>
         <members>IManageCsvHelper</members>
         <members>IManageCsvHelperTests</members>
+        <members>IManageExceptions</members>
         <members>iManageFileWorker</members>
-        <members>iManageProvider</members>
+        <members>iManageFileWorkerTests</members>
         <members>iManageIFrameDialog</members>
         <members>iManageIFrameDialogTests</members>
+        <members>IManageLinksAndFilesHelper</members>
+        <members>IManageLinksAndFilesHelperTests</members>
         <members>IManageMapping</members>
         <members>IManageMappingHelper</members>
         <members>IManageMappingHelperTests</members>
-        <members>iManageProviderTests</members>
+        <members>iManagePostInstallClass</members>
+        <members>iManageProvider</members>
         <members>iManageProviderMockRefreshCallout</members>
         <members>iManageProviderMockUserInfoCallout</members>
-        <members>IManageBaseHelper</members>
-        <members>IManageBaseResponse</members>
-        <members>IManageExceptions</members>
-        <members>EchoHttpMock</members>
-        <members>HttpCalloutQueueMock</members>
-        <members>DescribePackageCustomLabels</members>
-        <members>DescribePackageCustomLabelsTest</members>
-        <members>IManageCsvEndpoint</members>
-        <members>IManageCsvEndpointTests</members>
-        <members>IManageLinksAndFilesHelper</members>
-        <members>IManageLinksAndFilesHelperTests</members>
+        <members>iManageProviderTests</members>
+        <members>iManageUsersNotification</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
         <members>TestUtils</members>
         <name>ApexClass</name>
     </types>
     <types>
+        <members>filePreview</members>
         <members>iManageConfigurationComponent</members>
         <members>iManageContainer</members>
-        <members>iManageMappingEditor</members>
+        <members>iManageDocumentsIFrame</members>
         <members>iManageExportToCsv</members>
         <members>iManageLinksAndFiles</members>
         <members>iManageLinksAndFilesDatatable</members>
-        <members>iManageDocumentsIFrame</members>
-        <members>filePreview</members>
+        <members>iManageMappingEditor</members>
+        <members>iManageMappingConfiguration</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
@@ -47,14 +51,10 @@
         <members>iManageApi</members>
         <name>StaticResource</name>
     </types>
-    <!--types>
-        <members>imanage</members>
-        <name>AuthProvider</name>
-    </types>
     <types>
-        <members>iManageCreds</members>
-        <name>NamedCredential</name>
-    </types-->
+        <members>Send_users_count</members>
+        <name>Flow</name>
+    </types>
     <types>
         <members>IManage_File_Link__c</members>
         <members>iManageSettings__c</members>
