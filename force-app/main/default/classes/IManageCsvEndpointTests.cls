@@ -14,22 +14,14 @@ public class IManageCsvEndpointTests {
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
       Mapping_MatterNameField__c = 'Name',
-      Mapping_EntityClientIdObjectField__c = 'AccountId',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
       Mapping_ClientIdField__c = 'Id',
       Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
 
-    // Create Account
-    Account acc = new Account(Name = 'Donald Duck');
-    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
-      acc.litify_pm__Last_Name__c = 'Duck';
-    }
-    insert acc;
-
     // Create oppporunity
     Opportunity opp = new Opportunity(
-      AccountId = acc.Id,
       Name = 'Test Opportunity Name',
       StageName = '100',
       CloseDate = system.now().addDays(30).date()

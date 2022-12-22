@@ -26,20 +26,12 @@ private class IManageCsvHelperTests {
     mapping.EntityMatterIdObjectField = 'Opportunity';
     mapping.MatterIdField = 'Id';
     mapping.MatterNameField = 'Name';
-    mapping.EntityClientIdObjectField = 'AccountId';
+    mapping.EntityClientIdObjectField = 'Opportunity';
     mapping.ClientIdField = 'Id';
     mapping.ClientNameField = 'Name';
 
-    // Create Account
-    Account acc = new Account(Name = 'Donald Duck');
-    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
-      acc.litify_pm__Last_Name__c = 'Duck';
-    }
-    insert acc;
-
     // Create oppporunity
     Opportunity opp = new Opportunity(
-      AccountId = acc.Id,
       Name = 'Test Opportunity Name',
       StageName = '100',
       CloseDate = system.now().addDays(30).date()
@@ -47,17 +39,10 @@ private class IManageCsvHelperTests {
     insert opp;
 
     Id oppId = opp.Id;
-    Id accId = acc.Id;
     opp = [
       SELECT Id, LastModifiedDate, Name
       FROM Opportunity
       WHERE Id = :oppId
-      LIMIT 1
-    ];
-    acc = [
-      SELECT Id, LastModifiedDate, Name
-      FROM Account
-      WHERE Id = :accId
       LIMIT 1
     ];
 
@@ -94,12 +79,12 @@ private class IManageCsvHelperTests {
       'MatterLastModifiedDate has wrong value'
     );
     System.assert(
-      row.ClientId == String.valueOf(acc.Id),
+      row.ClientId == String.valueOf(opp.Id),
       'ClientId has wrong value'
     );
-    System.assert(row.ClientName == acc.Name, 'ClientName has wrong value');
+    System.assert(row.ClientName == opp.Name, 'ClientName has wrong value');
     System.assert(
-      row.ClientLastModifiedDate == acc.LastModifiedDate,
+      row.ClientLastModifiedDate == opp.LastModifiedDate,
       'ClientLastModifiedDate has wrong value'
     );
   }
@@ -119,22 +104,14 @@ private class IManageCsvHelperTests {
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
       Mapping_MatterNameField__c = 'Name',
-      Mapping_EntityClientIdObjectField__c = 'AccountId',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
       Mapping_ClientIdField__c = 'Id',
       Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
 
-    // Create Account
-    Account acc = new Account(Name = 'Donald Duck');
-    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
-      acc.litify_pm__Last_Name__c = 'Duck';
-    }
-    insert acc;
-
     // Create oppporunity
     Opportunity opp = new Opportunity(
-      AccountId = acc.Id,
       Name = 'Test Opportunity Name',
       StageName = '100',
       CloseDate = system.now().addDays(30).date()
@@ -142,17 +119,10 @@ private class IManageCsvHelperTests {
     insert opp;
 
     Id oppId = opp.Id;
-    Id accId = acc.Id;
     opp = [
       SELECT Id, LastModifiedDate, Name
       FROM Opportunity
       WHERE Id = :oppId
-      LIMIT 1
-    ];
-    acc = [
-      SELECT Id, LastModifiedDate, Name
-      FROM Account
-      WHERE Id = :accId
       LIMIT 1
     ];
 
@@ -189,12 +159,12 @@ private class IManageCsvHelperTests {
       'MatterLastModifiedDate has wrong value'
     );
     System.assert(
-      row.ClientId == String.valueOf(acc.Id),
+      row.ClientId == String.valueOf(opp.Id),
       'ClientId has wrong value'
     );
-    System.assert(row.ClientName == acc.Name, 'ClientName has wrong value');
+    System.assert(row.ClientName == opp.Name, 'ClientName has wrong value');
     System.assert(
-      row.ClientLastModifiedDate == acc.LastModifiedDate,
+      row.ClientLastModifiedDate == opp.LastModifiedDate,
       'ClientLastModifiedDate has wrong value'
     );
   }

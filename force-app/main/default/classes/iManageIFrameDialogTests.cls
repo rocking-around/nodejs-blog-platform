@@ -10,7 +10,7 @@ private class iManageIFrameDialogTests {
     mcSetting.Mapping_EntityMatterIdObjectField__c = 'Opportunity';
     mcSetting.Mapping_MatterIdField__c = 'Id';
     mcSetting.Mapping_MatterNameField__c = 'Name';
-    mcSetting.Mapping_EntityClientIdObjectField__c = 'AccountId';
+    mcSetting.Mapping_EntityClientIdObjectField__c = 'Opportunity';
     mcSetting.Mapping_ClientIdField__c = 'Id';
     mcSetting.Mapping_ClientNameField__c = 'Name';
     insert mcSetting;
@@ -54,16 +54,8 @@ private class iManageIFrameDialogTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
-    // Create Account
-    Account acc = new Account(Name = 'Donald Duck');
-    if (TestUtils.isFieldExist('Account', 'litify_pm__Last_Name__c')) {
-      acc.litify_pm__Last_Name__c = 'Duck';
-    }
-    insert acc;
-
     //Create Matter
     Opportunity matter = new Opportunity(
-      AccountId = acc.Id,
       StageName = '100',
       Name = '10',
       CloseDate = system.now().addDays(30).date()
