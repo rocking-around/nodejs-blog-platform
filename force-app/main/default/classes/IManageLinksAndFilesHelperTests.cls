@@ -304,13 +304,16 @@ private class IManageLinksAndFilesHelperTests {
       fileLink.Id,
       metadata
     );
-    List<iManageDocumentMetadata__c> docsMetadata = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
+    List<Map<String, Object>> docsMetadata = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
       new List<Id>{ fileLink.Id }
     );
     Test.stopTest();
 
     System.assert(docsMetadata.size() > 0, 'Metadata not found');
-    iManageDocumentMetadata__c docMetadata = docsMetadata.get(0);
+    iManageDocumentMetadata__c docMetadata = (iManageDocumentMetadata__c) createSObjectFromMap(
+      'iManageDocumentMetadata__c',
+      docsMetadata.get(0)
+    );
     System.assertEquals(
       docMetadata.EntityId__c,
       fileLink.Id,
@@ -378,7 +381,7 @@ private class IManageLinksAndFilesHelperTests {
       fileLink1.Id,
       metadata
     );
-    List<iManageDocumentMetadata__c> docsMetadata1 = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
+    List<Map<String, Object>> docsMetadata1 = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
       new List<Id>{ fileLink1.Id, fileLink2.Id }
     );
 
@@ -386,7 +389,7 @@ private class IManageLinksAndFilesHelperTests {
       fileLink1.Id,
       fileLink2.Id
     );
-    List<iManageDocumentMetadata__c> docsMetadata2 = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
+    List<Map<String, Object>> docsMetadata2 = IManageLinksAndFilesHelper.getIManageDocumentsMetadata(
       new List<Id>{ fileLink1.Id, fileLink2.Id }
     );
     Test.stopTest();
@@ -399,8 +402,14 @@ private class IManageLinksAndFilesHelperTests {
       docsMetadata2.size() == 1,
       'Expecten only 1 Metadata information'
     );
-    iManageDocumentMetadata__c docMetadata1 = docsMetadata1.get(0);
-    iManageDocumentMetadata__c docMetadata2 = docsMetadata2.get(0);
+    iManageDocumentMetadata__c docMetadata1 = (iManageDocumentMetadata__c) createSObjectFromMap(
+      'iManageDocumentMetadata__c',
+      docsMetadata1.get(0)
+    );
+    iManageDocumentMetadata__c docMetadata2 = (iManageDocumentMetadata__c) createSObjectFromMap(
+      'iManageDocumentMetadata__c',
+      docsMetadata2.get(0)
+    );
     System.assertEquals(
       docMetadata1.EntityId__c,
       fileLink1.Id,
@@ -453,5 +462,16 @@ private class IManageLinksAndFilesHelperTests {
       mAuthor,
       'Document_Author__c has wrong value'
     );
+  }
+
+  private static SObject createSObjectFromMap(
+    String sobjectName,
+    Map<String, Object> fields
+  ) {
+    SObject obj = (SObject) Type.forName('Schema', sobjectName).newInstance();
+    for (String key : fields.keySet()) {
+      obj.put(key, fields.get(key));
+    }
+    return obj;
   }
 }

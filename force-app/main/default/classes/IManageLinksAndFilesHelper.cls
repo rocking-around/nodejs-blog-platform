@@ -67,12 +67,12 @@ public with sharing class IManageLinksAndFilesHelper {
   }
 
   @AuraEnabled
-  public static List<iManageDocumentMetadata__c> getIManageDocumentsMetadata(
+  public static List<Map<String, Object>> getIManageDocumentsMetadata(
     List<Id> entityIds
   ) {
     LicenseService.CheckOrganizationLicense();
 
-    return [
+    List<iManageDocumentMetadata__c> metadata = [
       SELECT
         Name,
         Document_Version__c,
@@ -83,6 +83,21 @@ public with sharing class IManageLinksAndFilesHelper {
       FROM iManageDocumentMetadata__c
       WHERE EntityId__c IN :entityIds
     ];
+
+    List<Map<String, Object>> result = new List<Map<String, Object>>();
+    for (iManageDocumentMetadata__c md : metadata) {
+      result.add(
+        new Map<String, Object>{
+          'Name' => md.Name,
+          'Document_Version__c' => md.Document_Version__c,
+          'DocNumber__c' => md.DocNumber__c,
+          'Document_Class__c' => md.Document_Class__c,
+          'Document_Author__c' => md.Document_Author__c,
+          'EntityId__c' => md.EntityId__c
+        }
+      );
+    }
+    return result;
   }
 
   @AuraEnabled
