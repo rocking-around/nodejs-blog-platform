@@ -1,5 +1,7 @@
 .container {
   /*height: 300px;*/
+  /* background-color: #FFFFFF; */
+  padding: 6px 16px;
   position: relative;
 }
 

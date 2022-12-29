@@ -19,6 +19,7 @@ import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.get
 const PAGE_SIZE = 10;
 
 export default class IManageLinksAndFiles extends LightningElement {
+  @api cardTitle;
   loading = false;
   saving = false;
   isDebug = true;

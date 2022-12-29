@@ -23,6 +23,10 @@ export const COLUMNS_DEFINITION = [
     label: "iManage Name"
   },
   {
+    fieldName: "metadataDocumentClass",
+    label: "iManage Class"
+  },
+  {
     fieldName: "metadataDocumentNumber",
     label: "Number"
   },
@@ -35,14 +39,10 @@ export const COLUMNS_DEFINITION = [
     label: "Author"
   },
   {
-    fieldName: "metadataDocumentClass",
-    label: "iManage Class"
-  },
-  {
     type: "boolean",
     fieldName: "isInIManage",
-    label: "iManage Link",
-    initialWidth: 110
+    label: "iManage Link"
+    //initialWidth: 110
   }
 ];
 

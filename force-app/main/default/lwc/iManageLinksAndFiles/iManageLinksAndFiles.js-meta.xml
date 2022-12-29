@@ -5,4 +5,14 @@
     <targets>
         <target>lightning__RecordPage</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property
+        name="cardTitle"
+        label="Card Title"
+        type="String"
+        description=""
+      />
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>
