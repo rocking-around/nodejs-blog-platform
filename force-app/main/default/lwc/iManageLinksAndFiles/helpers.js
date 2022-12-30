@@ -10,7 +10,8 @@ export const COLUMNS_DEFINITION = [
     type: "linkOrPreview",
     fieldName: "fileUrl",
     label: "Salesforce Name",
-    //wrapText: true,
+    wrapText: true,
+    hideDefaultActions: true,
     typeAttributes: {
       target: "_blank",
       label: { fieldName: "fileUrlLabel" },
@@ -20,29 +21,40 @@ export const COLUMNS_DEFINITION = [
   },
   {
     fieldName: "metadataName",
-    label: "iManage Name"
+    label: "iManage Name",
+    wrapText: true,
+    hideDefaultActions: true,
   },
   {
     fieldName: "metadataDocumentClass",
-    label: "iManage Class"
+    label: "iManage Class",
+    wrapText: true,
+    hideDefaultActions: true,
   },
   {
     fieldName: "metadataDocumentNumber",
-    label: "Number"
+    label: "Number",
+    wrapText: true,
+    hideDefaultActions: true,
   },
   {
     fieldName: "metadataVersion",
-    label: "Version"
+    label: "Version",
+    wrapText: true,
+    hideDefaultActions: true,
   },
   {
     fieldName: "metadataDocumentAuthor",
-    label: "Author"
+    label: "Author",
+    wrapText: true,
+    hideDefaultActions: true,
   },
   {
     type: "boolean",
     fieldName: "isInIManage",
-    label: "iManage Link"
-    //initialWidth: 110
+    label: "Link",
+    wrapText: true,
+    hideDefaultActions: true,
   }
 ];
 

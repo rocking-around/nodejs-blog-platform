@@ -24,7 +24,10 @@ export default class IManageLinksAndFiles extends LightningElement {
   saving = false;
   isDebug = true;
   isEnabled = undefined;
+  isShowModal = false;
   gridColumns = COLUMNS_DEFINITION;
+  viewColumns = COLUMNS_DEFINITION.map(column => column.fieldName);
+  listColumns = COLUMNS_DEFINITION.map(column => ({ value: column.fieldName, label: column.label }));
 
   recordsCount = undefined;
   hasNextPage = undefined;
@@ -53,10 +56,16 @@ export default class IManageLinksAndFiles extends LightningElement {
   constructor() {
     super();
     this.writeDebug = writeDebug.bind(this);
+    
+    if(localStorage.getItem('imanage_documents_columns')) {
+      this.viewColumns = localStorage.getItem('imanage_documents_columns');
+      if(this.viewColumns.length > 0)
+        this.gridColumns = COLUMNS_DEFINITION.filter(item => 
+          item.type == "action" || this.viewColumns.includes(item.fieldName));
+    }
   }
 
   async connectedCallback() {
-    //setTimeout (()=> {this.loading = false}, 5000);
     var docSettings = await getIManageDocumentSettings();
     this.allowSaveIManageDocAsCopy =
       docSettings["iManageDocuments:Save_Document"];
@@ -147,7 +156,6 @@ export default class IManageLinksAndFiles extends LightningElement {
 
     this.loading = true;
     Promise.all([this.paging.getTotalRecords(), this.paging.loadPage(0)])
-      //Promise.all([Promise.resolve(0), Promise.resolve({data:[], hasNext: false})])
       .then(([totalRecords, { data, hasNext }]) => {
         this.recordsCount = totalRecords;
 
@@ -356,5 +364,20 @@ export default class IManageLinksAndFiles extends LightningElement {
         this.saving = false;
       }
     }
+  }
+
+  showModalBox() {  
+    this.isShowModal = true;
+  }
+
+  hideModalBox() {  
+    this.isShowModal = false;
+  }
+
+  handleManageColumnChange(e) {
+    this.viewColumns = e.detail.value;
+    localStorage.setItem('imanage_documents_columns', this.viewColumns);
+    this.gridColumns = COLUMNS_DEFINITION.filter(item => 
+      item.type == "action" || this.viewColumns.includes(item.fieldName));
   }
 }
