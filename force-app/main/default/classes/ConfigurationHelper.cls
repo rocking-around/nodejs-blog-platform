@@ -77,7 +77,15 @@ public with sharing class ConfigurationHelper {
 
     iManageDocumentSettings__c settings = docSettings.size() > 0
       ? docSettings.get(0)
-      : new iManageDocumentSettings__c();
+      : new iManageDocumentSettings__c(
+          Calendar__c = false,
+          Task__c = false,
+          Intake_Document__c = false,
+          Matter_Document__c = false,
+          Matter__c = false,
+          Save_Document__c = false,
+          Save_Link__c = false
+        );
 
     Map<String, Object> result = new Map<String, Object>{
       'iManageDocuments:Calendar' => settings.Calendar__c,
@@ -116,7 +124,15 @@ public with sharing class ConfigurationHelper {
 
     iManageDocumentSettings__c settings = docSettings.size() > 0
       ? docSettings.get(0)
-      : new iManageDocumentSettings__c();
+      : new iManageDocumentSettings__c(
+          Calendar__c = false,
+          Task__c = false,
+          Intake_Document__c = false,
+          Matter_Document__c = false,
+          Matter__c = false,
+          Save_Document__c = false,
+          Save_Link__c = false
+        );
 
     for (String key : data.keySet()) {
       switch on key {
