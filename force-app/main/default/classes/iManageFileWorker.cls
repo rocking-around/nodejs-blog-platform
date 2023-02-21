@@ -1,4 +1,4 @@
-public class iManageFileWorker {
+global class iManageFileWorker {
   private static void FakeCallForRefreshToken() {
     HttpRequest req = new HttpRequest();
     req.setEndpoint('callout:iManageCreds/api/v2/customers/0/dialog-tokens');
