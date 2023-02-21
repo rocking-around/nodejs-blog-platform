@@ -6,10 +6,11 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
   private String scope;
   private String userInfoUrl;
   private String redirectUri;
+  private String PREFIX = 'gdsi_imanage__';
 
   // This method is responsible for returning the custom metadata storing the api credentials and other details
   global String getCustomMetadataType() {
-    return 'iManageAuthSetting__mdt';
+    return PREFIX + 'iManageAuthSetting__mdt';
   }
 
   // This method is responsible to initiate the authorization code flow
@@ -17,12 +18,12 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     String stateToPropagate
   ) {
-    clientId = authProviderConfiguration.get('Consumer_Key__c');
+    clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
     authorizationUrl = authProviderConfiguration.get(
-      'Authorize_Endpoint_URL__c'
+      PREFIX + 'Authorize_Endpoint_URL__c'
     );
-    scope = authProviderConfiguration.get('Scope__c');
-    redirectUri = authProviderConfiguration.get('Redirect_URI__c');
+    scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
+    redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
     String url =
       authorizationUrl +
       '?response_type=code&client_id=' +
@@ -44,18 +45,17 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderCallbackState state
   ) {
-    clientId = authProviderConfiguration.get('Consumer_Key__c');
-    clientSecret = authProviderConfiguration.get('Consumer_Secret__c');
-    scope = authProviderConfiguration.get('Scope__c');
-    redirectUri = authProviderConfiguration.get('Redirect_URI__c');
-    accessTokenUrl = authProviderConfiguration.get('Token_Endpoint_URL__c');
+    clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
+    clientSecret = authProviderConfiguration.get(PREFIX + 'Consumer_Secret__c');
+    scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
+    redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
+    accessTokenUrl = authProviderConfiguration.get(
+      PREFIX + 'Token_Endpoint_URL__c'
+    );
 
     Map<String, String> queryParams = state.queryParameters;
     String code = queryParams.get('code');
     String sfdcState = queryParams.get('state');
-
-    system.debug('Test access');
-    system.debug(code);
 
     HttpRequest req = new HttpRequest();
     req.setEndpoint(accessTokenUrl);
@@ -81,9 +81,6 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       IManageResponse.class
     );
 
-    system.debug('responseBody');
-    system.debug(responseBody);
-
     return new Auth.AuthProviderTokenResponse(
       'iManageProvider',
       response.access_token,
@@ -97,7 +94,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderTokenResponse response
   ) {
-    userInfoUrl = authProviderConfiguration.get('User_Info_URL__c');
+    userInfoUrl = authProviderConfiguration.get(PREFIX + 'User_Info_URL__c');
     String token = response.oauthToken;
 
     HttpRequest req = new HttpRequest();
@@ -119,7 +116,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     String userId, fullName, firstName, lastName, locale, loginURL, email;
 
     locale = 'en-us';
-    loginURL = authProviderConfiguration.get('Login_URL__c');
+    loginURL = authProviderConfiguration.get(PREFIX + 'Login_URL__c');
 
     userId = infoApiResponse.data.user.id;
     fullName = infoApiResponse.data.user.name;
@@ -148,13 +145,14 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     String refreshToken
   ) {
-    system.debug('Test refresh');
-    system.debug(refreshToken);
-    clientId = authProviderConfiguration.get('Consumer_Key__c');
-    clientSecret = authProviderConfiguration.get('Consumer_Secret__c');
-    scope = authProviderConfiguration.get('Scope__c');
-    redirectUri = authProviderConfiguration.get('Redirect_URI__c');
-    accessTokenUrl = authProviderConfiguration.get('Token_Endpoint_URL__c');
+    system.debug(authProviderConfiguration);
+    clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
+    clientSecret = authProviderConfiguration.get(PREFIX + 'Consumer_Secret__c');
+    scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
+    redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
+    accessTokenUrl = authProviderConfiguration.get(
+      PREFIX + 'Token_Endpoint_URL__c'
+    );
 
     HttpRequest req = new HttpRequest();
     req.setEndpoint(accessTokenUrl);
@@ -163,8 +161,6 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     req.setBody(
       'client_id=' +
       EncodingUtil.urlEncode(clientId, 'UTF-8') +
-      //'&client_secret=' +
-      //EncodingUtil.urlEncode(clientSecret, 'UTF-8') +
       '&grant_type=refresh_token&refresh_token=' +
       EncodingUtil.urlEncode(refreshToken, 'UTF-8')
     );

@@ -1,5 +1,6 @@
 @isTest
 public class iManageProviderTests {
+  private static String PREFIX = 'gdsi_imanage__';
   @isTest
   static void Test_Instatiate() {
     iManageProvider ip = new iManageProvider();
@@ -14,10 +15,10 @@ public class iManageProviderTests {
   @isTest
   static void Test_initiate() {
     Map<String, String> apc = new Map<String, String>();
-    apc.put('gdsi_imanage__Consumer_Key__c', 'Key_1234');
-    apc.put('gdsi_imanage__Authorize_Endpoint_URL__c', 'EndPoint_1234');
-    apc.put('gdsi_imanage__Scope__c', 'Scope_1234');
-    apc.put('gdsi_imanage__Redirect_URI__c', 'RedirectURL_1234');
+    apc.put(PREFIX + 'Consumer_Key__c', 'Key_1234');
+    apc.put(PREFIX + 'Authorize_Endpoint_URL__c', 'EndPoint_1234');
+    apc.put(PREFIX + 'Scope__c', 'Scope_1234');
+    apc.put(PREFIX + 'Redirect_URI__c', 'RedirectURL_1234');
 
     String stp = 'test';
 
@@ -32,12 +33,12 @@ public class iManageProviderTests {
     );
 
     apc.clear();
-    apc.put('gdsi_imanage__Consumer_Key__c', 'Key_1234');
-    apc.put('gdsi_imanage__Consumer_Secret__c', 'testSecret');
-    apc.put('gdsi_imanage__Token_Endpoint_URL__c', 'testEndpoint');
-    apc.put('gdsi_imanage__User_Info_URL__c', 'http://someuserInfoURL');
-    apc.put('gdsi_imanage__Scope__c', 'Scope_1234');
-    apc.put('gdsi_imanage__Redirect_URI__c', 'RedirectURL_1234');
+    apc.put(PREFIX + 'Consumer_Key__c', 'Key_1234');
+    apc.put(PREFIX + 'Consumer_Secret__c', 'testSecret');
+    apc.put(PREFIX + 'Token_Endpoint_URL__c', 'testEndpoint');
+    apc.put(PREFIX + 'User_Info_URL__c', 'http://someuserInfoURL');
+    apc.put(PREFIX + 'Scope__c', 'Scope_1234');
+    apc.put(PREFIX + 'Redirect_URI__c', 'RedirectURL_1234');
 
     //test refresh method
     ip.refresh(apc, 'refreshToken');
