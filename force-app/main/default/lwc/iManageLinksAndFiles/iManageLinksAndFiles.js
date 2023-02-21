@@ -26,8 +26,11 @@ export default class IManageLinksAndFiles extends LightningElement {
   isEnabled = undefined;
   isShowModal = false;
   gridColumns = COLUMNS_DEFINITION;
-  viewColumns = COLUMNS_DEFINITION.map(column => column.fieldName);
-  listColumns = COLUMNS_DEFINITION.map(column => ({ value: column.fieldName, label: column.label }));
+  viewColumns = COLUMNS_DEFINITION.map((column) => column.fieldName);
+  listColumns = COLUMNS_DEFINITION.map((column) => ({
+    value: column.fieldName,
+    label: column.label
+  }));
 
   recordsCount = undefined;
   hasNextPage = undefined;
@@ -56,12 +59,14 @@ export default class IManageLinksAndFiles extends LightningElement {
   constructor() {
     super();
     this.writeDebug = writeDebug.bind(this);
-    
-    if(localStorage.getItem('imanage_documents_columns')) {
-      this.viewColumns = localStorage.getItem('imanage_documents_columns');
-      if(this.viewColumns.length > 0)
-        this.gridColumns = COLUMNS_DEFINITION.filter(item => 
-          item.type == "action" || this.viewColumns.includes(item.fieldName));
+
+    if (localStorage.getItem("imanage_documents_columns")) {
+      this.viewColumns = localStorage.getItem("imanage_documents_columns");
+      if (this.viewColumns.length > 0)
+        this.gridColumns = COLUMNS_DEFINITION.filter(
+          (item) =>
+            item.type === "action" || this.viewColumns.includes(item.fieldName)
+        );
     }
   }
 
@@ -366,18 +371,20 @@ export default class IManageLinksAndFiles extends LightningElement {
     }
   }
 
-  showModalBox() {  
+  showModalBox() {
     this.isShowModal = true;
   }
 
-  hideModalBox() {  
+  hideModalBox() {
     this.isShowModal = false;
   }
 
   handleManageColumnChange(e) {
     this.viewColumns = e.detail.value;
-    localStorage.setItem('imanage_documents_columns', this.viewColumns);
-    this.gridColumns = COLUMNS_DEFINITION.filter(item => 
-      item.type == "action" || this.viewColumns.includes(item.fieldName));
+    localStorage.setItem("imanage_documents_columns", this.viewColumns);
+    this.gridColumns = COLUMNS_DEFINITION.filter(
+      (item) =>
+        item.type === "action" || this.viewColumns.includes(item.fieldName)
+    );
   }
 }

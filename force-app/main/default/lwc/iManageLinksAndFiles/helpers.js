@@ -23,38 +23,38 @@ export const COLUMNS_DEFINITION = [
     fieldName: "metadataName",
     label: "iManage Name",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   },
   {
     fieldName: "metadataDocumentClass",
     label: "iManage Class",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   },
   {
     fieldName: "metadataDocumentNumber",
     label: "Number",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   },
   {
     fieldName: "metadataVersion",
     label: "Version",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   },
   {
     fieldName: "metadataDocumentAuthor",
     label: "Author",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   },
   {
     type: "boolean",
     fieldName: "isInIManage",
     label: "Link",
     wrapText: true,
-    hideDefaultActions: true,
+    hideDefaultActions: true
   }
 ];
 

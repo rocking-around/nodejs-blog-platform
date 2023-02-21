@@ -40,7 +40,7 @@
         <span>Total records: {recordsCount}</span>
         <lightning-button-icon
           icon-name="utility:settings"
-          alternative-text="Settings" 
+          alternative-text="Settings"
           title="Settings"
           onclick={showModalBox}
         >
@@ -76,39 +76,66 @@
     </div>
   </lightning-card>
 
-  <!-- modal start -->      
+  <!-- modal start -->
   <template if:true={isShowModal}>
-    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
-    <div class="slds-modal__container">
-      <!-- modal header start -->
+    <section
+      role="dialog"
+      tabindex="-1"
+      aria-labelledby="modal-heading-01"
+      aria-modal="true"
+      aria-describedby="modal-content-id-1"
+      class="slds-modal slds-fade-in-open"
+    >
+      <div class="slds-modal__container">
+        <!-- modal header start -->
         <header class="slds-modal__header">
-          <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModalBox}>
-              <lightning-icon icon-name="utility:close"
-                alternative-text="close"
-                variant="inverse"
-                size="small" ></lightning-icon>
-              <span class="slds-assistive-text">Close</span>
+          <button
+            class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+            title="Close"
+            onclick={hideModalBox}
+          >
+            <lightning-icon
+              icon-name="utility:close"
+              alternative-text="close"
+              variant="inverse"
+              size="small"
+            ></lightning-icon>
+            <span class="slds-assistive-text">Close</span>
           </button>
-          <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Manage columns</h2>
+          <h2
+            id="modal-heading-01"
+            class="slds-text-heading_medium slds-hyphenate"
+          >
+            Manage columns
+          </h2>
         </header>
 
         <!-- modal body start -->
-        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
-          <lightning-checkbox-group name="Manage columns"
+        <div
+          class="slds-modal__content slds-p-around_medium"
+          id="modal-content-id-1"
+        >
+          <lightning-checkbox-group
+            name="Manage columns"
             label="Manage columns"
             options={listColumns}
             value={viewColumns}
-            onchange={handleManageColumnChange}></lightning-checkbox-group>
+            onchange={handleManageColumnChange}
+          ></lightning-checkbox-group>
         </div>
 
         <!-- modal footer start-->
         <footer class="slds-modal__footer">
-          <button class="slds-button slds-button_neutral" onclick={hideModalBox}>Done</button>
+          <button
+            class="slds-button slds-button_neutral"
+            onclick={hideModalBox}
+          >
+            Done
+          </button>
         </footer>
-    
-    </div>
+      </div>
     </section>
     <div class="slds-backdrop slds-backdrop_open"></div>
-    </template>
-    <!-- modal end -->
+  </template>
+  <!-- modal end -->
 </template>
