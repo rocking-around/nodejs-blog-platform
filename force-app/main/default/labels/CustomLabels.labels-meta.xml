@@ -30,13 +30,14 @@
     >Folder not found. The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
     <labels>
-        <fullName>imanage_message_codes_unauthorized</fullName>
+        <fullName>imanage_message_codes_license_expired</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription>imanage_message_codes_unauthorized</shortDescription>
+        <shortDescription
+    >imanage_message_codes_license_expired</shortDescription>
         <value
-    >The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
+    >Organization&apos;s license for the iManage integration system was expired. Please contact with Administrator.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_license_not_found</fullName>
@@ -49,13 +50,12 @@
     >The organization haven&apos;t license for the iManage integration system. Please contact with Administrator.</value>
     </labels>
     <labels>
-        <fullName>imanage_message_codes_license_expired</fullName>
+        <fullName>imanage_message_codes_unauthorized</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes_license_expired</shortDescription>
+        <shortDescription>imanage_message_codes_unauthorized</shortDescription>
         <value
-    >Organization&apos;s license for the iManage integration system was expired. Please contact with Administrator.</value>
+    >The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
 </CustomLabels>
