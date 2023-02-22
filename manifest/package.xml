@@ -71,5 +71,9 @@
         <members>imanage_message_codes_license_expired</members>
         <name>CustomLabel</name>
     </types>
+    <types>
+        <members>iManage</members>
+        <name>PlatformCachePartition</name>
+    </types>
     <version>55.0</version>
 </Package>
