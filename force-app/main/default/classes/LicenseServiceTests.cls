@@ -46,6 +46,11 @@ public with sharing class LicenseServiceTests {
         ex.getMessage() == System.Label.imanage_message_codes_license_not_found,
         'Wrong error message'
       );
+    } catch (IManageExceptions.IManageLicenseException ex) {
+      System.assert(
+        ex.getMessage() == System.Label.imanage_message_codes_license_not_found,
+        'Wrong error message'
+      );
     }
     Test.stopTest();
   }
@@ -64,6 +69,11 @@ public with sharing class LicenseServiceTests {
     try {
       LicenseService.CheckOrganizationLicense();
     } catch (AuraHandledException ex) {
+      System.assert(
+        ex.getMessage() == System.Label.imanage_message_codes_license_expired,
+        'Wrong error message'
+      );
+    } catch (IManageExceptions.IManageLicenseException ex) {
       System.assert(
         ex.getMessage() == System.Label.imanage_message_codes_license_expired,
         'Wrong error message'
@@ -90,6 +100,11 @@ public with sharing class LicenseServiceTests {
     try {
       LicenseService.CheckOrganizationLicense();
     } catch (AuraHandledException ex) {
+      System.assert(
+        ex.getMessage() == System.Label.imanage_message_codes_license_not_found,
+        'Wrong error message'
+      );
+    } catch (IManageExceptions.IManageLicenseException ex) {
       System.assert(
         ex.getMessage() == System.Label.imanage_message_codes_license_not_found,
         'Wrong error message'
