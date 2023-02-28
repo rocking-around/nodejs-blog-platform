@@ -203,6 +203,18 @@
             </template>
           </template>
         </lightning-tab>
+
+        <template if:true={areGeneralSettingsHasValuesAndSaved}>
+          <lightning-tab
+            class="tab-i-manage-folder"
+            label="iManage Folder"
+            value="i-manage-folder"
+          >
+            <c-i-manage-folder-picker
+              folder-id={generalSettingsEdit.iManage_Default_Folder_Id}
+            ></c-i-manage-folder-picker>
+          </lightning-tab>
+        </template>
       </lightning-tabset>
     </lightning-card>
   </div>

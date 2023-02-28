@@ -162,4 +162,23 @@ public with sharing class ConfigurationHelper {
 
     upsert settings;
   }
+
+  @AuraEnabled
+  public static String getIManageDefaultFolderId() {
+    LicenseService.CheckOrganizationLicense();
+
+    iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+    return settings.iManage_Default_Folder_Id__c;
+  }
+
+  @AuraEnabled
+  public static void saveIManageDefaultFolderId(String folderId) {
+    LicenseService.CheckOrganizationLicense();
+
+    iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+    settings.iManage_Default_Folder_Id__c = folderId;
+
+    upsert settings;
+  }
 }

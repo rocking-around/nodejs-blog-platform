@@ -1,0 +1,43 @@
+<template>
+  <lightning-card title="iManage Folder Settings">
+    <div class="container">
+      <template if:true={showSpinner}>
+        <lightning-spinner
+          alternative-text="Loading"
+          size="medium"
+        ></lightning-spinner>
+      </template>
+
+      <div class="inp">
+        <lightning-input
+          type="text"
+          label="iManage Folder Id"
+          value={folderId}
+          disabled
+          onchange={onFolderIdChanged}
+        ></lightning-input>
+      </div>
+      <div class="pick-btn">
+        <lightning-button-icon
+          icon-name="utility:threedots"
+          variant="border"
+          size="large"
+          onclick={pickFolderClick}
+          alternative-text="Pick Folder"
+        ></lightning-button-icon>
+      </div>
+    </div>
+    <div slot="actions">
+      <template if:true={isChanged}>
+        <lightning-button
+          label="Save"
+          onclick={saveClick}
+          disabled={isSaveBtnDisabled}
+          class="imanage-save-button"
+        ></lightning-button>
+        <lightning-button label="Cancel" onclick={cancelClick}>
+        </lightning-button>
+      </template>
+    </div>
+  </lightning-card>
+</template>

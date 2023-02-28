@@ -162,6 +162,28 @@ public class iManageIFrameDialog {
   }
 
   @AuraEnabled
+  public static String GetIFrameFolderPicker() {
+    // Check licensing
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageProvider.IManageApiDataResponse apiData = GetApiData();
+      DialogTokenResult dialogTokenResult = GetDialogToken(apiData);
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+      return mc.Url__c +
+        '/work/partner-apps/' +
+        mc.Client_Id__c +
+        '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+        EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
+        '&mode=browse&multiselect=false&types=folder';
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED
+      );
+    }
+  }
+
+  @AuraEnabled
   public static String GetIFrameFilePicker() {
     // Check licensing
     LicenseService.CheckOrganizationLicense();

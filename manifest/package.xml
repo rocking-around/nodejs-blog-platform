@@ -31,6 +31,8 @@
         <members>iManageProviderMockUserInfoCallout</members>
         <members>iManageProviderTests</members>
         <members>iManageUsersNotification</members>
+        <members>iManageFolderPicker</members>
+        <members>iManageFolderPickerIFrame</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
         <members>TestUtils</members>
