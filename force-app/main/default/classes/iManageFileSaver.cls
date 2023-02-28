@@ -7,10 +7,8 @@ global class iManageFileSaver {
   ) {
     LicenseService.CheckOrganizationLicense();
 
-    IManageFileHelper.SearchResult searchResult = IManageFileHelper.GetIManageFolder(
-      entityId
-    );
-    SaveFileToIManage(data, name, extension, searchResult.data[0].id);
+    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+    SaveFileToIManage(data, name, extension, mc.iManage_Default_Folder_Id__c);
   }
 
   private static blob GetFormBase64(Blob jsonBlob, Blob data) {
@@ -45,6 +43,8 @@ global class iManageFileSaver {
     string extension,
     String folderId
   ) {
+    iManageProvider.IManageApiDataResponse apiData = IManageFileHelper.GetApiData();
+
     string contentType = vNHttpFormBuilder.GetContentType();
 
     JSONGenerator gen = JSON.createGenerator(true);
@@ -67,7 +67,11 @@ global class iManageFileSaver {
     HttpRequest httpRequest = new HttpRequest();
 
     httpRequest.setEndpoint(
-      'callout:iManage/api/v1/folders/' +
+      'callout:iManageCreds/work/api/v2/customers/' +
+      apiData.data.user.customer_id +
+      '/libraries/' +
+      apiData.data.work.preferred_library +
+      '/folders/' +
       folderId +
       '/documents'
     );
