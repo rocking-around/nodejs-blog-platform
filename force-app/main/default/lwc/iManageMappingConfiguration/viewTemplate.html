@@ -13,6 +13,13 @@
         <template if:true={iManageMapping}>
           <lightning-input
             type="text"
+            label="Salesforce Entity Type"
+            disabled="true"
+            value={entityApiName}
+          ></lightning-input>
+
+          <lightning-input
+            type="text"
             label="Salesforce Client Id Object"
             disabled="true"
             value={clientIdObject}

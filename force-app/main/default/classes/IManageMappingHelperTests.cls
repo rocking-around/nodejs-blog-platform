@@ -248,6 +248,17 @@ private class IManageMappingHelperTests {
     );
   }
 
+  @isTest
+  static void getAllSObjectsMetadataTest() {
+    TestUtils.setupMockActiveLicense();
+
+    Test.startTest();
+    List<Map<String, String>> data = IManageMappingHelper.getAllSObjectsMetadata();
+    Test.stopTest();
+
+    System.assert(data.size() > 0, 'Data is empty');
+  }
+
   /*@isTest
   static void saveMappingTestException() {
     IManageMapping mapping = null;

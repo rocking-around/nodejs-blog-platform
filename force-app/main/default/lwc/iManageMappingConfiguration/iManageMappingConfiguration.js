@@ -3,6 +3,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { loadStyle } from "lightning/platformResourceLoader";
 import AppCSS from "@salesforce/resourceUrl/AppCSS";
 import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
+import getAllSObjectsMetadata from "@salesforce/apex/IManageMappingHelper.getAllSObjectsMetadata";
 import getFields from "@salesforce/apex/IManageMappingHelper.getFields";
 import saveMapping from "@salesforce/apex/IManageMappingHelper.saveMapping";
 import getSObjectMetadata from "@salesforce/apex/IManageMappingHelper.getSObjectMetadata";
@@ -46,6 +47,9 @@ export default class IManageMappingEditor extends LightningElement {
   _entityType;
   @track entityId;
 
+  entityTypeFieldOptionsExt;
+  @track entityTypeFieldOptions;
+
   matterIdObjectOptionsExt;
   @track matterIdObjectOptions;
   clientIdObjectOptionsExt;
@@ -62,15 +66,7 @@ export default class IManageMappingEditor extends LightningElement {
 
   @api set entityApiName(value) {
     if (value !== this._entityType) {
-      this._entityType = value;
-      this.writeDebug(
-        `IManageMappingEditor. Set objectApiName: ${this._entityType}`
-      );
-
-      this.defaultIManageMapping[mappingEntityTypeField.fieldApiName] =
-        this._entityType;
-
-      this.loadEntityTypeMetadata(value, () => this.initComponent());
+      this.setEntityApiName(value);
     }
   }
   get entityApiName() {
@@ -100,6 +96,18 @@ export default class IManageMappingEditor extends LightningElement {
     return this.isEdit ? editTemplate : viewTemplate;
   }
 
+  setEntityApiName(value) {
+    this._entityType = value;
+    this.writeDebug(
+      `IManageMappingEditor. Set objectApiName: ${this._entityType}`
+    );
+
+    this.defaultIManageMapping[mappingEntityTypeField.fieldApiName] =
+      this._entityType;
+
+    this.loadEntityTypeMetadata(value, () => this.initComponent());
+  }
+
   initComponent() {
     this.writeDebug("*********** IManageMappingEditor. initComponent:");
     if (!this.isEdit) {
@@ -113,6 +121,14 @@ export default class IManageMappingEditor extends LightningElement {
 
   get loading() {
     return this.isLoading || !this.entityApiName;
+  }
+
+  get entityTypeField() {
+    //mappingEntityTypeField
+    let val = this.iManageMapping[mappingEntityTypeField.fieldApiName];
+    //TODO: entityTypeFieldOptions
+    let opt = (this.entityTypeFieldOptions || []).find((x) => x.value === val);
+    return opt ? opt.label : val;
   }
 
   get matterIdObject() {
@@ -251,6 +267,7 @@ export default class IManageMappingEditor extends LightningElement {
       );
 
       Promise.all([
+        this.loadEntityTypeFieldOptions(),
         this.loadIdObjectOptions(
           "matterIdObjectOptions",
           this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
@@ -260,7 +277,11 @@ export default class IManageMappingEditor extends LightningElement {
           this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
         )
       ])
-        .then(([matterResponse, clientResponse]) => {
+        .then(([entityTypeResponse, matterResponse, clientResponse]) => {
+          if (entityTypeResponse) {
+            //debugger;
+          }
+
           if (matterResponse) {
             let objType = matterResponse.find(
               (x) => x.fieldName === entityMatterIdObjectField
@@ -367,6 +388,37 @@ export default class IManageMappingEditor extends LightningElement {
             })
           );
           resolve(this[`${name}Ext`]);
+        })
+        .catch((err) => {
+          reject(err);
+        })
+        .finally(() => {});
+    });
+  }
+
+  loadEntityTypeFieldOptions() {
+    this.writeDebug(
+      `*********** IManageMappingEditor.loadEntityTypeFieldOptions();`
+    );
+    return new Promise((resolve, reject) => {
+      getAllSObjectsMetadata()
+        .then((resp) => {
+          this.writeDebug(
+            "*********** IManageMappingEditor. loadEntityTypeFieldOptions:",
+            resp
+          );
+          let data = [...(resp || [])];
+          data.sort((a, b) =>
+            a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+          );
+          this.entityTypeFieldOptionsExt = data.filter((x) => x);
+          this.entityTypeFieldOptions = Object.entries(
+            this.entityTypeFieldOptionsExt
+          ).map(([, { label, name }]) => ({
+            label,
+            value: name
+          }));
+          resolve(this.entityTypeFieldOptionsExt);
         })
         .catch((err) => {
           reject(err);
@@ -512,6 +564,28 @@ export default class IManageMappingEditor extends LightningElement {
       ...{ [mappingClientNameField.fieldApiName]: value }
     };
     this.changed = true;
+  }
+
+  onEntityTypeFieldChanged(evt) {
+    let value = evt.target.value;
+    this.writeDebug(
+      "*********** IManageMappingEditor. onEntityTypeFieldChanged: " + value
+    );
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{
+        [mappingEntityTypeField.fieldApiName]: value,
+        [mappingMatterIdField.fieldApiName]: undefined,
+        [mappingMatterNameField.fieldApiName]: undefined,
+        [mappingEntityMatterIdObjectField.fieldApiName]: undefined,
+        [mappingClientIdField.fieldApiName]: undefined,
+        [mappingClientNameField.fieldApiName]: undefined,
+        [mappingEntityClientIdObjectField.fieldApiName]: undefined
+      }
+    };
+    this.changed = true;
+
+    this.setEntityApiName(value);
   }
 
   getValueOrDefault(obj, defaultValue) {

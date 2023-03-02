@@ -11,6 +11,18 @@
     <lightning-card title="iManage Mapping">
       <div class="imanage-mapping-container">
         <lightning-combobox
+          name="entity-type-field"
+          class="entity-type-field-cb"
+          label="Salesforce Entity Type"
+          value={entityApiName}
+          placeholder="Select"
+          options={entityTypeFieldOptions}
+          onchange={onEntityTypeFieldChanged}
+          dropdown-alignment="auto"
+          required
+        ></lightning-combobox>
+
+        <lightning-combobox
           name="client-id-object"
           class="client-id-object-cb"
           label="Salesforce Client Id Object"
