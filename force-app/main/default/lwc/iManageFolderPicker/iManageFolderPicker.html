@@ -11,7 +11,7 @@
       <div class="inp">
         <lightning-input
           type="text"
-          label="iManage Folder Id"
+          label="iManage Folder"
           value={folderId}
           disabled
           onchange={onFolderIdChanged}
@@ -24,6 +24,7 @@
           size="large"
           onclick={pickFolderClick}
           alternative-text="Pick Folder"
+          disabled={pickBtnDisabled}
         ></lightning-button-icon>
       </div>
     </div>

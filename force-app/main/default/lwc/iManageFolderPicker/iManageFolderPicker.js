@@ -16,6 +16,7 @@ export default class IManageFolderPicker extends LightningElement {
   iManageApiInitialized = false;
   folderId = undefined;
   folderIdEdit = undefined;
+  pickBtnDisabled = false;
 
   async connectedCallback() {
     await this.loadData();
@@ -54,6 +55,13 @@ export default class IManageFolderPicker extends LightningElement {
   }
 
   async pickFolderClick() {
+    this.pickBtnDisabled = true;
+    this.openPickFolderDialog(() => {
+      this.pickBtnDisabled = false;
+    });
+  }
+
+  async openPickFolderDialog(onCloseDialogCallback) {
     try {
       const url = await GetIFrameFolderPicker();
 
@@ -82,6 +90,10 @@ export default class IManageFolderPicker extends LightningElement {
       }
     } catch (error) {
       this.handleErrors(error);
+    } finally {
+      if (onCloseDialogCallback) {
+        onCloseDialogCallback();
+      }
     }
   }
 

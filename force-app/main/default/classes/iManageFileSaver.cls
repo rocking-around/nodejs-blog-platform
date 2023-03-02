@@ -8,6 +8,11 @@ global class iManageFileSaver {
     LicenseService.CheckOrganizationLicense();
 
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+    if (mc.iManage_Default_Folder_Id__c == null)
+      throw new IManageFileSaverException(
+        'iManage Default folder not defined. Please configure it.'
+      );
+
     SaveFileToIManage(data, name, extension, mc.iManage_Default_Folder_Id__c);
   }
 
@@ -104,5 +109,8 @@ global class iManageFileSaver {
 
   public class NewFileData {
     public String id;
+  }
+
+  public class IManageFileSaverException extends Exception {
   }
 }
