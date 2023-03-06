@@ -138,7 +138,13 @@ public with sharing class IManageLinksAndFilesHelper {
 
   @TestVisible
   private static Boolean isEnabledForRecord(String sObjName) {
+    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     Map<String, Object> config = ConfigurationHelper.getIManageDocumentSettings();
+
+    if (sObjName == mc.gdsi_imanage__Mapping_EntityMatterIdObjectField__c)
+      return config.containsKey('iManageDocuments:Matter') &&
+        (Boolean) config.get('iManageDocuments:Matter');
+
     switch on sObjName {
       when 'Event' {
         return config.containsKey('iManageDocuments:Calendar') &&
@@ -159,7 +165,8 @@ public with sharing class IManageLinksAndFilesHelper {
         return config.containsKey('iManageDocuments:Matter_Document');
       }
       when else {
-        throw new IManageExceptions.IManageSettingsException('Not configured');
+        return false;
+        //throw new IManageExceptions.IManageSettingsException('Not configured');
       }
     }
   }

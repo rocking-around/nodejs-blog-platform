@@ -111,4 +111,35 @@ public with sharing class ConfigurationHelperTests {
     System.assert(saveDoc, 'Save_Document should be enabled');
     System.assert(saveLink, 'Save_Link should be enabled');
   }
+
+  static testMethod void getIManageDefaultFolderIdTest() {
+    TestUtils.setupMockActiveLicense();
+
+    String defaultFolder = 'test folder';
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name',
+      iManage_Default_Folder_Id__c = defaultFolder
+    );
+    insert settings;
+
+    Test.startTest();
+    String result = ConfigurationHelper.getIManageDefaultFolderId();
+    Test.stopTest();
+
+    System.assert(
+      result == defaultFolder,
+      'iManage_Default_Folder_Id__c has wrong value'
+    );
+  }
 }

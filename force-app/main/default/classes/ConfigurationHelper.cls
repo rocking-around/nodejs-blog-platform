@@ -6,13 +6,6 @@ public with sharing class ConfigurationHelper {
     iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
 
     Map<String, Object> result = new Map<String, Object>{
-      // 'mapping:ClientIdField' => settings.Mapping_ClientIdField__c,
-      // 'mapping:ClientNameField' => settings.Mapping_ClientNameField__c,
-      // 'mapping:EntityClientIdObjectField' => settings.Mapping_EntityClientIdObjectField__c,
-      // 'mapping:EntityMatterIdObjectField' => settings.Mapping_EntityMatterIdObjectField__c,
-      // 'mapping:EntityType' => settings.Mapping_EntityType__c,
-      // 'mapping:MatterIdField' => settings.Mapping_MatterIdField__c,
-      // 'mapping:MatterNameField' => settings.Mapping_MatterNameField__c,
       'general:Url' => settings.Url__c,
       'general:MatterField' => settings.MatterField__c,
       'general:Client_Id' => settings.Client_Id__c,
@@ -177,8 +170,41 @@ public with sharing class ConfigurationHelper {
     LicenseService.CheckOrganizationLicense();
 
     iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
-    settings.iManage_Default_Folder_Id__c = folderId;
+    settings.iManage_Default_Folder_Id__c = getIManageFolderStructure(folderId);
 
     upsert settings;
+  }
+
+  public static String getIManageFolderStructure(String folderId) {
+    LicenseService.CheckOrganizationLicense();
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+    iManageWrapper.iManageFolder folder = iManageWrapper.GetFolder(
+      apiInfo.customerId,
+      apiInfo.library,
+      folderId
+    );
+    String folderStructure = folder.name;
+    system.debug(folder.name);
+    system.debug(folder.parent_id);
+
+    while (
+      folder != null &&
+      folder.parent_id != '' &&
+      folder.parent_id != null
+    ) {
+      folder = iManageWrapper.GetFolder(
+        apiInfo.customerId,
+        apiInfo.library,
+        folder.parent_id
+      );
+
+      if (folder != null && folder.name != null && folder.name != '') {
+        if (folder.id == folder.workspace_id)
+          folder = null;
+        else
+          folderStructure = folder.name + '/' + folderStructure;
+      }
+    }
+    return folderStructure;
   }
 }

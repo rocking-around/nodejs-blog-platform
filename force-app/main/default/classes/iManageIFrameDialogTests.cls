@@ -28,7 +28,7 @@ private class iManageIFrameDialogTests {
     HttpResponse getDialogTokenResponse = new HttpResponse();
     getDialogTokenResponse.setStatusCode(200);
     getDialogTokenResponse.setBody(
-      '{"data":{"dialog_token":"' +
+      '{"data": {"dialog_token":"' +
       dialogToken +
       '"}}'
     );
@@ -37,9 +37,9 @@ private class iManageIFrameDialogTests {
     HttpResponse searchFolderIdResponse = new HttpResponse();
     searchFolderIdResponse.setStatusCode(200);
     searchFolderIdResponse.setBody(
-      '{"data":[{"id":"' +
+      '{"data":{ "results": [{"id":"' +
       folderId +
-      '","wstype":"workspace"}],"overflow":false}'
+      '","wstype":"workspace"}]}}'
     );
 
     Organization org = [SELECT Id FROM Organization];
@@ -47,8 +47,8 @@ private class iManageIFrameDialogTests {
     String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
 
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      '/dialog-tokens' => getDialogTokenResponse,
-      '/workspaces/search' => searchFolderIdResponse,
+      'callout:iManageCreds/work/api/v2/customers/337/dialog-tokens' => getDialogTokenResponse,
+      'callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/search' => searchFolderIdResponse,
       'callout:iManageCreds/api' => getApiDataResponse,
       licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
@@ -144,8 +144,8 @@ private class iManageIFrameDialogTests {
 
     Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
       'callout:iManageCreds/api' => authResponses,
-      'callout:iManageCreds/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
-      'callout:iManageCreds/api/v2/customers/' +
+      'callout:iManageCreds/work/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
+      'callout:iManageCreds/work/api/v2/customers/' +
       customerId +
       '/dialog-tokens' => dialogTokenResponses2,
       licenseUrl => new List<HttpResponse>{
@@ -196,6 +196,73 @@ private class iManageIFrameDialogTests {
       );
     }
     Test.stopTest();
+  }
+
+  static testMethod void getIFrameFolderPickerTest() {
+    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+
+    // Mock responses
+    Integer customerId = 333;
+    List<HttpResponse> authResponses = new List<HttpResponse>();
+    authResponses.add(
+      iManageIFrameDialogTests.getMockAuthResponse(
+        200,
+        'not-authenticated',
+        customerId
+      )
+    );
+    authResponses.add(
+      iManageIFrameDialogTests.getMockAuthResponse(200, 'authenticated', 333)
+    );
+
+    String dialogToken = 'f42516d6-acca-4629-a8d3-be63776094ad';
+    List<HttpResponse> dialogTokenResponses = new List<HttpResponse>();
+    HttpResponse dialogTokenResponse = new HttpResponse();
+    dialogTokenResponse.setStatusCode(200);
+    dialogTokenResponse.setBody(
+      '{"data":{"dialog_token":"' +
+      dialogToken +
+      '"}}'
+    );
+    dialogTokenResponses.add(dialogTokenResponse);
+
+    List<HttpResponse> dialogTokenResponses2 = new List<HttpResponse>{
+      dialogTokenResponse
+    };
+
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
+    Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+      'callout:iManageCreds/api' => authResponses,
+      'callout:iManageCreds/work/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
+      'callout:iManageCreds/work/api/v2/customers/' +
+      customerId +
+      '/dialog-tokens' => dialogTokenResponses2,
+      licenseUrl => new List<HttpResponse>{
+        TestUtils.getMockLicenseResponse(200, orgId),
+        TestUtils.getMockLicenseResponse(200, orgId),
+        TestUtils.getMockLicenseResponse(200, orgId)
+      }
+    };
+    HttpCalloutQueueMock.setTestMockResponse(responses);
+
+    Test.startTest();
+    String result = iManageIFrameDialog.GetIFrameFolderPicker();
+    Test.stopTest();
+
+    String expectedResult =
+      mc.Url__c +
+      '/work/partner-apps/' +
+      mc.Client_Id__c +
+      '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+      EncodingUtil.urlEncode(dialogToken, 'UTF-8') +
+      '&mode=browse&multiselect=false&types=folder';
+    System.assert(
+      result == expectedResult,
+      'The IFrame FolderPicker has wrong value'
+    );
   }
 
   private static HttpResponse getMockAuthResponse(

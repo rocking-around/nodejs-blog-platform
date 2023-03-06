@@ -1,56 +1,5 @@
 @isTest
 private class iManageFileWorkerTests {
-  static testMethod void getApiDataTest() {
-    Organization org = [SELECT Id FROM Organization];
-    String orgId = String.valueOf(org.Id);
-    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
-    //Setup Mock responses
-    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      'callout:iManageCreds/api' => iManageFileWorkerTests.getMockAuthResponse(
-        200,
-        'authenticated',
-        333
-      ),
-      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
-    };
-    EchoHttpMock.setTestMockResponse(responses);
-
-    Test.startTest();
-    iManageProvider.IManageApiDataResponse result = iManageFileWorker.GetApiData();
-    Test.stopTest();
-
-    System.assert(
-      result.data.auth_status == 'authenticated',
-      'The auth_status has wrong value'
-    );
-    System.assert(result.data.user.id == 'TEST', 'The user.id has wrong value');
-  }
-
-  static testMethod void getApiData401Test() {
-    Organization org = [SELECT Id FROM Organization];
-    String orgId = String.valueOf(org.Id);
-    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
-
-    HttpResponse getApiDataResponse401 = new HttpResponse();
-    getApiDataResponse401.setStatusCode(401);
-    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      'callout:iManageCreds/api' => getApiDataResponse401,
-      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
-    };
-    EchoHttpMock.setTestMockResponse(responses);
-
-    try {
-      Test.startTest();
-      iManageProvider.IManageApiDataResponse result = iManageFileWorker.GetApiData();
-      Test.stopTest();
-    } catch (Exception e) {
-      System.assert(
-        e instanceof IManageExceptions.IManageUnauthorizedException,
-        'Unexpected type of Exception'
-      );
-    }
-  }
-
   static testMethod void SaveFileFromIManageTest() {
     //insert parent Object
     Opportunity opp = new Opportunity(
@@ -74,7 +23,7 @@ private class iManageFileWorkerTests {
     String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
 
     String downloadDocEndpoint =
-      'callout:iManageCreds/api/v2/customers/' +
+      'callout:iManageCreds/work/api/v2/customers/' +
       customerId +
       '/libraries/' +
       library +
@@ -163,7 +112,7 @@ private class iManageFileWorkerTests {
     String docContent = 'Test content 333';
 
     String docInfoEndpoint =
-      'callout:iManageCreds/api/v2/customers/' +
+      'callout:iManageCreds/work/api/v2/customers/' +
       customerId +
       '/libraries/' +
       library +
@@ -171,7 +120,7 @@ private class iManageFileWorkerTests {
       docId;
 
     String downloadDocEndpoint =
-      'callout:iManageCreds/api/v2/customers/' +
+      'callout:iManageCreds/work/api/v2/customers/' +
       customerId +
       '/libraries/' +
       library +
@@ -208,7 +157,7 @@ private class iManageFileWorkerTests {
 
     Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
       'callout:iManageCreds/api' => authResponses,
-      'callout:iManageCreds/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
+      'callout:iManageCreds/work/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
       docInfoEndpoint => docInfoResponses,
       downloadDocEndpoint => downloadDocResponses,
       licenseUrl => new List<HttpResponse>{

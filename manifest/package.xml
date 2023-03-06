@@ -33,9 +33,16 @@
         <members>iManageUsersNotification</members>
         <members>iManageFolderPicker</members>
         <members>iManageFolderPickerIFrame</members>
+        <members>iManageWrapper</members>
+        <members>iManageWrapperTests</members>
+        <members>IManageRequestHelper</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
+        <members>vNHttpFormBuilder</members>
+        <members>vNHttpFormBuilderTests</members-->
         <members>TestUtils</members>
+        <!-- DROP IT? members>IManageFileHelper</members>
+        <members>IManageFileHelperTests</members-->
         <name>ApexClass</name>
     </types>
     <types>

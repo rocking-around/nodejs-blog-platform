@@ -6,109 +6,153 @@ global class iManageFileSaver {
     String entityId
   ) {
     LicenseService.CheckOrganizationLicense();
-
     iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     if (mc.iManage_Default_Folder_Id__c == null)
       throw new IManageFileSaverException(
         'iManage Default folder not defined. Please configure it.'
       );
 
-    SaveFileToIManage(data, name, extension, mc.iManage_Default_Folder_Id__c);
-  }
-
-  private static blob GetFormBase64(Blob jsonBlob, Blob data) {
-    //  Compose the form
-    string form64 = '';
-
-    form64 += vNHttpFormBuilder.WriteBoundary();
-    vNHttpFormBuilder.WriteFileResult resultJson = vNHttpFormBuilder.WriteFile(
-      'profile',
-      'test',
-      'application/json',
-      jsonBlob
+    IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
+      entityId
     );
+    if (link == null || link.ClientId == null || link.MatterId == null)
+      throw new IManageFileSaverException(
+        'iManage mapping not configured. Please configure it.'
+      );
 
-    form64 += resultJson.Content;
-    form64 += vNHttpFormBuilder.WriteBoundary(resultJson.EndingType, false);
-
-    vNHttpFormBuilder.WriteFileResult result = vNHttpFormBuilder.WriteFile(
-      'file',
-      'f1.txt',
-      'application/octet-stream',
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+    iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
+      apiInfo.customerId,
+      apiInfo.library,
+      mc.gdsi_imanage__ClientField__c,
+      link.ClientId,
+      mc.gdsi_imanage__MatterField__c,
+      link.MatterId
+    );
+    String workspaceId = GetWorkspaceFirstOrDefault(searchResult);
+    system.debug(workspaceId);
+    String folderId = CreateFolderStructure(
+      apiInfo,
+      workspaceId,
+      mc.iManage_Default_Folder_Id__c,
+      mc,
+      link
+    );
+    system.debug(folderId);
+    iManageWrapper.PostDocument(
+      apiInfo.customerId,
+      apiInfo.library,
+      folderId,
+      name,
+      extension,
       data
     );
-    form64 += result.Content;
-    form64 += vNHttpFormBuilder.WriteBoundary(result.EndingType, true);
-    return EncodingUtil.base64Decode(form64);
   }
 
-  private static String SaveFileToIManage(
-    Blob data,
-    string name,
-    string extension,
-    String folderId
+  private static String GetFolderByStructure(
+    iManageWrapper.ApiInfo apiInfo,
+    String workspaceId,
+    String folderStructure
   ) {
-    iManageProvider.IManageApiDataResponse apiData = IManageFileHelper.GetApiData();
-
-    string contentType = vNHttpFormBuilder.GetContentType();
-
-    JSONGenerator gen = JSON.createGenerator(true);
-    gen.writeStartObject();
-    gen.writeFieldName('doc_profile');
-    gen.writeStartObject();
-    gen.writeStringField('name', name);
-    gen.writeStringField('extension', extension);
-    gen.writeEndObject();
-    gen.writeBooleanField('warnings_for_required_and_disabled_fields', true);
-    gen.writeEndObject();
-    string json = gen.getAsString();
-
-    blob jsonBlob = blob.valueOf(json);
-
-    blob formBlob = GetFormBase64(jsonBlob, data);
-    string contentLength = string.valueOf(formBlob.size());
-
-    //  Compose the http request
-    HttpRequest httpRequest = new HttpRequest();
-
-    httpRequest.setEndpoint(
-      'callout:iManageCreds/work/api/v2/customers/' +
-      apiData.data.user.customer_id +
-      '/libraries/' +
-      apiData.data.work.preferred_library +
-      '/folders/' +
-      folderId +
-      '/documents'
-    );
-    httpRequest.setBodyAsBlob(formBlob);
-    httpRequest.setHeader('Connection', 'keep-alive');
-    httpRequest.setHeader('Content-Length', contentLength);
-    httpRequest.setHeader('Content-Type', contentType);
-    httpRequest.setHeader(
-      'X-Auth-Token',
-      '{!$Credential.AuthorizationHeaderValue}'
-    );
-    httpRequest.setMethod('POST');
-    httpRequest.setTimeout(120000);
-
-    Http http = new Http();
-    HTTPResponse res = http.send(httpRequest);
-    String responseBody = res.getBody();
-
-    NewFileResult newFile = (NewFileResult) System.JSON.deserialize(
-      responseBody,
-      NewFileResult.class
-    );
-
-    return newFile.data.id;
+    String[] folders = folderStructure.split('/');
+    String id = workspaceId;
+    for (String folder : folders) {
+      iManageWrapper.iManageFolderSearch searchResult = iManageWrapper.SearchFolder(
+        apiInfo.customerId,
+        apiInfo.library,
+        id,
+        folder
+      );
+      id = GetFolderFirstOrDefault(searchResult);
+    }
+    return id;
   }
 
-  public class NewFileResult {
-    public NewFileData data;
+  private static String CreateFolderStructure(
+    iManageWrapper.ApiInfo apiInfo,
+    String workspaceId,
+    String folderStructure,
+    iManageSettings__c mc,
+    IManageMappingHelper.IManageIFrameData link
+  ) {
+    system.debug('Create new folders structure for the ' + folderStructure);
+    String[] folders = folderStructure.split('/');
+    String id = workspaceId;
+    for (String folder : folders) {
+      iManageWrapper.iManageFolderSearch searchResult = iManageWrapper.SearchFolder(
+        apiInfo.customerId,
+        apiInfo.library,
+        id,
+        folder
+      );
+
+      system.debug(searchResult);
+      String parentId = id;
+
+      system.debug(id);
+      id = GetFolderFirstOrDefault(searchResult);
+      system.debug(id);
+      if (id == null || id == 'null' || id == '' || id == workspaceId) {
+        iManageWrapper.iManageFolderResponse newFolder = null;
+        if (parentId == workspaceId)
+          newFolder = iManageWrapper.PostFolderToWorkspace(
+            apiInfo.customerId,
+            apiInfo.library,
+            workspaceId,
+            folder,
+            mc.gdsi_imanage__ClientField__c,
+            link.ClientId,
+            mc.gdsi_imanage__MatterField__c,
+            link.MatterId
+          );
+        else
+          newFolder = iManageWrapper.PostFolder(
+            apiInfo.customerId,
+            apiInfo.library,
+            folder,
+            parentId,
+            mc.gdsi_imanage__ClientField__c,
+            link.ClientId,
+            mc.gdsi_imanage__MatterField__c,
+            link.MatterId
+          );
+        system.debug(newFolder.data);
+        id = newFolder.data == null ? '' : newFolder.data.id;
+      }
+    }
+    return id;
   }
 
-  public class NewFileData {
-    public String id;
+  private static String GetWorkspaceFirstOrDefault(
+    iManageWrapper.iManageWorkspaceSearch searchResult
+  ) {
+    if (
+      searchResult == null ||
+      searchResult.data == null ||
+      searchResult.data.results == null ||
+      searchResult.data.results.size() == 0 ||
+      searchResult.data.results[0].id == null
+    ) {
+      return '';
+    }
+
+    return searchResult.data.results[0].id;
+  }
+
+  private static String GetFolderFirstOrDefault(
+    iManageWrapper.iManageFolderSearch searchResult
+  ) {
+    if (
+      searchResult == null ||
+      searchResult.data == null ||
+      searchResult.data.size() == 0 ||
+      searchResult.data[0].id == null ||
+      searchResult.data[0].id == 'null'
+    ) {
+      return '';
+    }
+
+    return searchResult.data[0].id;
   }
 
   public class IManageFileSaverException extends Exception {
