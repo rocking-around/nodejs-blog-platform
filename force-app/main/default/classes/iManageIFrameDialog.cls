@@ -45,16 +45,15 @@ public class iManageIFrameDialog {
       if (
         searchResult == null ||
         searchResult.data == null ||
-        searchResult.data.results == null ||
-        searchResult.data.results.size() == 0 ||
-        searchResult.data.results[0].id == null
+        searchResult.data.size() == 0 ||
+        searchResult.data[0].id == null
       ) {
         return dialogUrl;
       }
 
       return dialogUrl +
         '&start=' +
-        EncodingUtil.urlEncode(searchResult.data.results[0].id, 'UTF-8');
+        EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
     } catch (IManageExceptions.IManageUnauthorizedException ex) {
       throw IManageBaseHelper.BuildException(
         IManageBaseHelper.IManageErrors.UNAUTHORIZED

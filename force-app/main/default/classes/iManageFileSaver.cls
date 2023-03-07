@@ -129,14 +129,13 @@ global class iManageFileSaver {
     if (
       searchResult == null ||
       searchResult.data == null ||
-      searchResult.data.results == null ||
-      searchResult.data.results.size() == 0 ||
-      searchResult.data.results[0].id == null
+      searchResult.data.size() == 0 ||
+      searchResult.data[0].id == null
     ) {
       return '';
     }
 
-    return searchResult.data.results[0].id;
+    return searchResult.data[0].id;
   }
 
   private static String GetFolderFirstOrDefault(

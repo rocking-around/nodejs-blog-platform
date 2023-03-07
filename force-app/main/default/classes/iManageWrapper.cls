@@ -145,10 +145,24 @@ public class iManageWrapper {
       matterId +
       '" } }';
     String responseBody = IManageRequestHelper.Post(query, body);
-    return (iManageWorkspaceSearch) JSON.deserialize(
-      responseBody,
-      iManageWorkspaceSearch.class
-    );
+    try {
+      return (iManageWorkspaceSearch) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceSearch.class
+      );
+    } catch (Exception ex) {
+      // Try to de-serialize again for on-premise iManage version
+      system.debug('Cannot parse. Try to parse for on-prem version');
+      iManageWorkspaceOnPremiseSearch onPremResult = (iManageWorkspaceOnPremiseSearch) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceOnPremiseSearch.class
+      );
+
+      iManageWorkspaceSearch result = new iManageWorkspaceSearch();
+      result.data = onPremResult.data.results;
+
+      return result;
+    }
   }
 
   public static iManageFolder GetFolder(
@@ -335,10 +349,14 @@ public class iManageWrapper {
   }
 
   public class iManageWorkspaceSearch {
-    public iManageWorkspaceSearchResults data;
+    public List<iManageWorkspace> data;
   }
 
-  public class iManageWorkspaceSearchResults {
+  public class iManageWorkspaceOnPremiseSearch {
+    public iManageWorkspaceOnPremiseSearchResults data;
+  }
+
+  public class iManageWorkspaceOnPremiseSearchResults {
     public List<iManageWorkspace> results;
   }
 
