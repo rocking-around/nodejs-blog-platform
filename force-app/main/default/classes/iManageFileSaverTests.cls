@@ -1,3 +1,185 @@
 @isTest
 public class iManageFileSaverTests {
+  static testMethod void getFolderFirstOrDefaultTest() {
+    // 1
+    iManageWrapper.iManageFolderSearch searchResultNullId = new iManageWrapper.iManageFolderSearch();
+    List<iManageWrapper.iManageFolder> dataNullId = new List<iManageWrapper.iManageFolder>{
+      new iManageWrapper.iManageFolder()
+    };
+    searchResultNullId.data = dataNullId;
+
+    // 2
+    iManageWrapper.iManageFolderSearch searchResult = new iManageWrapper.iManageFolderSearch();
+    iManageWrapper.iManageFolder folder = new iManageWrapper.iManageFolder();
+    folder.id = 'test';
+    List<iManageWrapper.iManageFolder> data = new List<iManageWrapper.iManageFolder>{
+      folder
+    };
+    searchResult.data = data;
+
+    Test.startTest();
+    String resultNull = iManageFileSaver.GetFolderFirstOrDefault(
+      searchResultNullId
+    );
+    String result = iManageFileSaver.GetFolderFirstOrDefault(searchResult);
+    Test.stopTest();
+
+    System.assert(String.isEmpty(resultNull), 'The folder must be empty');
+    System.assert(result == folder.id, 'The folder has wrong value');
+  }
+
+  static testMethod void getWorkspaceFirstOrDefaultTest() {
+    // 1
+    iManageWrapper.iManageWorkspaceSearch searchResultNullId = new iManageWrapper.iManageWorkspaceSearch();
+    List<iManageWrapper.iManageWorkspace> dataNullId = new List<iManageWrapper.iManageWorkspace>{
+      new iManageWrapper.iManageWorkspace()
+    };
+    searchResultNullId.data = dataNullId;
+
+    // 2
+    iManageWrapper.iManageWorkspaceSearch searchResult = new iManageWrapper.iManageWorkspaceSearch();
+    iManageWrapper.iManageWorkspace ws = new iManageWrapper.iManageWorkspace();
+    ws.id = 'test';
+    List<iManageWrapper.iManageWorkspace> data = new List<iManageWrapper.iManageWorkspace>{
+      ws
+    };
+    searchResult.data = data;
+
+    Test.startTest();
+    String resultNull = iManageFileSaver.GetWorkspaceFirstOrDefault(
+      searchResultNullId
+    );
+    String result = iManageFileSaver.GetWorkspaceFirstOrDefault(searchResult);
+    Test.stopTest();
+
+    System.assert(String.isEmpty(resultNull), 'The workspace must be empty');
+    System.assert(result == ws.id, 'The workspace has wrong value');
+  }
+
+  static testMethod void getFolderByStructureTest() {
+    String workspaceId = 'ws-1';
+    String folderId = 'folder-1';
+    String folderStructure = folderId;
+    Integer customerId = 333;
+    String library = folderId = 'ACTIVE';
+
+    String searchQuery =
+      '/work/api/v2/customers/' +
+      String.valueOf(customerId) +
+      '/libraries/' +
+      library +
+      '/folders/search';
+
+    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
+      'callout:iManageCreds/api' => getMockAuthResponse(
+        200,
+        'authenticated',
+        customerId
+      ),
+      searchQuery => getMockFolderSearchResponse(200, 'authenticated', folderId)
+    };
+    EchoHttpMock.setTestMockResponse(responses);
+
+    Test.startTest();
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+    String result = iManageFileSaver.GetFolderByStructure(
+      apiInfo,
+      workspaceId,
+      folderStructure
+    );
+    Test.stopTest();
+
+    System.assert(
+      result.contains(folderId),
+      'The folder structure has wrong walue'
+    );
+  }
+
+  //   static testMethod void saveFileTest() {
+  //     TestUtils.setupMockActiveLicense();
+
+  //     Blob data = Blob.valueOf('test data');
+  //     String name = 'file name';
+  //     String extension = 'txt';
+  //     String entityId = 'w';
+
+  //     Test.startTest();
+  //     iManageFileSaver.SaveFile(data, name, extension, entityId);
+  //     Test.stopTest();
+  //   }
+
+  static testMethod void saveFileNullFilderIdExceptionsTest() {
+    TestUtils.setupMockActiveLicense();
+
+    Blob data = Blob.valueOf('test data');
+    String name = 'file name';
+    String extension = 'txt';
+    String entityId = 'w';
+
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name',
+      iManage_Default_Folder_Id__c = null
+    );
+    insert settings;
+
+    Test.startTest();
+    try {
+      iManageFileSaver.SaveFile(data, name, extension, entityId);
+    } catch (Exception ex) {
+      System.assert(
+        ex instanceof iManageFileSaver.IManageFileSaverException,
+        'Wrong exception type'
+      );
+    }
+    Test.stopTest();
+  }
+
+  private static HttpResponse getMockAuthResponse(
+    Integer statusCode,
+    String auth_status,
+    Integer customerId
+  ) {
+    HttpResponse resp = new HttpResponse();
+    if (String.isEmpty(auth_status)) {
+      auth_status = 'authenticated';
+    }
+    resp.setStatusCode(statusCode);
+    resp.setBody(
+      '{"data":{"app":{"id":"894a95b7-e904-429a-a37f-467823927648"},"auth_status":"' +
+      auth_status +
+      '","capabilities":["app_store","global_users","oauth"],"dms_version":"10.2.2838","user":{"customer_id":' +
+      customerId +
+      ',"email":"test@gdsi.com","id":"TEST","name":"test","ssid":"386600337554908195","user_type":"enterprise"},"versions":[{"name":"v2","url":"https://cloudimanage.com/work/api/v2","version":"2.1.766"}],"work":{"libraries":[{"alias":"ACTIVE","is_classic_client_compatible":false,"type":"worksite"}],"preferred_library":"ACTIVE"}}}'
+    );
+    return resp;
+  }
+
+  private static HttpResponse getMockFolderSearchResponse(
+    Integer statusCode,
+    String auth_status,
+    String folderId
+  ) {
+    HttpResponse resp = new HttpResponse();
+    if (String.isEmpty(auth_status)) {
+      auth_status = 'authenticated';
+    }
+    resp.setStatusCode(statusCode);
+    resp.setBody(
+      '{"data":[{"project_custom3":"active_uk|91|522","database":"active_uk","default_security":"inherit","activity_date":"2022-06-13T16:53:48Z","edit_date":"2022-06-13T16:53:48Z","folder_type":"regular","has_documents":true,"has_subfolders":false,"id":"' +
+      folderId +
+      '","inherited_default_security":"public","is_container_saved_search":false,"is_content_saved_search":false,"is_external_as_normal":false,"name":"Attorney Notes","owner":"ADMINISTRATOR","owner_description":"Administrator","parent_id":"active_uk!522","view_type":"document","wstype":"folder","workspace_id":"ws-01","workspace_name":"ws-01"}]}'
+    );
+    return resp;
+  }
 }

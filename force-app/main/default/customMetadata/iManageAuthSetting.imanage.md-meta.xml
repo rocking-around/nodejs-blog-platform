@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>imanage</label>
+    <protected>false</protected>
+    <values>
+        <field>Authorize_Endpoint_URL__c</field>
+        <value
+      xsi:type="xsd:string"
+    >https://imanage-litify.wavea.cc/auth/oauth2/authorize</value>
+    </values>
+    <values>
+        <field>Consumer_Key__c</field>
+        <value
+      xsi:type="xsd:string"
+    >eea1a7bf-b292-86aa-7652-a2116d52b305</value>
+    </values>
+    <values>
+        <field>Consumer_Secret__c</field>
+        <value
+      xsi:type="xsd:string"
+    >49915b60-32f2-6346-3323-b2d97cada2b9</value>
+    </values>
+    <values>
+        <field>Redirect_URI__c</field>
+        <value
+      xsi:type="xsd:string"
+    >https://gdsi-dev-ed.develop.my.salesforce.com/services/authcallback/imanage</value>
+    </values>
+    <values>
+        <field>Scope__c</field>
+        <value xsi:type="xsd:string">user</value>
+    </values>
+    <values>
+        <field>Token_Endpoint_URL__c</field>
+        <value
+      xsi:type="xsd:string"
+    >https://imanage-litify.wavea.cc/auth/oauth2/token</value>
+    </values>
+    <values>
+        <field>User_Info_URL__c</field>
+        <value xsi:type="xsd:string">https://imanage-litify.wavea.cc/api</value>
+    </values>
+</CustomMetadata>

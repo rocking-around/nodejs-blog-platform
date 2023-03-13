@@ -49,6 +49,7 @@ global class iManageFileSaver {
     );
   }
 
+  @TestVisible
   private static String GetFolderByStructure(
     iManageWrapper.ApiInfo apiInfo,
     String workspaceId,
@@ -68,6 +69,7 @@ global class iManageFileSaver {
     return id;
   }
 
+  @TestVisible
   private static String CreateFolderStructure(
     iManageWrapper.ApiInfo apiInfo,
     String workspaceId,
@@ -123,6 +125,7 @@ global class iManageFileSaver {
     return id;
   }
 
+  @TestVisible
   private static String GetWorkspaceFirstOrDefault(
     iManageWrapper.iManageWorkspaceSearch searchResult
   ) {
@@ -138,6 +141,7 @@ global class iManageFileSaver {
     return searchResult.data[0].id;
   }
 
+  @TestVisible
   private static String GetFolderFirstOrDefault(
     iManageWrapper.iManageFolderSearch searchResult
   ) {

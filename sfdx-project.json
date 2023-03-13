@@ -1,12 +1,25 @@
 {
+  "name": "Litify",
+  "namespace": "gdsi_imanage",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "56.0",
   "packageDirectories": [
     {
       "path": "force-app",
-      "default": true
+      "default": true,
+      "package": "iManage Integration",
+      "versionName": "ver 2.0",
+      "versionNumber": "2.0.0.NEXT",
+      "definitionFile": "config/project-scratch-def.json",
+      "dependencies": [],
+      "versionDescription": ""
     }
   ],
-  "name": "Litify",
-  "namespace": "",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "55.0"
+  "packageAliases": {
+    "iManage Integration": "0HoDn000000fxuKKAQ",
+    "iManage Integration@2.0.0-1": "04tDn000000Vtp6IAC",
+    "iManage Integration@2.0.0-2": "04tDn000000VtpGIAS",
+    "iManage Integration@2.0.0-3": "04tDn000000VtpLIAS",
+    "iManage Integration@2.0.0-4": "04tDn000000VtpQIAS"
+  }
 }

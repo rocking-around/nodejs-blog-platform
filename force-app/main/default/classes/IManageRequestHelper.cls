@@ -62,6 +62,9 @@ public class IManageRequestHelper {
     String query,
     String body
   ) {
+    // System.debug('MakeRequest Pre: type = ' + type);
+    // System.debug('MakeRequest Pre: query = ' + query);
+    // System.debug('MakeRequest Pre: body = ' + body);
     HttpRequest httpRequest = PrepareRequest(type, query);
     if (body != '')
       httpRequest.setBody(body);

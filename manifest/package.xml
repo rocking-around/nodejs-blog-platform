@@ -38,11 +38,11 @@
         <members>IManageRequestHelper</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
+        <members>PackagesChecker</members>
+        <members>PackagesCheckerTests</members>
         <members>vNHttpFormBuilder</members>
-        <members>vNHttpFormBuilderTests</members-->
+        <members>vNHttpFormBuilderTests</members>
         <members>TestUtils</members>
-        <!-- DROP IT? members>IManageFileHelper</members>
-        <members>IManageFileHelperTests</members-->
         <name>ApexClass</name>
     </types>
     <types>
@@ -50,7 +50,6 @@
         <members>iManageConfigurationComponent</members>
         <members>iManageContainer</members>
         <members>iManageDocumentsIFrame</members>
-        <members>iManageExportToCsv</members>
         <members>iManageLinksAndFiles</members>
         <members>iManageLinksAndFilesDatatable</members>
         <members>iManageMappingEditor</members>
@@ -71,7 +70,45 @@
         <members>iManageSettings__c</members>
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
+        <members>iManageAuthSetting__mdt</members>
         <name>CustomObject</name>
+    </types>
+    <types>
+        <members>CheckParentObjectId</members>
+        <name>ApexTrigger</name>
+    </types>
+    <types>
+        <members>iManage_Configuration</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
+        <members>iManageAuthSetting.imanage</members>
+        <name>CustomMetadata</name>
+    </types>
+    <types>
+        <members>iManage_Configuration</members>
+        <members>iManage_Configuration_UtilityBar</members>
+        <name>FlexiPage</name>
+    </types>
+    <types>
+        <members
+    >iManageDocumentMetadata__c-iManage Document Metadata Layout</members>
+        <members
+    >iManageDocumentSettings__c-iManage Document Settings Layout</members>
+        <members>IManage_File_Link__c-IManage File Link Layout</members>
+        <members>iManageAuthSetting__mdt-iManageAuthSetting Layout</members>
+        <members>IManageMapping__c-IManageMapping Layout</members>
+        <name>Layout</name>
+    </types>
+    <types>
+        <members>iManage_Admin</members>
+        <members>iManage_User</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>iManage</members>
+        <members>iManageLicensing</members>
+        <name>RemoteSiteSetting</name>
     </types>
     <types>
         <members>imanage_message_codes_empty_client_or_matter</members>
