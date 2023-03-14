@@ -381,12 +381,25 @@ export default class IManageMappingEditor extends LightningElement {
           this[`${name}Ext`] = data.filter(
             (x) => x.referenceTo && !(x.referenceTo.length > 1)
           );
-          this[name] = Object.entries(this[`${name}Ext`]).map(
+
+          const _sortedData = Object.entries(this[`${name}Ext`]).map(
             ([, { fieldLabel, fieldName }]) => ({
               label: fieldLabel,
               value: fieldName
             })
           );
+          _sortedData.sort((a, b) => {
+            // entityType should be the first option
+            if (a.label === this.entityType.fieldLabel) {
+              return -1;
+            } else if (b.label === this.entityType.fieldLabel) {
+              return 1;
+            }
+            return a.label.localeCompare(b.label, undefined, {
+              sensitivity: "base"
+            });
+          });
+          this[name] = _sortedData;
           resolve(this[`${name}Ext`]);
         })
         .catch((err) => {
@@ -433,7 +446,7 @@ export default class IManageMappingEditor extends LightningElement {
     );
     getFields({
       objectName: objName,
-      fieldTypes: ["ID", "STRING"]
+      fieldTypes: ["ID", "STRING", "INTEGER"]
     })
       .then((resp) => {
         this.writeDebug(
@@ -441,12 +454,16 @@ export default class IManageMappingEditor extends LightningElement {
           resp
         );
         names.forEach((name) => {
-          this[name] = Object.entries(resp).map(
+          const _data = Object.entries(resp).map(
             ([, { fieldLabel, fieldName }]) => ({
               label: fieldLabel,
               value: fieldName
             })
           );
+          _data.sort((a, b) =>
+            a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+          );
+          this[name] = _data;
         });
       })
       .catch((err) => {
