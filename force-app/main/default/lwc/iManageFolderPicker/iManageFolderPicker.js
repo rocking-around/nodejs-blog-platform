@@ -4,7 +4,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
-import saveIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.saveIManageDefaultFolderId";
+import saveManualIManageDefaultFolderPath from "@salesforce/apex/ConfigurationHelper.saveManualIManageDefaultFolderPath";
 import getIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.getIManageDefaultFolderId";
 import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
 
@@ -118,8 +118,10 @@ export default class IManageFolderPicker extends LightningElement {
     try {
       this.showSpinner = true;
       this.saving = true;
-      await saveIManageDefaultFolderId({
-        folderId: this.folderIdEdit
+      this.pickBtnDisabled = true;
+
+      await saveManualIManageDefaultFolderPath({
+        folderPath: this.folderIdEdit
       });
 
       this.dispatchEvent(
@@ -136,6 +138,7 @@ export default class IManageFolderPicker extends LightningElement {
     } finally {
       this.showSpinner = false;
       this.saving = false;
+      this.pickBtnDisabled = false;
     }
   }
 
@@ -161,5 +164,9 @@ export default class IManageFolderPicker extends LightningElement {
 
   get isSaveBtnDisabled() {
     return this.saving || !this.isChanged;
+  }
+
+  get folderIdViewValue() {
+    return this.isChanged ? this.folderIdEdit : this.folderId;
   }
 }

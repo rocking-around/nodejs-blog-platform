@@ -117,6 +117,7 @@
         <members>imanage_message_codes_folder_not_found</members>
         <members>imanage_message_codes_license_not_found</members>
         <members>imanage_message_codes_license_expired</members>
+        <members>imanage_message_codes_incorrect_folder_name</members>
         <name>CustomLabel</name>
     </types>
     <types>

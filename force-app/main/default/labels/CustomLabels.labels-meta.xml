@@ -30,6 +30,15 @@
     >Folder not found. The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
     <labels>
+        <fullName>imanage_message_codes_incorrect_folder_name</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription
+    >imanage_message_codes_incorrect_folder_name</shortDescription>
+        <value
+    >Incorrect folder name. Please remove all specail characters. Also not available empty sub folders.</value>
+    </labels>
+    <labels>
         <fullName>imanage_message_codes_license_expired</fullName>
         <categories>iManage</categories>
         <language>en_US</language>

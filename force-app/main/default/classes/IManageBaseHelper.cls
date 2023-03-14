@@ -54,6 +54,9 @@ public with sharing class IManageBaseHelper {
       when LICENSE_EXPIRED {
         return System.Label.imanage_message_codes_license_expired;
       }
+      when INCORRECT_FOLDER_NAME {
+        return System.Label.imanage_message_codes_incorrect_folder_name;
+      }
       when else {
         return 'Unexpected error';
       }
@@ -66,6 +69,7 @@ public with sharing class IManageBaseHelper {
     EMPTY_CUSTOM_RESOURCE,
     FOLDER_NOT_FOUND,
     LICENSE_NOT_FOUND,
-    LICENSE_EXPIRED
+    LICENSE_EXPIRED,
+    INCORRECT_FOLDER_NAME
   }
 }

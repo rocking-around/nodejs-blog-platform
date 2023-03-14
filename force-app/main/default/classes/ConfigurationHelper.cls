@@ -1,4 +1,6 @@
 public with sharing class ConfigurationHelper {
+  static final String INCORRECT_SYMBOLS = '(_|[^\\w\\s])';
+
   @AuraEnabled
   public static Map<String, Object> getGeneralSettings() {
     LicenseService.CheckOrganizationLicense();
@@ -166,6 +168,27 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
+  public static void saveManualIManageDefaultFolderPath(String folderPath) {
+    System.debug('saveManualIManageDefaultFolderPath("' + folderPath + '")');
+    LicenseService.CheckOrganizationLicense();
+
+    if (!IsFolderPathCorrect(folderPath)) {
+      System.debug(
+        'saveManualIManageDefaultFolderPath. The path is incorrect: ' +
+        folderPath
+      );
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.INCORRECT_FOLDER_NAME
+      );
+    }
+
+    iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+    settings.iManage_Default_Folder_Id__c = folderPath;
+
+    upsert settings;
+  }
+
+  @AuraEnabled
   public static void saveIManageDefaultFolderId(String folderId) {
     LicenseService.CheckOrganizationLicense();
 
@@ -206,5 +229,21 @@ public with sharing class ConfigurationHelper {
       }
     }
     return folderStructure;
+  }
+
+  private static Boolean IsFolderPathCorrect(String folderPath) {
+    System.debug('IsFolderPathCorrect("' + folderPath + '")');
+    if (String.isBlank(folderPath))
+      return false;
+    String[] folders = folderPath.split('/');
+    for (string folder : folders) {
+      if (
+        String.isBlank(folder) ||
+        folder != folder.replaceAll(INCORRECT_SYMBOLS, '')
+      )
+        return false;
+    }
+
+    return true;
   }
 }

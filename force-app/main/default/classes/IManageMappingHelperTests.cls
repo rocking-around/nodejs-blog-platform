@@ -175,7 +175,7 @@ private class IManageMappingHelperTests {
     Test.startTest();
     try {
       List<IManageMappingHelper.GetFieldResult> resultSrting = IManageMappingHelper.getFields(
-        'OpportunityTTTTTTTTTTTTTT',
+        'Opportunity',
         new List<String>{ 'STRING' }
       );
     } catch (Exception ex) {
