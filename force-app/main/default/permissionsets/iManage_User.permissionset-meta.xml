@@ -196,6 +196,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
+        <field>iManageDocumentSettings__c.Client__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
         <field>iManageDocumentSettings__c.Intake_Document__c</field>
         <readable>true</readable>
     </fieldPermissions>

@@ -78,6 +78,7 @@ public with sharing class ConfigurationHelper {
         Intake_Document__c,
         Matter_Document__c,
         Matter__c,
+        Client__c,
         Save_Document__c,
         Save_Link__c
       FROM iManageDocumentSettings__c
@@ -97,6 +98,7 @@ public with sharing class ConfigurationHelper {
           Intake_Document__c = false,
           Matter_Document__c = false,
           Matter__c = false,
+          Client__c = false,
           Save_Document__c = false,
           Save_Link__c = false
         );
@@ -107,6 +109,7 @@ public with sharing class ConfigurationHelper {
       'iManageDocuments:Intake_Document' => settings.Intake_Document__c,
       'iManageDocuments:Matter_Document' => settings.Matter_Document__c,
       'iManageDocuments:Matter' => settings.Matter__c,
+      'iManageDocuments:Client' => settings.Client__c,
       'iManageDocuments:Save_Document' => settings.Save_Document__c,
       'iManageDocuments:Save_Link' => settings.Save_Link__c
     };
@@ -125,6 +128,7 @@ public with sharing class ConfigurationHelper {
         Intake_Document__c,
         Matter_Document__c,
         Matter__c,
+        Client__c,
         Save_Document__c,
         Save_Link__c
       FROM iManageDocumentSettings__c
@@ -144,6 +148,7 @@ public with sharing class ConfigurationHelper {
           Intake_Document__c = false,
           Matter_Document__c = false,
           Matter__c = false,
+          Client__c = false,
           Save_Document__c = false,
           Save_Link__c = false
         );
@@ -164,6 +169,9 @@ public with sharing class ConfigurationHelper {
         }
         when 'iManageDocuments:Matter' {
           settings.Matter__c = (Boolean) data.get(key);
+        }
+        when 'iManageDocuments:Client' {
+          settings.Client__c = (Boolean) data.get(key);
         }
         when 'iManageDocuments:Save_Document' {
           settings.Save_Document__c = (Boolean) data.get(key);

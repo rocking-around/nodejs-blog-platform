@@ -145,6 +145,11 @@ public with sharing class IManageLinksAndFilesHelper {
       return config.containsKey('iManageDocuments:Matter') &&
         (Boolean) config.get('iManageDocuments:Matter');
 
+    if (sObjName == mc.gdsi_imanage__Mapping_EntityClientIdObjectField__c) {
+      return config.containsKey('iManageDocuments:Client') &&
+        (Boolean) config.get('iManageDocuments:Client');
+    }
+
     switch on sObjName {
       when 'Event' {
         return config.containsKey('iManageDocuments:Calendar') &&
@@ -153,6 +158,10 @@ public with sharing class IManageLinksAndFilesHelper {
       when 'Task' {
         return config.containsKey('iManageDocuments:Task') &&
           (Boolean) config.get('iManageDocuments:Task');
+      }
+      when 'Account' {
+        return config.containsKey('iManageDocuments:Client') &&
+          (Boolean) config.get('iManageDocuments:Client');
       }
       when 'litify_pm__Matter__c' {
         return config.containsKey('iManageDocuments:Matter') &&

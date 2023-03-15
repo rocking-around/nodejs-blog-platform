@@ -95,7 +95,6 @@ export default class IManageConfigurationComponent extends LightningElement {
       await checkOrganizationLicense();
     } catch (error) {
       this.invalidLicense = true;
-      console.warn("!!!!!!!!!!! INVALID LICENSE");
       this.invalidLicenseMessages = (error.body.message || "")
         .split("\n")
         .map((x, ind) => ({

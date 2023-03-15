@@ -104,6 +104,15 @@
                   <lightning-input
                     class="form-item"
                     type="checkbox"
+                    label="Client"
+                    name="Client"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Client}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
                     label="Calendar"
                     name="Calendar"
                     disabled={saving}
