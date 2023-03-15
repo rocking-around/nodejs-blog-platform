@@ -1,221 +1,230 @@
 <template>
   <div class="container">
-    <lightning-card title="Settings">
-      <lightning-tabset
-        class="config-tab-set"
-        variant="vertical"
-        active-tab-value="general"
-      >
-        <lightning-tab label="General" value="general">
-          <template if:true={generalSettingsModel.fields}>
-            <lightning-card title="General Settings">
-              <div class="form">
-                <lightning-input
-                  class="form-item"
-                  type="text"
-                  required
-                  label="Url"
-                  name="Url"
-                  disabled={saving}
-                  value={generalSettingsEdit.Url}
-                  onchange={onGeneralSettingChanged}
-                >
-                </lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="text"
-                  required
-                  label="iManage Client Key"
-                  name="Client_Id"
-                  disabled={saving}
-                  value={generalSettingsEdit.Client_Id}
-                  onchange={onGeneralSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="text"
-                  required
-                  label="iManage Client Field"
-                  name="ClientField"
-                  disabled={saving}
-                  value={generalSettingsEdit.ClientField}
-                  onchange={onGeneralSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="text"
-                  required
-                  name="MatterField"
-                  label="iManage Matter Field"
-                  disabled={saving}
-                  value={generalSettingsEdit.MatterField}
-                  onchange={onGeneralSettingChanged}
-                >
-                </lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  name="Enable_CSV_Export"
-                  label="Enable CSV Export"
-                  disabled={saving}
-                  checked={generalSettingsEdit.Enable_CSV_Export}
-                  onchange={onGeneralSettingChanged}
-                >
-                </lightning-input>
-              </div>
-              <div slot="actions">
-                <template if:true={isGeneralSettingsChanged}>
-                  <lightning-button
-                    label="Save"
-                    onclick={saveCommonSettings}
+    <template if:false={invalidLicense}>
+      <lightning-card title="Settings">
+        <lightning-tabset
+          class="config-tab-set"
+          variant="vertical"
+          active-tab-value="general"
+        >
+          <lightning-tab label="General" value="general">
+            <template if:true={generalSettingsModel.fields}>
+              <lightning-card title="General Settings">
+                <div class="form">
+                  <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    label="Url"
+                    name="Url"
                     disabled={saving}
-                    class="imanage-save-button"
-                  ></lightning-button>
-                  <lightning-button
-                    label="Cancel"
-                    onclick={cancelGeneralSettingsChanges}
+                    value={generalSettingsEdit.Url}
+                    onchange={onGeneralSettingChanged}
                   >
-                  </lightning-button>
-                </template>
-              </div>
-            </lightning-card>
-          </template>
-          <template if:false={generalSettingsModel.fields}>
-            <lightning-spinner
-              alternative-text="Loading"
-              size="medium"
-            ></lightning-spinner>
-          </template>
-        </lightning-tab>
-        <lightning-tab label="iManage Document" value="i-manage-doc">
-          <template if:true={iManageDocSettingsModel.fields}>
-            <lightning-card title="iManage Document Settings">
-              <div class="form">
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  label="Matter"
-                  name="Matter"
-                  disabled={saving}
-                  checked={iManageDocSettingsEdit.Matter}
-                  onchange={onIManageDocumentSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  label="Calendar"
-                  name="Calendar"
-                  disabled={saving}
-                  checked={iManageDocSettingsEdit.Calendar}
-                  onchange={onIManageDocumentSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  label="Task"
-                  name="Task"
-                  disabled={saving}
-                  checked={iManageDocSettingsEdit.Task}
-                  onchange={onIManageDocumentSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  name="Intake_Document"
-                  label="Intake"
-                  disabled={saving}
-                  checked={iManageDocSettingsEdit.Intake_Document}
-                  onchange={onIManageDocumentSettingChanged}
-                ></lightning-input>
-                <lightning-input
-                  class="form-item"
-                  type="checkbox"
-                  name="Matter_Document"
-                  label="Matter Note"
-                  disabled={saving}
-                  checked={iManageDocSettingsEdit.Matter_Document}
-                  onchange={onIManageDocumentSettingChanged}
-                ></lightning-input>
-                <div class="section-with-header m-t-20">
-                  <span class="section-with-header_header"
-                    >Store Document as...</span
+                  </lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    label="iManage Client Key"
+                    name="Client_Id"
+                    disabled={saving}
+                    value={generalSettingsEdit.Client_Id}
+                    onchange={onGeneralSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    label="iManage Client Field"
+                    name="ClientField"
+                    disabled={saving}
+                    value={generalSettingsEdit.ClientField}
+                    onchange={onGeneralSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    name="MatterField"
+                    label="iManage Matter Field"
+                    disabled={saving}
+                    value={generalSettingsEdit.MatterField}
+                    onchange={onGeneralSettingChanged}
                   >
-                  <div>
-                    <lightning-input
-                      class="form-item"
-                      type="checkbox"
-                      name="Save_Document"
-                      label="Document copy"
+                  </lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    name="Enable_CSV_Export"
+                    label="Enable CSV Export"
+                    disabled={saving}
+                    checked={generalSettingsEdit.Enable_CSV_Export}
+                    onchange={onGeneralSettingChanged}
+                  >
+                  </lightning-input>
+                </div>
+                <div slot="actions">
+                  <template if:true={isGeneralSettingsChanged}>
+                    <lightning-button
+                      label="Save"
+                      onclick={saveCommonSettings}
                       disabled={saving}
-                      checked={iManageDocSettingsEdit.Save_Document}
-                      onchange={onIManageDocumentSettingChanged}
-                    ></lightning-input>
-                    <lightning-input
-                      class="form-item"
-                      type="checkbox"
-                      name="Save_Link"
-                      label="Document link"
-                      disabled={saving}
-                      checked={iManageDocSettingsEdit.Save_Link}
-                      onchange={onIManageDocumentSettingChanged}
-                    ></lightning-input>
+                      class="imanage-save-button"
+                    ></lightning-button>
+                    <lightning-button
+                      label="Cancel"
+                      onclick={cancelGeneralSettingsChanges}
+                    >
+                    </lightning-button>
+                  </template>
+                </div>
+              </lightning-card>
+            </template>
+            <template if:false={hideSpinner}>
+              <lightning-spinner
+                alternative-text="Loading"
+                size="medium"
+              ></lightning-spinner>
+            </template>
+          </lightning-tab>
+          <lightning-tab label="iManage Document" value="i-manage-doc">
+            <template if:true={iManageDocSettingsModel.fields}>
+              <lightning-card title="iManage Document Settings">
+                <div class="form">
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    label="Matter"
+                    name="Matter"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Matter}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    label="Calendar"
+                    name="Calendar"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Calendar}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    label="Task"
+                    name="Task"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Task}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    name="Intake_Document"
+                    label="Intake"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Intake_Document}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    name="Matter_Document"
+                    label="Matter Note"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Matter_Document}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <div class="section-with-header m-t-20">
+                    <span class="section-with-header_header"
+                      >Store Document as...</span
+                    >
+                    <div>
+                      <lightning-input
+                        class="form-item"
+                        type="checkbox"
+                        name="Save_Document"
+                        label="Document copy"
+                        disabled={saving}
+                        checked={iManageDocSettingsEdit.Save_Document}
+                        onchange={onIManageDocumentSettingChanged}
+                      ></lightning-input>
+                      <lightning-input
+                        class="form-item"
+                        type="checkbox"
+                        name="Save_Link"
+                        label="Document link"
+                        disabled={saving}
+                        checked={iManageDocSettingsEdit.Save_Link}
+                        onchange={onIManageDocumentSettingChanged}
+                      ></lightning-input>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div slot="actions">
-                <template if:true={isIManageDocSettingsChanged}>
-                  <lightning-button
-                    label="Save"
-                    onclick={saveIManageDocSettings}
-                    disabled={saving}
-                    class="imanage-save-button"
-                  ></lightning-button>
-                  <lightning-button
-                    label="Cancel"
-                    onclick={cancelIManageDocumentSettingsChanges}
-                  >
-                  </lightning-button>
-                </template>
-              </div>
-            </lightning-card>
-          </template>
-        </lightning-tab>
-        <lightning-tab
-          class="tab-i-manage-mapping"
-          label="iManage Mapping"
-          value="i-manage-mapping"
-        >
-          <template if:false={areGeneralSettingsHasValuesAndSaved}>
-            First populate and save the general settings
-          </template>
-          <template if:true={areGeneralSettingsHasValuesAndSaved}>
-            <template if:true={iManageMappingEntity}>
-              <c-i-manage-mapping-configuration
-                entity-api-name={iManageMappingEntity}
-              >
-              </c-i-manage-mapping-configuration>
+                <div slot="actions">
+                  <template if:true={isIManageDocSettingsChanged}>
+                    <lightning-button
+                      label="Save"
+                      onclick={saveIManageDocSettings}
+                      disabled={saving}
+                      class="imanage-save-button"
+                    ></lightning-button>
+                    <lightning-button
+                      label="Cancel"
+                      onclick={cancelIManageDocumentSettingsChanges}
+                    >
+                    </lightning-button>
+                  </template>
+                </div>
+              </lightning-card>
             </template>
-            <template if:false={iManageMappingEntity}>
-              <p>
-                The Salesforce entity type is not specified. Contact the
-                Administrator.
-              </p>
-            </template>
-          </template>
-        </lightning-tab>
-
-        <template if:true={areGeneralSettingsHasValuesAndSaved}>
-          <lightning-tab
-            class="tab-i-manage-folder"
-            label="iManage Folder"
-            value="i-manage-folder"
-          >
-            <c-i-manage-folder-picker
-              folder-id={generalSettingsEdit.iManage_Default_Folder_Id}
-            ></c-i-manage-folder-picker>
           </lightning-tab>
+          <lightning-tab
+            class="tab-i-manage-mapping"
+            label="iManage Mapping"
+            value="i-manage-mapping"
+          >
+            <template if:false={areGeneralSettingsHasValuesAndSaved}>
+              First populate and save the general settings
+            </template>
+            <template if:true={areGeneralSettingsHasValuesAndSaved}>
+              <template if:true={iManageMappingEntity}>
+                <c-i-manage-mapping-configuration
+                  entity-api-name={iManageMappingEntity}
+                >
+                </c-i-manage-mapping-configuration>
+              </template>
+              <template if:false={iManageMappingEntity}>
+                <p>
+                  The Salesforce entity type is not specified. Contact the
+                  Administrator.
+                </p>
+              </template>
+            </template>
+          </lightning-tab>
+
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <lightning-tab
+              class="tab-i-manage-folder"
+              label="iManage Folder"
+              value="i-manage-folder"
+            >
+              <c-i-manage-folder-picker
+                folder-id={generalSettingsEdit.iManage_Default_Folder_Id}
+              ></c-i-manage-folder-picker>
+            </lightning-tab>
+          </template>
+        </lightning-tabset>
+      </lightning-card>
+    </template>
+    <template if:true={invalidLicense}>
+      <div class="invalid-license-message slds-theme_error slds-theme--error">
+        <template for:each={invalidLicenseMessages} for:item="msg">
+          <p key={msg.id}>{msg.value}</p>
         </template>
-      </lightning-tabset>
-    </lightning-card>
+      </div>
+    </template>
   </div>
 </template>

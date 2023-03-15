@@ -142,4 +142,21 @@ public with sharing class ConfigurationHelperTests {
       'iManage_Default_Folder_Id__c has wrong value'
     );
   }
+
+  static testMethod void checkOrganizationLicenseTest() {
+    TestUtils.setupMockInvalidLicense();
+    Test.startTest();
+    try {
+      ConfigurationHelper.checkOrganizationLicense();
+    } catch (Exception ex) {
+      System.debug(
+        'checkOrganizationLicense. Error message: ' + ex.getMessage()
+      );
+      System.assert(
+        ex.getMessage().contains('Organization Id'),
+        'Error message does not contains Organization Id'
+      );
+    }
+    Test.stopTest();
+  }
 }

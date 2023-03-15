@@ -2,6 +2,7 @@ import { LightningElement, track } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { loadStyle } from "lightning/platformResourceLoader";
 import AppCSS from "@salesforce/resourceUrl/AppCSS";
+import checkOrganizationLicense from "@salesforce/apex/ConfigurationHelper.checkOrganizationLicense";
 import getGeneralSettings from "@salesforce/apex/ConfigurationHelper.getGeneralSettings";
 import saveGeneralSettings from "@salesforce/apex/ConfigurationHelper.saveGeneralSettings";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
@@ -18,6 +19,8 @@ import {
 export default class IManageConfigurationComponent extends LightningElement {
   loading = false;
   saving = false;
+  invalidLicense = false;
+  invalidLicenseMessages = undefined;
 
   generalSettingsModel = {
     changed: false,
@@ -41,6 +44,7 @@ export default class IManageConfigurationComponent extends LightningElement {
 
   async connectedCallback() {
     try {
+      await this.checkLicense();
       await this.loadGeneralSettings();
       await this.loadIManageDocumentsSettings();
       await this.loadImanageMapping();
@@ -84,6 +88,22 @@ export default class IManageConfigurationComponent extends LightningElement {
       this.iManageDocSettings
     );
     this.onIManageDocSettingsChangedHandler(false);
+  }
+
+  async checkLicense() {
+    try {
+      await checkOrganizationLicense();
+    } catch (error) {
+      this.invalidLicense = true;
+      console.warn("!!!!!!!!!!! INVALID LICENSE");
+      this.invalidLicenseMessages = (error.body.message || "")
+        .split("\n")
+        .map((x, ind) => ({
+          id: ind,
+          value: x
+        }));
+      throw error;
+    }
   }
 
   async loadGeneralSettings() {
@@ -241,5 +261,9 @@ export default class IManageConfigurationComponent extends LightningElement {
     const allFieldsHasValue =
       fields && Object.values(fields).every((x) => x !== undefined);
     return !isChanged && allFieldsHasValue;
+  }
+
+  get hideSpinner() {
+    return this.generalSettingsModel.fields || this.invalidLicense;
   }
 }

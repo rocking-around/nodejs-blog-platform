@@ -2,6 +2,25 @@ public with sharing class ConfigurationHelper {
   static final String INCORRECT_SYMBOLS = '(_|[^\\w\\s])';
 
   @AuraEnabled
+  public static Void checkOrganizationLicense() {
+    try {
+      LicenseService.CheckOrganizationLicense();
+    } catch (Exception e) {
+      Organization org = [SELECT id FROM Organization];
+      String message =
+        'Organization Id = "' +
+        org.Id +
+        '". \n' +
+        e.getMessage();
+      if (Request.getCurrent().getQuiddity() == System.Quiddity.AURA) {
+        throw new AuraHandledException(message);
+      } else {
+        throw new IManageExceptions.IManageLicenseException(message);
+      }
+    }
+  }
+
+  @AuraEnabled
   public static Map<String, Object> getGeneralSettings() {
     LicenseService.CheckOrganizationLicense();
 
