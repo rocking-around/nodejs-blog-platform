@@ -16,23 +16,17 @@ public with sharing class IManageMappingHelper {
   }
 
   @AuraEnabled
-  public static List<Map<String, String>> getAllSObjectsMetadata() {
+  public static List<Map<String, String>> getAllSObjectsMetadata(){
     List<Map<String, String>> result = new List<Map<String, String>>();
     Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
-    for (String key : schemaMap.keySet()) {
-      Schema.DescribeSObjectResult dr = schemaMap.get(key).getDescribe();
-      if (
-        /*dr.isCustom() && */ dr.isAccessible() &&
-        dr.isCreateable() &&
-        !dr.isCustomSetting()
-      ) {
-        result.Add(
-          new Map<String, String>{
-            'label' => dr.getLabel(),
-            'name' => dr.getName(),
-            'associateEntityType' => dr.getAssociateEntityType()
-          }
-        );
+    for (String key : schemaMap.keySet()){
+	    Schema.DescribeSObjectResult dr = schemaMap.get(key).getDescribe();
+      if(/*dr.isCustom() && */dr.isAccessible() && dr.isCreateable() && !dr.isCustomSetting()) {
+        result.Add(new Map<String, String>{
+          'label' => dr.getLabel(),
+          'name' => dr.getName(),
+          'associateEntityType' => dr.getAssociateEntityType()
+        });
       }
     }
     return result;
@@ -126,8 +120,7 @@ public with sharing class IManageMappingHelper {
       sObjName +
       ' WHERE Id = :entityId'
     );
-
-    return (String) record.get(fieldId);
+    return String.valueOf(record.get(fieldId));
   }
 
   @AuraEnabled
