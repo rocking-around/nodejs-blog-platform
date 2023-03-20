@@ -8,12 +8,14 @@ public with sharing class ConfigurationHelperTests {
     String clientIdKey = 'general:Client_Id';
     String clientFieldKey = 'general:ClientField';
     String csvExportKey = 'general:Enable_CSV_Export';
+    String loggingKey = 'general:Verbose_Logging';
     Map<String, Object> data = new Map<String, Object>{
       urlKey => 'http://test.test',
       matterFieldKey => 'f1',
       clientIdKey => 'f2',
       clientFieldKey => 'f3',
-      csvExportKey => true
+      csvExportKey => true,
+      loggingKey => true
     };
     Test.startTest();
     ConfigurationHelper.saveGeneralSettings(data);
@@ -38,6 +40,10 @@ public with sharing class ConfigurationHelperTests {
     System.assert(
       (Boolean) result.get(csvExportKey) == (Boolean) data.get(csvExportKey),
       'Enable_CSV_Export has wrong value'
+    );
+    System.assert(
+      (Boolean) result.get(loggingKey) == (Boolean) data.get(loggingKey),
+      'Verbose_Logging has wrong value'
     );
   }
 
@@ -122,6 +128,7 @@ public with sharing class ConfigurationHelperTests {
       MatterField__c = 'val3',
       Url__c = 'val4',
       Enable_CSV_Export__c = true,
+      Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',

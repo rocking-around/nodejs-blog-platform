@@ -43,6 +43,9 @@
         <members>vNHttpFormBuilder</members>
         <members>vNHttpFormBuilderTests</members>
         <members>TestUtils</members>
+        <members>ILogger</members>
+        <members>Logger</members>
+        <members>LoggerBase</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -71,6 +74,7 @@
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
         <members>iManageAuthSetting__mdt</members>
+        <members>Log__c</members>
         <name>CustomObject</name>
     </types>
     <types>

@@ -31,7 +31,8 @@ public with sharing class ConfigurationHelper {
       'general:MatterField' => settings.MatterField__c,
       'general:Client_Id' => settings.Client_Id__c,
       'general:ClientField' => settings.ClientField__c,
-      'general:Enable_CSV_Export' => settings.Enable_CSV_Export__c
+      'general:Enable_CSV_Export' => settings.Enable_CSV_Export__c,
+      'general:Verbose_Logging' => settings.Verbose_Logging__c
     };
 
     return result;
@@ -59,6 +60,9 @@ public with sharing class ConfigurationHelper {
         }
         when 'general:Enable_CSV_Export' {
           settings.Enable_CSV_Export__c = (Boolean) data.get(key);
+        }
+        when 'general:Verbose_Logging' {
+          settings.Verbose_Logging__c = (Boolean) data.get(key);
         }
       }
     }

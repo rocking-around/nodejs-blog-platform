@@ -63,6 +63,16 @@
                     onchange={onGeneralSettingChanged}
                   >
                   </lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    name="Verbose_Logging"
+                    label="Enable Logging"
+                    disabled={saving}
+                    checked={generalSettingsEdit.Verbose_Logging}
+                    onchange={onGeneralSettingChanged}
+                  >
+                  </lightning-input>
                 </div>
                 <div slot="actions">
                   <template if:true={isGeneralSettingsChanged}>
