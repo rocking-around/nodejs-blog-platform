@@ -18,6 +18,14 @@ private class iManageIFrameDialogTests {
 
   @isTest //(SeeAllData=true)
   static void getIFrameFolderTest() {
+    //Create Matter
+    Opportunity matter = new Opportunity(
+      StageName = '100',
+      Name = '10',
+      CloseDate = system.now().addDays(30).date()
+    );
+    insert matter;
+
     HttpResponse getApiDataResponse = new HttpResponse();
     getApiDataResponse.setStatusCode(200);
     getApiDataResponse.setBody(
@@ -46,21 +54,19 @@ private class iManageIFrameDialogTests {
     String orgId = String.valueOf(org.Id);
     String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
 
+    String wsSearchUrl =
+      'callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces?custom1=' +
+      matter.Id +
+      '&custom2=' +
+      matter.Id;
+    System.debug('*** wsSearchUrl: ' + wsSearchUrl);
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
       'callout:iManageCreds/work/api/v2/customers/337/dialog-tokens' => getDialogTokenResponse,
-      'callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/search' => searchFolderIdResponse,
+      wsSearchUrl => searchFolderIdResponse,
       'callout:iManageCreds/api' => getApiDataResponse,
       licenseUrl => TestUtils.getMockLicenseResponse(200, orgId)
     };
     EchoHttpMock.setTestMockResponse(responses);
-
-    //Create Matter
-    Opportunity matter = new Opportunity(
-      StageName = '100',
-      Name = '10',
-      CloseDate = system.now().addDays(30).date()
-    );
-    insert matter;
 
     Test.startTest();
 

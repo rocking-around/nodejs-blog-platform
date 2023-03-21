@@ -10,17 +10,25 @@ public class iManageWrapper {
     req.setMethod('POST');
 
     Http http = new Http();
+
     HTTPResponse res = http.send(req);
   }
 
   public static iManageProvider.IManageApiDataResponse GetApi() {
+    Logger.getInstance().info('iManageWrapper::GetApi, query=/api');
     String responseBody = IManageRequestHelper.Get('/api');
+    Logger.getInstance()
+      .info('iManageWrapper::GetApi, response=' + responseBody);
 
     iManageProvider.IManageApiDataResponse response = (iManageProvider.IManageApiDataResponse) JSON.deserialize(
       responseBody,
       iManageProvider.IManageApiDataResponse.class
     );
     if (response.data.auth_status == 'not-authenticated') {
+      Logger.getInstance()
+        .warn(
+          'iManageWrapper::FakeCallForRefreshToken, Detected iManage problem with authentication. We should do additional call for the fire refresh user token flow'
+        );
       FakeCallForRefreshToken();
       return GetApi();
     }
@@ -54,7 +62,10 @@ public class iManageWrapper {
       '/documents/' +
       documentId;
 
+    Logger.getInstance().info('iManageWrapper::GetDocument, query=' + query);
     String response = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::PostDocument, response=' + response);
     return (iManageDocument) JSON.deserialize(response, iManageDocument.class);
   }
 
@@ -90,12 +101,15 @@ public class iManageWrapper {
       '/folders/' +
       folderId +
       '/documents';
+    Logger.getInstance().info('iManageWrapper::PostDocument, query=' + query);
     String response = IManageRequestHelper.PostFile(
       query,
       formBlob,
       contentLength,
       contentType
     );
+    Logger.getInstance()
+      .info('iManageWrapper::PostDocument, response=' + response);
     return (iManageDocument) System.JSON.deserialize(
       response,
       iManageDocument.class
@@ -116,6 +130,7 @@ public class iManageWrapper {
       documentId +
       '/download';
 
+    Logger.getInstance().info('iManageWrapper::DownloadFile, query=' + query);
     return IManageRequestHelper.GetFile(query);
   }
 
@@ -132,19 +147,30 @@ public class iManageWrapper {
       customerId +
       '/libraries/' +
       library +
-      '/workspaces/search';
-    String body =
-      '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
-      '"filters": { "' +
+      '/workspaces?' +
       clientField +
-      '": "' +
+      '=' +
       clientId +
-      '", "' +
+      '&' +
       matterField +
-      '": "' +
-      matterId +
-      '" } }';
-    String responseBody = IManageRequestHelper.Post(query, body);
+      '=' +
+      matterId;
+    /*String body =
+            '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
+            '"filters": { "' +
+            clientField +
+            '": "' +
+            clientId +
+            '", "' +
+            matterField +
+            '": "' +
+            matterId +
+            '" } }';*/
+    Logger.getInstance()
+      .info('iManageWrapper::SearchWorkspace, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::SearchWorkspace, response=' + responseBody);
     try {
       return (iManageWorkspaceSearch) JSON.deserialize(
         responseBody,
@@ -152,7 +178,10 @@ public class iManageWrapper {
       );
     } catch (Exception ex) {
       // Try to de-serialize again for on-premise iManage version
-      system.debug('Cannot parse. Try to parse for on-prem version');
+      Logger.getInstance()
+        .warn(
+          'iManageWrapper::SearchWorkspace, Cannot parse. Try to parse for on-prem version'
+        );
       iManageWorkspaceOnPremiseSearch onPremResult = (iManageWorkspaceOnPremiseSearch) JSON.deserialize(
         responseBody,
         iManageWorkspaceOnPremiseSearch.class
@@ -177,7 +206,10 @@ public class iManageWrapper {
       library +
       '/folders/' +
       folderId;
+    Logger.getInstance().info('iManageWrapper::GetFolder, query=' + query);
     String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::GetFolder, response=' + responseBody);
     iManageFolderResponse response = (iManageFolderResponse) JSON.deserialize(
       responseBody,
       iManageFolderResponse.class
@@ -216,9 +248,16 @@ public class iManageWrapper {
       matterId +
       '" }';
     body += '}';
-    system.debug(body);
-    system.debug(query);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::PostFolderToWorkspace, query=' +
+        query +
+        '; body=' +
+        body
+      );
     String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::PostFolderToWorkspace, response=' + responseBody);
     system.debug(responseBody);
     return (iManageFolderResponse) JSON.deserialize(
       responseBody,
@@ -258,9 +297,12 @@ public class iManageWrapper {
       '" }';
 
     body += '}';
-    System.debug('PostFolder. query: ' + query);
-    System.debug('PostFolder. body: ' + body);
+
+    Logger.getInstance()
+      .info('iManageWrapper::PostFolder, query=' + query + '; body=' + body);
     String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::PostFolder, response=' + responseBody);
     return (iManageFolderResponse) JSON.deserialize(
       responseBody,
       iManageFolderResponse.class
@@ -286,7 +328,11 @@ public class iManageWrapper {
       '", "name": "' +
       name +
       '" }}';
+    Logger.getInstance()
+      .info('iManageWrapper::SearchFolder, query=' + query + '; body=' + body);
     String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::SearchFolder, response=' + responseBody);
     return (iManageFolderSearch) JSON.deserialize(
       responseBody,
       iManageFolderSearch.class
@@ -295,7 +341,10 @@ public class iManageWrapper {
 
   public static iManageDialogToken GetDialogToken(String customerId) {
     String query = '/work/api/v2/customers/' + customerId + '/dialog-tokens';
+    Logger.getInstance().info('iManageWrapper::GetDialogToken, query=' + query);
     String responseBody = IManageRequestHelper.Post(query, '');
+    Logger.getInstance()
+      .info('iManageWrapper::GetDialogToken, response=' + responseBody);
 
     return (iManageDialogToken) JSON.deserialize(
       responseBody,

@@ -8,15 +8,33 @@ public with sharing class IManageCsvHelper {
 
   @AuraEnabled
   public static List<CsvRow> getData(Datetime dateFrom, DateTime dateTo) {
+    Map<String, Object> params = new Map<String, Object>{
+      'dateFrom' => dateFrom,
+      'dateTo' => dateTo
+    };
+
+    Logger.getInstance()
+      .info(
+        'IManageCsvHelper::getData, start method. Params: ' +
+        JSON.serialize(params)
+      );
+
     LicenseService.CheckOrganizationLicense();
     try {
       IManageMapping mapping = IManageMappingHelper.getMapping();
       Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
       List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
 
+      Logger.getInstance()
+        .info(
+          'IManageCsvHelper::getData, Rows: ' + JSON.serialize(csvRows?.size())
+        );
       return csvRows;
     } catch (Exception e) {
+      Logger.getInstance().error(e, 'IManageCsvHelper::getData');
       throw new AuraHandledException(e.getMessage());
+    } finally {
+      Logger.getInstance().Flush();
     }
   }
 
@@ -47,7 +65,8 @@ public with sharing class IManageCsvHelper {
     return allEntities;
   }
 
-  public static List<CsvRow> getEntitiesByIds(
+  @TestVisible
+  private static List<CsvRow> getEntitiesByIds(
     IManageMapping mapping,
     Set<Id> ids
   ) {
