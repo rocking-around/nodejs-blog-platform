@@ -1,4 +1,4 @@
-public class Logger extends LoggerBase {
+global class Logger extends LoggerBase {
   private static Logger instance = null;
 
   private Logger() {

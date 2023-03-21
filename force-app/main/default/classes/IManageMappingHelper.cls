@@ -5,6 +5,26 @@ public with sharing class IManageMappingHelper {
     LicenseService.CheckOrganizationLicense();
 
     try {
+      IManageMapping mapping = getMappingSettings();
+      Logger.getInstance()
+        .info(
+          'IManageMappingHelper::getMapping, result=' + JSON.serialize(mapping)
+        );
+      return mapping;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'IManageMappingHelper::getMapping');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  public static IManageMapping getMappingSettings() {
+    Logger.getInstance()
+      .info('IManageMappingHelper::getMappingSettings, start method');
+    LicenseService.CheckOrganizationLicense();
+
+    try {
       iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
       IManageMapping mapping = new IManageMapping();
       mapping.EntityType = settings.Mapping_EntityType__c;
@@ -17,14 +37,14 @@ public with sharing class IManageMappingHelper {
 
       Logger.getInstance()
         .info(
-          'IManageMappingHelper::getMapping, result=' + JSON.serialize(mapping)
+          'IManageMappingHelper::getMappingSettings, result=' +
+          JSON.serialize(mapping)
         );
       return mapping;
     } catch (Exception ex) {
-      Logger.getInstance().error(ex, 'IManageMappingHelper::getMapping');
+      Logger.getInstance()
+        .error(ex, 'IManageMappingHelper::getMappingSettings');
       throw ex;
-    } finally {
-      Logger.getInstance().Flush();
     }
   }
 
@@ -121,7 +141,7 @@ public with sharing class IManageMappingHelper {
     IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
     String entityIdSObjName = GetSObjectType(entityId);
 
-    IManageMapping mapping = IManageMappingHelper.getMapping();
+    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
 
     if (!mapping.EntityType.equals(entityIdSObjName)) {
       String errorMessage =

@@ -21,7 +21,7 @@ public with sharing class IManageCsvHelper {
 
     LicenseService.CheckOrganizationLicense();
     try {
-      IManageMapping mapping = IManageMappingHelper.getMapping();
+      IManageMapping mapping = IManageMappingHelper.getMappingSettings();
       Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
       List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
 
@@ -93,12 +93,14 @@ public with sharing class IManageCsvHelper {
       : (matterRelationshipName + '.');
     String matterIdField =
       matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterIdField);
-    String matterNameField =
-      matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterNameField);
     String matterLastModifiedDateField = matterFieldPrefix + 'LastModifiedDate';
     fields.add(matterIdField.toLowerCase());
-    fields.add(matterNameField.toLowerCase());
     fields.add(matterLastModifiedDateField.toLowerCase());
+    if (String.isNotBlank(mapping?.MatterNameField)) {
+      String matterNameField =
+        matterFieldPrefix + String.escapeSingleQuotes(mapping.MatterNameField);
+      fields.add(matterNameField.toLowerCase());
+    }
 
     //Clients
     String clientRelationshipName = null;
@@ -113,12 +115,14 @@ public with sharing class IManageCsvHelper {
       : (clientRelationshipName + '.');
     String clientIdField =
       clientFieldPrefix + String.escapeSingleQuotes(mapping.ClientIdField);
-    String clientNameField =
-      clientFieldPrefix + +String.escapeSingleQuotes(mapping.ClientNameField);
     String clientLastModifiedDateField = clientFieldPrefix + 'LastModifiedDate';
     fields.add(clientIdField.toLowerCase());
-    fields.add(clientNameField.toLowerCase());
     fields.add(clientLastModifiedDateField.toLowerCase());
+    if (String.isNotBlank(mapping?.ClientNameField)) {
+      String clientNameField =
+        clientFieldPrefix + +String.escapeSingleQuotes(mapping.ClientNameField);
+      fields.add(clientNameField.toLowerCase());
+    }
 
     String query =
       'SELECT ' +
@@ -138,7 +142,11 @@ public with sharing class IManageCsvHelper {
         ? entity
         : entity.getSObject(matterRelationshipName);
       row.MatterId = String.valueOf(matterSObj.get(mapping.MatterIdField));
-      row.MatterName = String.valueOf(matterSObj.get(mapping.MatterNameField));
+      if (String.isNotBlank(mapping?.MatterNameField)) {
+        row.MatterName = String.valueOf(
+          matterSObj.get(mapping.MatterNameField)
+        );
+      }
       row.MatterLastModifiedDate = Datetime.valueOf(
         matterSObj.get('LastModifiedDate')
       );
@@ -147,7 +155,11 @@ public with sharing class IManageCsvHelper {
         ? entity
         : entity.getSObject(clientRelationshipName);
       row.ClientId = String.valueOf(clientSObj.get(mapping.ClientIdField));
-      row.ClientName = String.valueOf(clientSObj.get(mapping.ClientNameField));
+      if (String.isNotBlank(mapping?.ClientNameField)) {
+        row.ClientName = String.valueOf(
+          clientSObj.get(mapping.ClientNameField)
+        );
+      }
       row.ClientLastModifiedDate = Datetime.valueOf(
         clientSObj.get('LastModifiedDate')
       );
