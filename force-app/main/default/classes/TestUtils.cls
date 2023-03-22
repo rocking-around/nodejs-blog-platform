@@ -1,6 +1,6 @@
 @isTest
 public class TestUtils {
-  public static void setupMockActiveLicense() {
+  public static Map<String, HttpResponse> getMockActiveLicenseResponse() {
     Organization org = [SELECT Id FROM Organization];
     String orgId = String.valueOf(org.Id);
     //Setup Mock responses
@@ -8,6 +8,11 @@ public class TestUtils {
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
       licenseUrl => getMockLicenseResponse(200, orgId)
     };
+    return responses;
+  }
+
+  public static void setupMockActiveLicense() {
+    Map<String, HttpResponse> responses = getMockActiveLicenseResponse();
     EchoHttpMock.setTestMockResponse(responses);
   }
 
