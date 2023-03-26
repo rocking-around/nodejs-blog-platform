@@ -74,8 +74,6 @@ global class iManageFileSaver {
     } catch (Exception ex) {
       Logger.getInstance().error(ex, 'iManageFileSaver::SaveFile');
       throw ex;
-    } finally {
-      Logger.getInstance().Flush();
     }
   }
 
