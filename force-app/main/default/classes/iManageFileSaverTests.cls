@@ -205,13 +205,25 @@ public class iManageFileSaverTests {
     Test.stopTest();
   }
 
-  static testMethod void saveFileNullFilderIdExceptionsTest() {
+  static testMethod void saveFileNullFolderIdExceptionsTest() {
     TestUtils.setupMockActiveLicense();
+
+    iManageSettings__c ims = iManageSettings__c.getOrgDefaults();
+    ims.iManage_Default_Folder_Id__c = null;
+    update ims;
+
+    //Create Matter
+    Opportunity matter = new Opportunity(
+      StageName = '100',
+      Name = '10',
+      CloseDate = system.now().addDays(30).date()
+    );
+    insert matter;
 
     Blob data = Blob.valueOf('test data');
     String name = 'file name';
     String extension = 'txt';
-    String entityId = 'w';
+    String entityId = String.valueOf(matter.Id);
 
     Test.startTest();
     try {
