@@ -34,15 +34,7 @@ global class iManageFileSaver {
         );
 
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
-        apiInfo.customerId,
-        apiInfo.library,
-        mc.gdsi_imanage__ClientField__c,
-        link.ClientId,
-        mc.gdsi_imanage__MatterField__c,
-        link.MatterId
-      );
-      String workspaceId = GetWorkspaceFirstOrDefault(searchResult);
+      String workspaceId = iManageWorkspacesHelper.SearchWorkspace(mc, apiInfo, link);
       Logger.getInstance()
         .info(
           'iManageFileSaver::SaveFile, start method. workspaceId = ' +
@@ -196,33 +188,6 @@ global class iManageFileSaver {
     Logger.getInstance()
       .info('iManageFileSaver::CreateFolderStructure, result: ' + id);
     return id;
-  }
-
-  @TestVisible
-  private static String GetWorkspaceFirstOrDefault(
-    iManageWrapper.iManageWorkspaceSearch searchResult
-  ) {
-    Map<String, Object> params = new Map<String, Object>{
-      'searchResult' => searchResult
-    };
-    Logger.getInstance()
-      .info(
-        'iManageFileSaver::GetWorkspaceFirstOrDefault, start method. Params: ' +
-        JSON.serialize(params)
-      );
-    if (
-      searchResult == null ||
-      searchResult.data == null ||
-      searchResult.data.size() == 0 ||
-      searchResult.data[0].id == null
-    ) {
-      return '';
-    }
-
-    String result = searchResult.data[0].id;
-    Logger.getInstance()
-      .info('iManageFileSaver::GetWorkspaceFirstOrDefault, result: ' + result);
-    return result;
   }
 
   @TestVisible

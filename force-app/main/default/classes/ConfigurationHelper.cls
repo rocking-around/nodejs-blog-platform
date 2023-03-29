@@ -363,6 +363,94 @@ public with sharing class ConfigurationHelper {
     }
   }
 
+  @AuraEnabled
+  public static String GetIManageLibraries() {
+    Logger.getInstance()
+      .info('ConfigurationHelper::GetIManageLibraries, start method');
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+      Logger.getInstance()
+        .info(
+          'ConfigurationHelper::GetIManageLibraries, Result: ' +
+          settings?.iManage_Libraries__c
+        );
+      return settings.iManage_Libraries__c;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::GetIManageLibraries');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static void SaveIManageLibraries(String libraries) {
+    Map<String, Object> params = new Map<String, Object>{
+      'libraries' => libraries
+    };
+    Logger.getInstance()
+      .info(
+        'ConfigurationHelper::SaveIManageLibraries, start method. Params: ' +
+        JSON.serialize(params)
+      );
+
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+      settings.iManage_Libraries__c = libraries;
+
+      upsert settings;
+      System.debug(
+        'SaveIManageLibraries. Saved: ' + JSON.serialize(settings)
+      );
+    } catch (AuraHandledException ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::SaveIManageLibraries');
+      throw ex;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::SaveIManageLibraries');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static String GetIManageAvailableLibraries() {
+    Logger.getInstance()
+      .info('ConfigurationHelper::GetIManageAvailableLibraries, start method');
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      List<iManageWrapper.iManageLibrary> results = iManageWrapper.GetLibraries(apiInfo.customerId);
+      String result = '';
+      for (iManageWrapper.iManageLibrary lib : results) {
+        if(result == '')
+          result = lib.id;
+        else 
+          result += ';' + lib.id;
+      }
+      Logger.getInstance()
+        .info(
+          'ConfigurationHelper::GetIManageAvailableLibraries, Result: ' +
+          result
+        );
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::GetIManageAvailableLibraries');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
   public static String getIManageFolderStructure(String folderId) {
     Map<String, Object> params = new Map<String, Object>{
       'folderId' => folderId

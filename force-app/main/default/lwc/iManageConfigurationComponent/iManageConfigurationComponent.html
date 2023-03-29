@@ -235,6 +235,16 @@
               ></c-i-manage-folder-picker>
             </lightning-tab>
           </template>
+
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <lightning-tab
+              class="tab-i-manage-libraries"
+              label="iManage Libraries"
+              value="i-manage-libraries"
+            >
+              <c-i-manage-libraries></c-i-manage-libraries>
+            </lightning-tab>
+          </template>
         </lightning-tabset>
       </lightning-card>
     </template>

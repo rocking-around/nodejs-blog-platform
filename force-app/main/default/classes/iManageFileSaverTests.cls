@@ -23,62 +23,6 @@ public class iManageFileSaverTests {
     insert settings;
   }
 
-  static testMethod void getFolderFirstOrDefaultTest() {
-    // 1
-    iManageWrapper.iManageFolderSearch searchResultNullId = new iManageWrapper.iManageFolderSearch();
-    List<iManageWrapper.iManageFolder> dataNullId = new List<iManageWrapper.iManageFolder>{
-      new iManageWrapper.iManageFolder()
-    };
-    searchResultNullId.data = dataNullId;
-
-    // 2
-    iManageWrapper.iManageFolderSearch searchResult = new iManageWrapper.iManageFolderSearch();
-    iManageWrapper.iManageFolder folder = new iManageWrapper.iManageFolder();
-    folder.id = 'test';
-    List<iManageWrapper.iManageFolder> data = new List<iManageWrapper.iManageFolder>{
-      folder
-    };
-    searchResult.data = data;
-
-    Test.startTest();
-    String resultNull = iManageFileSaver.GetFolderFirstOrDefault(
-      searchResultNullId
-    );
-    String result = iManageFileSaver.GetFolderFirstOrDefault(searchResult);
-    Test.stopTest();
-
-    System.assert(String.isEmpty(resultNull), 'The folder must be empty');
-    System.assert(result == folder.id, 'The folder has wrong value');
-  }
-
-  static testMethod void getWorkspaceFirstOrDefaultTest() {
-    // 1
-    iManageWrapper.iManageWorkspaceSearch searchResultNullId = new iManageWrapper.iManageWorkspaceSearch();
-    List<iManageWrapper.iManageWorkspace> dataNullId = new List<iManageWrapper.iManageWorkspace>{
-      new iManageWrapper.iManageWorkspace()
-    };
-    searchResultNullId.data = dataNullId;
-
-    // 2
-    iManageWrapper.iManageWorkspaceSearch searchResult = new iManageWrapper.iManageWorkspaceSearch();
-    iManageWrapper.iManageWorkspace ws = new iManageWrapper.iManageWorkspace();
-    ws.id = 'test';
-    List<iManageWrapper.iManageWorkspace> data = new List<iManageWrapper.iManageWorkspace>{
-      ws
-    };
-    searchResult.data = data;
-
-    Test.startTest();
-    String resultNull = iManageFileSaver.GetWorkspaceFirstOrDefault(
-      searchResultNullId
-    );
-    String result = iManageFileSaver.GetWorkspaceFirstOrDefault(searchResult);
-    Test.stopTest();
-
-    System.assert(String.isEmpty(resultNull), 'The workspace must be empty');
-    System.assert(result == ws.id, 'The workspace has wrong value');
-  }
-
   static testMethod void getFolderByStructureTest() {
     String workspaceId = 'ws-1';
     String folderId = 'folder-1';

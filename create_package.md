@@ -27,7 +27,7 @@ sfdx force:apex:test:run -r human --codecoverage --detailedcoverage --verbose
 ☝ <span style="color:orange">Change the major or minor version of the package in the `sfdx-project.json` file (versionNumber field).</span>
 
 ```
-sfdx force:package:version:create --package "iManage Integration" --path "force-app" --targetdevhubusername eugene.bilobik@gdsi-litify.com --definitionfile config/project-scratch-def.json  --language en_US --wait 60 --codecoverage --postinstallscript iManagePostInstallClass --installationkey """wml6Qq&3r!D*2K4vfovu0"""
+sfdx force:package:version:create --package "iManage Integration" --path "force-app" --targetdevhubusername eugene.bilobik@gdsi-litify.com --definitionfile config/project-scratch-def.json --wait 60 --codecoverage --postinstallscript iManagePostInstallClass --installationkey """wml6Qq&3r!D*2K4vfovu0"""
 ```
 
 > The result of the operation looks like this.

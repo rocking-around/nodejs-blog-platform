@@ -46,6 +46,7 @@
         <members>ILogger</members>
         <members>Logger</members>
         <members>LoggerBase</members>
+        <members>iManageWorkspacesHelper</members>
         <name>ApexClass</name>
     </types>
     <types>

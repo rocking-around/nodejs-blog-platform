@@ -1,36 +1,37 @@
 {
-  "name": "Litify",
-  "namespace": "gdsi_imanage",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "56.0",
-  "packageDirectories": [
-    {
-      "path": "force-app",
-      "default": true,
-      "package": "iManage Integration",
-      "versionName": "ver 2.7",
-      "versionNumber": "2.7.0.NEXT",
-      "ancestorVersion": "HIGHEST",
-      "definitionFile": "config/project-scratch-def.json",
-      "dependencies": [],
-      "versionDescription": ""
+    "name": "Litify",
+    "namespace": "gdsi_imanage",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "56.0",
+    "packageDirectories": [
+        {
+            "path": "force-app",
+            "default": true,
+            "package": "iManage Integration",
+            "versionName": "ver 2.7",
+            "versionNumber": "2.7.0.NEXT",
+            "ancestorVersion": "HIGHEST",
+            "definitionFile": "config/project-scratch-def.json",
+            "dependencies": [],
+            "versionDescription": ""
+        }
+    ],
+    "packageAliases": {
+        "iManage Integration": "0HoDn000000fxuKKAQ",
+        "iManage Integration@2.0.0-1": "04tDn000000Vtp6IAC",
+        "iManage Integration@2.0.0-2": "04tDn000000VtpGIAS",
+        "iManage Integration@2.0.0-3": "04tDn000000VtpLIAS",
+        "iManage Integration@2.0.0-4": "04tDn000000VtpQIAS",
+        "iManage Integration@2.1.0-1": "04tDn000000VtrgIAC",
+        "iManage Integration@2.2.0-1": "04tDn000000VtrqIAC",
+        "iManage Integration@2.3.0-1": "04tDn000000VtsPIAS",
+        "iManage Integration@2.3.0-2": "04tDn000000VtsUIAS",
+        "iManage Integration@2.3.0-3": "04tDn000000VtsZIAS",
+        "iManage Integration@2.4.0-1": "04tDn000000VtsoIAC",
+        "iManage Integration@2.5.0-1": "04tDn000000VtstIAC",
+        "iManage Integration@2.6.0-2": "04tDn000000VtvsIAC",
+        "iManage Integration@2.6.0-3": "04tDn000000VtwWIAS",
+        "iManage Integration@2.7.0-1": "04tDn000000VtxjIAC",
+        "iManage Integration@2.7.0-2": "04tDn000000Vu5FIAS"
     }
-  ],
-  "packageAliases": {
-    "iManage Integration": "0HoDn000000fxuKKAQ",
-    "iManage Integration@2.0.0-1": "04tDn000000Vtp6IAC",
-    "iManage Integration@2.0.0-2": "04tDn000000VtpGIAS",
-    "iManage Integration@2.0.0-3": "04tDn000000VtpLIAS",
-    "iManage Integration@2.0.0-4": "04tDn000000VtpQIAS",
-    "iManage Integration@2.1.0-1": "04tDn000000VtrgIAC",
-    "iManage Integration@2.2.0-1": "04tDn000000VtrqIAC",
-    "iManage Integration@2.3.0-1": "04tDn000000VtsPIAS",
-    "iManage Integration@2.3.0-2": "04tDn000000VtsUIAS",
-    "iManage Integration@2.3.0-3": "04tDn000000VtsZIAS",
-    "iManage Integration@2.4.0-1": "04tDn000000VtsoIAC",
-    "iManage Integration@2.5.0-1": "04tDn000000VtstIAC",
-    "iManage Integration@2.6.0-2": "04tDn000000VtvsIAC",
-    "iManage Integration@2.6.0-3": "04tDn000000VtwWIAS",
-    "iManage Integration@2.7.0-1": "04tDn000000VtxjIAC"
-  }
 }

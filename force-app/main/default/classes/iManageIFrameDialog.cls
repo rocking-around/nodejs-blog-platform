@@ -116,25 +116,13 @@ public class iManageIFrameDialog {
     if (link == null || link.ClientId == null || link.MatterId == null)
       return dialogUrl;
 
-    iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
-      apiData.customerId,
-      apiData.library,
-      mc.ClientField__c,
-      link.ClientId,
-      mc.MatterField__c,
-      link.MatterId
-    );
-
-    if (
-      searchResult == null ||
-      searchResult.data == null ||
-      searchResult.data.size() == 0 ||
-      searchResult.data[0].id == null
-    )
+    String workspaceId = iManageWorkspacesHelper.SearchWorkspace(mc, apiData, link);
+    
+    if (workspaceId == null || workspaceId == '')
       return dialogUrl;
 
     return dialogUrl +
       '&start=' +
-      EncodingUtil.urlEncode(searchResult.data[0].id, 'UTF-8');
+      EncodingUtil.urlEncode(workspaceId, 'UTF-8');
   }
 }
