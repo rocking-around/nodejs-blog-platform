@@ -11,7 +11,7 @@ public class iManageWorkspacesHelper {
         Logger.getInstance().info('iManageWorkspacesHelper::SearchWorkspace, search into library: ' + library);
         iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
           apiData.customerId,
-          apiData.library,
+          library,
           mc.ClientField__c,
           link.ClientId,
           mc.MatterField__c,
