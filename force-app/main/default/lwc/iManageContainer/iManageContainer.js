@@ -58,6 +58,13 @@ export default class IManageContainer extends LightningElement {
       });
   }
 
+  handleRefreshClick() {
+    this.loading = true;
+    this._iManageUrl = "";
+    this.connectedCallback();
+    //window.location.reload();
+  }
+
   get showIFrame() {
     return this.recordId && this.iManageUrl.length;
   }

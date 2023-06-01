@@ -8,8 +8,8 @@
             "path": "force-app",
             "default": true,
             "package": "iManage Integration",
-            "versionName": "ver 2.10",
-            "versionNumber": "2.10.0.NEXT",
+            "versionName": "ver 2.13",
+            "versionNumber": "2.13.0.NEXT",
             "ancestorVersion": "HIGHEST",
             "definitionFile": "config/project-scratch-def.json",
             "dependencies": [],
@@ -36,6 +36,20 @@
         "iManage Integration@2.8.0-1": "04tDn000000Vu5jIAC",
         "iManage Integration@2.9.0-1": "04tDn000000Vu6SIAS",
         "iManage Integration@2.9.0-2": "04tDn000000Vu6XIAS",
-        "iManage Integration@2.10.0-1": "04tDn000000VuDoIAK"
+        "iManage Integration@2.10.0-1": "04tDn000000VuDoIAK",
+        "iManage Integration@2.11.0-1": "04tDn000000VustIAC",
+        "iManage Integration@2.12.0-1": "04tDn000000Vw27IAC",
+        "iManage Integration@2.12.0-2": "04tDn000000Vw2CIAS",
+        "iManage Integration@2.13.0-1": "04tDn000000Vw2HIAS",
+        "iManage Integration@2.13.0-2": "04tDn000000Vw2MIAS",
+        "iManage Integration@2.13.0-3": "04tDn000000Vw2RIAS",
+        "iManage Integration@2.13.0-4": "04tDn000000Vw2WIAS",
+        "iManage Integration@2.13.0-5": "04tDn000000Vw3FIAS",
+        "iManage Integration@2.13.0-6": "04tDn000000Vw3KIAS",
+        "iManage Integration@2.13.0-7": "04tDn000000Vw3jIAC",
+        "iManage Integration@2.13.0-8": "04tDn000000Vw3oIAC",
+        "iManage Integration@2.13.0-9": "04tDn000000Vw3tIAC",
+        "iManage Integration@2.13.0-10": "04tDn000000VwKUIA0",
+        "iManage Integration@2.13.0-11": "04tDn000000VwKeIAK"
     }
 }
