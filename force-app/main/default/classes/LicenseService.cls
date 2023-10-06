@@ -63,6 +63,12 @@ global with sharing class LicenseService {
 
   @TestVisible
   private static String getLicenseInfo(String orgId) {
+    Map<String, Object> params = new Map<String, Object>{ 'orgId' => orgId };
+    Logger.getInstance()
+      .info(
+        'LicenseService::getLicenseInfo, start method. Params: ' +
+        JSON.serialize(params)
+      );
     //TODO: call Api
     // curl -X 'POST' \
     // '/api/License/organization' \
@@ -70,8 +76,11 @@ global with sharing class LicenseService {
     // -H 'Content-Type: multipart/form-data' \
     // -F 'organizationId=00D4H000000wk3YUAQ'
 
-    if (Cache.Org.contains(CACHE_NAME))
+    if (Cache.Org.contains(CACHE_NAME)) {
+      Logger.getInstance()
+        .info('LicenseService::getLicenseInfo. Exists in the Cache');
       return (String) Cache.Org.get(CACHE_NAME);
+    }
 
     HttpRequest req = new HttpRequest();
     req.setEndpoint(LicenseService.baseUrl + '/api/License/organization');
@@ -82,132 +91,172 @@ global with sharing class LicenseService {
     Http http = new Http();
     HTTPResponse res = http.send(req);
     String result = res.getBody();
-    system.debug(result);
+    Logger.getInstance()
+      .info('LicenseService::getLicenseInfo. Response body: ' + result);
     Cache.Org.put(CACHE_NAME, result, Cache.Visibility.NAMESPACE);
+    Logger.getInstance()
+      .info(
+        'LicenseService::getLicenseInfo. The result has placed to the cache.'
+      );
     return result;
     //return 'ALP7Yw390uuIlHsHhNZsbIxDtHDKZYDvN9IP5cxUyngJo2ayfw7s+NXIMs0aHcTlnQRZGNH9da0zVcMvapAhnjdwm+fS9SKR3pm3sWWoAboO/s5wYOa/FFj6kCWgtiFsMH90GWZaIUQPvluNbPVvazHcEbqLSz+KuI/kZyqm2xM=';
   }
 
   @future(callout=true)
   public static Void SendOrganizationInfo(Boolean isNew) {
-    Integer countUsers = [
-      SELECT COUNT()
-      FROM User
-      WHERE
-        IsActive = TRUE
-        AND (NOT Username LIKE 'cloud@%')
-        AND (NOT Username LIKE 'autoproc@%')
-    ];
-    Organization org = [
-      SELECT
-        Id,
-        Name,
-        Phone,
-        IsSandbox,
-        ComplianceBccEmail,
-        Country,
-        City,
-        PostalCode
-      FROM Organization
-      LIMIT 1
-    ];
-    LicenseService.LicenseOrgRequest requestObject = new LicenseService.LicenseOrgRequest();
-    requestObject.Id = org.Id;
-    requestObject.Name = org.Name;
-    requestObject.CountUsers = countUsers;
-    requestObject.Phone = org.Phone;
-    requestObject.IsSandbox = org.IsSandbox;
-    requestObject.ComplianceBccEmail = org.ComplianceBccEmail;
-    requestObject.Country = org.Country;
-    requestObject.City = org.City;
-    requestObject.PostalCode = org.PostalCode;
-    String requestObjectString = JSON.serialize(requestObject);
-    Blob encryptedRequest = encrypt(requestObjectString);
-
-    HttpRequest req = new HttpRequest();
-    if (isNew)
-      req.setEndpoint(LicenseService.baseUrl + '/api/License/new-organization');
-    else
-      req.setEndpoint(
-        LicenseService.baseUrl + '/api/License/update-organization'
+    Map<String, Object> params = new Map<String, Object>{ 'isNew' => isNew };
+    Logger.getInstance()
+      .info(
+        'LicenseService::SendOrganizationInfo, start method. Params: ' +
+        JSON.serialize(params)
       );
 
-    req.setHeader('content-type', 'application/x-www-form-urlencoded');
-    req.setMethod('POST');
-    req.setBody(
-      'info=' +
-      EncodingUtil.urlEncode(
-        EncodingUtil.base64Encode(encryptedRequest),
-        'UTF-8'
-      )
-    );
-    system.debug(EncodingUtil.base64Encode(encryptedRequest));
+    try {
+      Integer countUsers = [
+        SELECT COUNT()
+        FROM User
+        WHERE
+          IsActive = TRUE
+          AND (NOT Username LIKE 'cloud@%')
+          AND (NOT Username LIKE 'autoproc@%')
+      ];
+      Organization org = [
+        SELECT
+          Id,
+          Name,
+          Phone,
+          IsSandbox,
+          ComplianceBccEmail,
+          Country,
+          City,
+          PostalCode
+        FROM Organization
+        LIMIT 1
+      ];
+      LicenseService.LicenseOrgRequest requestObject = new LicenseService.LicenseOrgRequest();
+      requestObject.Id = org.Id;
+      requestObject.Name = org.Name;
+      requestObject.CountUsers = countUsers;
+      requestObject.Phone = org.Phone;
+      requestObject.IsSandbox = org.IsSandbox;
+      requestObject.ComplianceBccEmail = org.ComplianceBccEmail;
+      requestObject.Country = org.Country;
+      requestObject.City = org.City;
+      requestObject.PostalCode = org.PostalCode;
+      String requestObjectString = JSON.serialize(requestObject);
+      Blob encryptedRequest = encrypt(requestObjectString);
 
-    Http http = new Http();
-    HTTPResponse res = http.send(req);
-    String result = res.getBody();
-    system.debug(res);
+      HttpRequest req = new HttpRequest();
+      if (isNew)
+        req.setEndpoint(
+          LicenseService.baseUrl + '/api/License/new-organization'
+        );
+      else
+        req.setEndpoint(
+          LicenseService.baseUrl + '/api/License/update-organization'
+        );
+
+      req.setHeader('content-type', 'application/x-www-form-urlencoded');
+      req.setMethod('POST');
+      req.setBody(
+        'info=' +
+        EncodingUtil.urlEncode(
+          EncodingUtil.base64Encode(encryptedRequest),
+          'UTF-8'
+        )
+      );
+      system.debug(EncodingUtil.base64Encode(encryptedRequest));
+
+      Http http = new Http();
+      HTTPResponse res = http.send(req);
+      String result = res.getBody();
+      system.debug(res);
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'LicenseService::SendOrganizationInfo');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
   }
 
   @AuraEnabled
   global static void CheckOrganizationLicense() {
-    Organization org = [SELECT Id FROM Organization];
-    String licenseResponseEnc = getLicenseInfo(org.Id);
-    String licenseResponseDec = decrypt(licenseResponseEnc);
-    LicenseService.LicenseResponse licenseResponse = null;
+    Logger.getInstance()
+      .info('LicenseService::CheckOrganizationLicense, start method');
+
     try {
-      licenseResponse = (LicenseService.LicenseResponse) JSON.deserialize(
-        licenseResponseDec,
-        LicenseService.LicenseResponse.class
-      );
-    } catch (Exception ex) {
-      if (Cache.Org.contains(CACHE_NAME)) {
+      Organization org = [SELECT Id FROM Organization];
+      String licenseResponseEnc = getLicenseInfo(org.Id);
+      String licenseResponseDec = decrypt(licenseResponseEnc);
+      LicenseService.LicenseResponse licenseResponse = null;
+      try {
+        licenseResponse = (LicenseService.LicenseResponse) JSON.deserialize(
+          licenseResponseDec,
+          LicenseService.LicenseResponse.class
+        );
+      } catch (Exception ex) {
+        if (Cache.Org.contains(CACHE_NAME)) {
+          Cache.Org.remove(CACHE_NAME);
+          CheckOrganizationLicense();
+        }
+
+        IManageBaseHelper.throwException(
+          IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND,
+          Request.getCurrent().getQuiddity()
+        );
+      }
+
+      Logger.getInstance()
+        .info(
+          'LicenseService::CheckOrganizationLicense, licenseResponse = ' +
+          licenseResponse
+        );
+
+      // If licensing cache expired or invalid - remove cache and try again
+      if (
+        Cache.Org.contains(CACHE_NAME) &&
+        (licenseResponse == null ||
+        LicenseService.licensingInterval <
+        ((DateTime.now().getTime() - licenseResponse.ts.getTime()) /
+        1000 /
+        60))
+      ) {
         Cache.Org.remove(CACHE_NAME);
         CheckOrganizationLicense();
       }
 
-      IManageBaseHelper.throwException(
-        IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND,
-        Request.getCurrent().getQuiddity()
-      );
-    }
+      if (
+        licenseResponse == null ||
+        licenseResponse.status == 'Inactive' ||
+        licenseResponse.status == null
+      ) {
+        Cache.Org.remove(CACHE_NAME);
+        IManageBaseHelper.throwException(
+          IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND,
+          Request.getCurrent().getQuiddity()
+        );
+      }
 
-    System.debug(licenseResponse);
-
-    // If licensing cache expired or invalid - remove cache and try again
-    if (
-      Cache.Org.contains(CACHE_NAME) &&
-      (licenseResponse == null ||
-      LicenseService.licensingInterval <
-      ((DateTime.now().getTime() - licenseResponse.ts.getTime()) /
-      1000 /
-      60))
-    ) {
-      Cache.Org.remove(CACHE_NAME);
-      CheckOrganizationLicense();
-    }
-
-    if (
-      licenseResponse == null ||
-      licenseResponse.status == 'Inactive' ||
-      licenseResponse.status == null
-    ) {
-      Cache.Org.remove(CACHE_NAME);
-      IManageBaseHelper.throwException(
-        IManageBaseHelper.IManageErrors.LICENSE_NOT_FOUND,
-        Request.getCurrent().getQuiddity()
-      );
-    }
-
-    if (
-      licenseResponse.expirationDate <= system.now() ||
-      licenseResponse.status == 'Expired'
-    ) {
-      Cache.Org.remove(CACHE_NAME);
-      IManageBaseHelper.throwException(
-        IManageBaseHelper.IManageErrors.LICENSE_EXPIRED,
-        Request.getCurrent().getQuiddity()
-      );
+      if (
+        licenseResponse.expirationDate <= system.now() ||
+        licenseResponse.status == 'Expired'
+      ) {
+        Cache.Org.remove(CACHE_NAME);
+        IManageBaseHelper.throwException(
+          IManageBaseHelper.IManageErrors.LICENSE_EXPIRED,
+          Request.getCurrent().getQuiddity()
+        );
+      }
+    } catch (IManageExceptions.IManageLicenseException ex) {
+      throw ex;
+    } catch (AuraHandledException ex) {
+      Logger.getInstance()
+        .error(ex, 'LicenseService::CheckOrganizationLicense');
+      throw ex;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'LicenseService::CheckOrganizationLicense');
+      throw ex;
     }
   }
 

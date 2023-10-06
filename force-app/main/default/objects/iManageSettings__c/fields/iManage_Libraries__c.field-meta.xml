@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Mapping_EntityMatterIdObjectField__c</fullName>
-    <deprecated>false</deprecated>
+    <fullName>iManage_Libraries__c</fullName>
+    <description>List of possible iManage Libraries</description>
     <externalId>false</externalId>
-    <label>Salesforce Matter Id Object</label>
+    <label>iManage_Libraries</label>
     <length>255</length>
     <required>false</required>
     <trackTrending>false</trackTrending>

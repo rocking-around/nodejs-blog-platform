@@ -2,52 +2,82 @@
 global class IManageCsvEndpoint {
   @HttpGet
   global static String doGet() {
-    RestRequest req = RestContext.request;
-    RestResponse res = RestContext.response;
-    Map<String, String> params = RestContext.request.params;
 
-    String objectName = params.get('objectName');
-    String separator = params.get('separator');
-    String startDateString = params.get('startDate');
-    String endDateString = params.get('endDate');
+    try {
+      Logger.getInstance().info('IManageCsvEndpoint::doGet, start method.');
+      RestResponse res = RestContext.response;
+  
+      // Checking is export enabled
+      if (!iManageSettings__c.getOrgDefaults().Enable_CSV_Export__c) {
+        res.statusCode = 400;
+        Logger.getInstance().warn('IManageCsvEndpoint::doGet, CSV export disabled.');
+        return '';
+      }
+  
+      RestRequest req = RestContext.request;
+      Map<String, String> params = RestContext.request.params;
 
-    // Checking and preparations params
-    if (objectName == null || startDateString == null || separator == null) {
-      res.statusCode = 400;
+      String objectName = params.get('objectName');
+      String separator = params.get('separator');
+      String startDateString = params.get('startDate');
+      String endDateString = params.get('endDate');
+
+      // Checking and preparations params
+      if (objectName == null || startDateString == null || separator == null) {
+        res.statusCode = 400;
+        Logger.getInstance().warn('IManageCsvEndpoint::doGet, Missed parameters.');
+        return '';
+      }
+
+      Logger.getInstance()
+      .info(
+        'IManageCsvEndpoint::doGet, Param->startDateString: ' + startDateString
+      );
+      Datetime startDate = DateTime.valueOf(startDateString);
+      Datetime endDate = DateTime.now();
+
+      if (endDateString != null)
+        endDate = DateTime.valueOf(endDateString);
+
+      // Get all iManage objects
+
+      Logger.getInstance()
+      .info(
+        'IManageCsvEndpoint::doGet, Param->objectName: ' + objectName + ' --- --- ' +
+        'IManageCsvEndpoint::doGet, Param->startDate: ' + startDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ') + ' --- --- ' +
+        'IManageCsvEndpoint::doGet, Param->endDate: ' + endDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ')
+      );
+
+      List<IManageCsvHelper.CsvRow> data = IManageCsvHelper.getData(
+        startDate,
+        endDate
+      );
+
+      Logger.getInstance()
+      .info(
+        'IManageCsvEndpoint::doGet, IManageCsvHelper.getData results: ' + json.serialize(data)
+      );
+
+      // Get csv for all
+      List<String> rows = new List<String>();
+
+      rows.add(CreateCsvHeaders(separator));
+      for (IManageCsvHelper.CsvRow row : data) {
+        rows.add(CreateCsvRow(row, separator));
+      }
+
+      Logger.getInstance()
+      .info(
+        'IManageCsvEndpoint::doGet, Result: ' + String.join(rows, '\r\n')
+      );
+      return String.join(rows, '\r\n');
+    } catch (Exception e) {
+      Logger.getInstance().error(e, 'IManageCsvEndpoint::doGet');
+      //res.statusCode = 400;
       return '';
+    } finally {
+      Logger.getInstance().Flush();
     }
-
-    system.debug('startDateString:' + startDateString);
-    Datetime startDate = DateTime.valueOf(startDateString);
-    Datetime endDate = DateTime.now();
-
-    if (endDateString != null)
-      endDate = DateTime.valueOf(endDateString);
-
-    // Get all iManage objects
-
-    system.debug('objectName:' + objectName);
-    system.debug(
-      'startDate:' + startDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ')
-    );
-    system.debug('endDate:' + endDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ'));
-    List<IManageCsvHelper.CsvRow> data = IManageCsvHelper.getData(
-      startDate,
-      endDate
-    );
-
-    system.debug(json.serialize(data));
-
-    // Get csv for all
-
-    List<String> rows = new List<String>();
-
-    rows.add(CreateCsvHeaders(separator));
-    for (IManageCsvHelper.CsvRow row : data) {
-      rows.add(CreateCsvRow(row, separator));
-    }
-
-    return String.join(rows, '\r\n');
   }
 
   private static String CreateCsvHeaders(String separator) {

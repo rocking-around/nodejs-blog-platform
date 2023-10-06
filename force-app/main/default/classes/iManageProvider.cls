@@ -18,23 +18,41 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     String stateToPropagate
   ) {
-    clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
-    authorizationUrl = authProviderConfiguration.get(
-      PREFIX + 'Authorize_Endpoint_URL__c'
-    );
-    scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
-    redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
-    String url =
-      authorizationUrl +
-      '?response_type=code&client_id=' +
-      clientId +
-      '&scope=' +
-      scope +
-      '&state=' +
-      stateToPropagate +
-      '&redirect_uri=' +
-      redirectUri;
-    return new PageReference(url);
+    Map<String, Object> params = new Map<String, Object>{
+      'authProviderConfiguration' => authProviderConfiguration,
+      'stateToPropagate' => stateToPropagate
+    };
+
+    Logger.getInstance()
+      .info(
+        'iManageProvider::initiate, start method. Params: ' +
+        JSON.serialize(params)
+      );
+
+    try {
+      clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
+      authorizationUrl = authProviderConfiguration.get(
+        PREFIX + 'Authorize_Endpoint_URL__c'
+      );
+      scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
+      redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
+      String url =
+        authorizationUrl +
+        '?response_type=code&client_id=' +
+        clientId +
+        '&scope=' +
+        scope +
+        '&state=' +
+        stateToPropagate +
+        '&redirect_uri=' +
+        redirectUri;
+      return new PageReference(url);
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'iManageProvider::initiate');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
   }
 
   /*   
@@ -45,48 +63,68 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderCallbackState state
   ) {
-    clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
-    clientSecret = authProviderConfiguration.get(PREFIX + 'Consumer_Secret__c');
-    scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
-    redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
-    accessTokenUrl = authProviderConfiguration.get(
-      PREFIX + 'Token_Endpoint_URL__c'
-    );
+    Map<String, Object> params = new Map<String, Object>{
+      'authProviderConfiguration' => authProviderConfiguration,
+      'state' => state
+    };
 
-    Map<String, String> queryParams = state.queryParameters;
-    String code = queryParams.get('code');
-    String sfdcState = queryParams.get('state');
+    Logger.getInstance()
+      .info(
+        'iManageProvider::handleCallback, start method. Params: ' +
+        JSON.serialize(params)
+      );
 
-    HttpRequest req = new HttpRequest();
-    req.setEndpoint(accessTokenUrl);
-    req.setHeader('content-type', 'application/x-www-form-urlencoded');
-    req.setMethod('POST');
-    req.setBody(
-      'client_id=' +
-      EncodingUtil.urlEncode(clientId, 'UTF-8') +
-      '&client_secret=' +
-      EncodingUtil.urlEncode(clientSecret, 'UTF-8') +
-      '&grant_type=authorization_code&code=' +
-      EncodingUtil.urlEncode(code, 'UTF-8') +
-      '&redirect_uri=' +
-      EncodingUtil.urlEncode(redirectUri, 'UTF-8')
-    );
+    try {
+      clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
+      clientSecret = authProviderConfiguration.get(
+        PREFIX + 'Consumer_Secret__c'
+      );
+      scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
+      redirectUri = authProviderConfiguration.get(PREFIX + 'Redirect_URI__c');
+      accessTokenUrl = authProviderConfiguration.get(
+        PREFIX + 'Token_Endpoint_URL__c'
+      );
 
-    Http http = new Http();
-    HTTPResponse res = http.send(req);
-    String responseBody = res.getBody();
+      Map<String, String> queryParams = state.queryParameters;
+      String code = queryParams.get('code');
+      String sfdcState = queryParams.get('state');
 
-    IManageResponse response = (IManageResponse) JSON.deserialize(
-      responseBody,
-      IManageResponse.class
-    );
+      HttpRequest req = new HttpRequest();
+      req.setEndpoint(accessTokenUrl);
+      req.setHeader('content-type', 'application/x-www-form-urlencoded');
+      req.setMethod('POST');
+      req.setBody(
+        'client_id=' +
+        EncodingUtil.urlEncode(clientId, 'UTF-8') +
+        '&client_secret=' +
+        EncodingUtil.urlEncode(clientSecret, 'UTF-8') +
+        '&grant_type=authorization_code&code=' +
+        EncodingUtil.urlEncode(code, 'UTF-8') +
+        '&redirect_uri=' +
+        EncodingUtil.urlEncode(redirectUri, 'UTF-8')
+      );
 
-    return new Auth.AuthProviderTokenResponse(
-      'iManageProvider',
-      response.access_token,
-      response.refresh_token,
-      sfdcState
-    );
+      Http http = new Http();
+      HTTPResponse res = http.send(req);
+      String responseBody = res.getBody();
+
+      IManageResponse response = (IManageResponse) JSON.deserialize(
+        responseBody,
+        IManageResponse.class
+      );
+
+      return new Auth.AuthProviderTokenResponse(
+        'iManageProvider',
+        response.access_token,
+        response.refresh_token,
+        sfdcState
+      );
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
   }
 
   // This method is responsible to get the user information used for authentication from the external api
@@ -94,51 +132,69 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderTokenResponse response
   ) {
-    userInfoUrl = authProviderConfiguration.get(PREFIX + 'User_Info_URL__c');
-    String token = response.oauthToken;
+    Map<String, Object> params = new Map<String, Object>{
+      'authProviderConfiguration' => authProviderConfiguration,
+      'state' => response
+    };
 
-    HttpRequest req = new HttpRequest();
-    req.setHeader('X-Auth-Token', token);
-    req.setEndpoint(userInfoUrl);
-    req.setMethod('GET');
+    Logger.getInstance()
+      .info(
+        'iManageProvider::getUserInfo, start method. Params: ' +
+        JSON.serialize(params)
+      );
 
-    Http http = new Http();
-    HTTPResponse res = http.send(req);
-    String responseBody = res.getBody();
+    try {
+      userInfoUrl = authProviderConfiguration.get(PREFIX + 'User_Info_URL__c');
+      String token = response.oauthToken;
 
-    IManageApiDataResponse infoApiResponse = (IManageApiDataResponse) JSON.deserialize(
-      responseBody,
-      IManageApiDataResponse.class
-    );
+      HttpRequest req = new HttpRequest();
+      req.setHeader('X-Auth-Token', token);
+      req.setEndpoint(userInfoUrl);
+      req.setMethod('GET');
 
-    String[] names = infoApiResponse.data.user.name.split(' ');
+      Http http = new Http();
+      HTTPResponse res = http.send(req);
+      String responseBody = res.getBody();
 
-    String userId, fullName, firstName, lastName, locale, loginURL, email;
+      IManageApiDataResponse infoApiResponse = (IManageApiDataResponse) JSON.deserialize(
+        responseBody,
+        IManageApiDataResponse.class
+      );
 
-    locale = 'en-us';
-    loginURL = authProviderConfiguration.get(PREFIX + 'Login_URL__c');
+      String[] names = infoApiResponse.data.user.name.split(' ');
 
-    userId = infoApiResponse.data.user.id;
-    fullName = infoApiResponse.data.user.name;
-    email = infoApiResponse.data.user.email;
-    if (names.size() >= 2) {
-      firstName = names[0];
-      lastName = names[1];
+      String userId, fullName, firstName, lastName, locale, loginURL, email;
+
+      locale = 'en-us';
+      loginURL = authProviderConfiguration.get(PREFIX + 'Login_URL__c');
+
+      userId = infoApiResponse.data.user.id;
+      fullName = infoApiResponse.data.user.name;
+      email = infoApiResponse.data.user.email;
+      if (names.size() >= 2) {
+        firstName = names[0];
+        lastName = names[1];
+      }
+
+      return new Auth.UserData(
+        userId,
+        firstName,
+        lastName,
+        fullName,
+        email,
+        null,
+        userId,
+        locale,
+        'iManage',
+        loginURL,
+        null
+      );
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
     }
-
-    return new Auth.UserData(
-      userId,
-      firstName,
-      lastName,
-      fullName,
-      email,
-      null,
-      userId,
-      locale,
-      'iManage',
-      loginURL,
-      null
-    );
   }
 
   global override Auth.OAuthRefreshResult refresh(

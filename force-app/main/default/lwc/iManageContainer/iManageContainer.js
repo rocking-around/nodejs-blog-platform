@@ -14,7 +14,7 @@ export default class IManageContainer extends LightningElement {
   @api recordId;
   @api height = "1000px";
   @api referrerPolicy = "no-referrer";
-  @api sandbox = "allow-same-origin allow-scripts allow-forms";
+  @api sandbox = "allow-same-origin allow-scripts allow-forms allow-top-navigation-to-custom-protocols allow-top-navigation-by-user-activation allow-top-navigation allow-popups";
   @api width = "100%";
   @api title = "";
   @api url = "";
@@ -56,6 +56,13 @@ export default class IManageContainer extends LightningElement {
       .finally(() => {
         this.loading = false;
       });
+  }
+
+  handleRefreshClick() {
+    this.loading = true;
+    this._iManageUrl = "";
+    this.connectedCallback();
+    //window.location.reload();
   }
 
   get showIFrame() {

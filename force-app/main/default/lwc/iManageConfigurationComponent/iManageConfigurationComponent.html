@@ -105,19 +105,19 @@
                   <lightning-input
                     class="form-item"
                     type="checkbox"
-                    label="Matter"
-                    name="Matter"
+                    label="Client"
+                    name="Client"
                     disabled={saving}
-                    checked={iManageDocSettingsEdit.Matter}
+                    checked={iManageDocSettingsEdit.Client}
                     onchange={onIManageDocumentSettingChanged}
                   ></lightning-input>
                   <lightning-input
                     class="form-item"
                     type="checkbox"
-                    label="Client"
-                    name="Client"
+                    label="Matter"
+                    name="Matter"
                     disabled={saving}
-                    checked={iManageDocSettingsEdit.Client}
+                    checked={iManageDocSettingsEdit.Matter}
                     onchange={onIManageDocumentSettingChanged}
                   ></lightning-input>
                   <lightning-input
@@ -233,6 +233,16 @@
               <c-i-manage-folder-picker
                 folder-id={generalSettingsEdit.iManage_Default_Folder_Id}
               ></c-i-manage-folder-picker>
+            </lightning-tab>
+          </template>
+
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <lightning-tab
+              class="tab-i-manage-libraries"
+              label="iManage Libraries"
+              value="i-manage-libraries"
+            >
+              <c-i-manage-libraries></c-i-manage-libraries>
             </lightning-tab>
           </template>
         </lightning-tabset>

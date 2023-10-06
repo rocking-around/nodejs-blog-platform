@@ -1,0 +1,30 @@
+<template>
+  <lightning-card title="iManage Libraries">
+    <div class="container">
+      <template if:true={showSpinner}>
+        <lightning-spinner
+          alternative-text="Loading"
+          size="medium"
+        ></lightning-spinner>
+      </template>
+
+      <lightning-checkbox-group name="Libraries for search"
+                              label="Libraries for search"
+                              options={librariesAvailableOptions}
+                              value={librariesEdit}
+                              onchange={handleChange}></lightning-checkbox-group>
+    </div>
+    <div slot="actions">
+      <template if:true={isChanged}>
+        <lightning-button
+          label="Save"
+          onclick={saveClick}
+          disabled={isSaveBtnDisabled}
+          class="imanage-save-button"
+        ></lightning-button>
+        <lightning-button label="Cancel" onclick={cancelClick}>
+        </lightning-button>
+      </template>
+    </div>
+  </lightning-card>
+</template>

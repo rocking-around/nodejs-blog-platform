@@ -1,4 +1,4 @@
-public class Logger extends LoggerBase {
+global class Logger extends LoggerBase {
   private static Logger instance = null;
 
   private Logger() {
@@ -7,7 +7,7 @@ public class Logger extends LoggerBase {
     Enabled = mc.gdsi_imanage__Verbose_Logging__c;
   }
 
-  public static Logger getInstance() {
+  global static Logger getInstance() {
     if (instance == null) {
       instance = new Logger();
     }
