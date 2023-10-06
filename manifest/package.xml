@@ -33,6 +33,7 @@
         <members>iManageUsersNotification</members>
         <members>iManageFolderPicker</members>
         <members>iManageFolderPickerIFrame</members>
+        <members>IManageWorkspaceSettings</members>
         <members>iManageWrapper</members>
         <members>iManageWrapperTests</members>
         <members>IManageRequestHelper</members>

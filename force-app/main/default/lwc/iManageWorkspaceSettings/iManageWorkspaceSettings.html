@@ -1,0 +1,38 @@
+<template>
+  <lightning-card title="iManage Workspace Settings">
+    <div class="container">
+      <template if:true={showSpinner}>
+        <lightning-spinner
+          alternative-text="Loading"
+          size="medium"
+        ></lightning-spinner>
+      </template>
+
+      <div class="inp">
+        <template if:true={folderTemplateOptions}>
+          <lightning-combobox
+            name="progress"
+            label="Folder Template"
+            value={folderTemplateIdViewValue}
+            placeholder="Select Folder Template"
+            options={folderTemplateOptions}
+            onchange={onFolderTemplateChanged}
+          >
+          </lightning-combobox>
+        </template>
+      </div>
+    </div>
+    <div slot="actions">
+      <template if:true={isChanged}>
+        <lightning-button
+          label="Save"
+          onclick={saveClick}
+          disabled={isSaveBtnDisabled}
+          class="imanage-save-button"
+        ></lightning-button>
+        <lightning-button label="Cancel" onclick={cancelClick}>
+        </lightning-button>
+      </template>
+    </div>
+  </lightning-card>
+</template>
