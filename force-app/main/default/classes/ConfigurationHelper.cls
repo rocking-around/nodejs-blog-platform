@@ -551,12 +551,21 @@ public with sharing class ConfigurationHelper {
   public static Map<String, String> loadFolderTemplates() {
     Logger.getInstance().info('ConfigurationHelper::createWorkspace');
     LicenseService.CheckOrganizationLicense();
+    String libraryId = 'ACTIVE';
     try {
-      return new Map<String, String>{
-        'id1' => 'Template1',
-        'id2' => 'Template2.1/Template2.2',
-        'id3' => 'Template3'
-      };
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      List<iManageWrapper.iManageTemplate> results = iManageWrapper.GetTemplates(
+        apiInfo.customerId,
+        libraryId
+      );
+      
+      Map<String, String> templates = new Map<String, String>();
+      for (iManageWrapper.iManageTemplate templ : results) {
+        String key = libraryId + '::' + templ.id;
+        templates.put(key, templ.name);
+      }
+
+      return templates;
     } catch (Exception ex) {
       Logger.getInstance()
         .error(ex, 'ConfigurationHelper::GetIManageLibraries');

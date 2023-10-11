@@ -7,4 +7,6 @@ public with sharing class IManageExceptions {
   }
   public class IManageLicenseException extends Exception {
   }
+  public class IManageApplicationException extends Exception {
+  }
 }

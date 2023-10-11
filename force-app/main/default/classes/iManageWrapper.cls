@@ -340,7 +340,37 @@ public class iManageWrapper {
         );
         return response == null ? null : response.data;
     }
+
+    public static List<iManageTemplate> GetTemplates(String customerId, String libraryId) {
+        String query = '/work/api/v2/customers/' + customerId + '/libraries/' + libraryId + '/templates';
+        Logger.getInstance().info('iManageWrapper::GetTemplates, query=' + query);
+        String responseBody = IManageRequestHelper.Get(query);
+        Logger.getInstance().info('iManageWrapper::GetTemplates, response=' + responseBody);
+        iManageTemplatesResponse response = (iManageTemplatesResponse) JSON.deserialize(
+            responseBody,
+            iManageTemplatesResponse.class
+        );
+        return response == null ? null : response.data.results;
+    }
     
+    public static Map<string, Object> GetFoldersByWorkspace(
+        String customerId,
+        String libraryId,
+        String workspaceTemplateId,
+        Integer offset,
+        Integer size
+        ) {
+        String query = '/work/api/v2/customers/' + customerId + '/libraries/' + libraryId + '/folders?total=true&offset=' + String.valueOf(offset)
+            + '&limit=' + String.valueOf(size) + '&container_id=' + workspaceTemplateId;
+        Logger.getInstance().info('iManageWrapper::GetFoldersByWorkspace, query=' + query);
+        String responseBody = IManageRequestHelper.Get(query);
+        Logger.getInstance().info('iManageWrapper::GetFoldersByWorkspace, response=' + responseBody);
+        Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(
+            responseBody
+        );
+        return response;
+    }
+
     /* Private */
     
     private static Blob GetFormBase64(Blob jsonBlob, Blob data) {
@@ -484,4 +514,24 @@ public class iManageWrapper {
     public class iManageDialogTokenData {
         public String dialog_token;
     }
+
+    public class iManageTemplatesResponse {
+        iManageTemplates data;
+    }
+
+    public class iManageTemplates {
+        public List<iManageTemplate> results;
+    }
+    
+    public class iManageTemplate {
+        public String id;
+        public String wstype;
+        public String name;
+        public String description;
+        public Boolean has_subfolders;
+        public String custom1;
+        public String custom2;
+    }
+
+    
 }

@@ -6,6 +6,7 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import loadFolderTemplates from "@salesforce/apex/ConfigurationHelper.loadFolderTemplates";
 import getIManageWSDefaultFolderTemplateId from "@salesforce/apex/ConfigurationHelper.getIManageWSDefaultFolderTemplateId";
 import saveIManageWSDefaultFolderTemplateId from "@salesforce/apex/ConfigurationHelper.saveIManageWSDefaultFolderTemplateId";
+import getFoldersByWorkspace from "@salesforce/apex/iManageWorkspacesHelper.getFoldersByWorkspace";
 
 export default class IManageWorkspaceSettings extends LightningElement {
   saving = false;
@@ -57,12 +58,27 @@ export default class IManageWorkspaceSettings extends LightningElement {
       // load wsFolderTemplateId from custom settings
       this.wsFolderTemplateId = await getIManageWSDefaultFolderTemplateId();
 
+      await this.test();
+      
       this.resetEdit();
     } catch (error) {
       this.handleErrors(error);
     } finally {
       this.showSpinner = false;
     }
+  }
+
+  async test( ) {
+    debugger;
+    const workspaceTemplate = 'ACTIVE::ACTIVE!9';
+    const offset = 0;
+    const size = 10;
+    const t = await getFoldersByWorkspace({
+      workspaceTemplate,
+      offset,
+      size
+    });
+    console.log('+++++++++++++++++++++++', t);
   }
 
   onFolderTemplateChanged(e) {
