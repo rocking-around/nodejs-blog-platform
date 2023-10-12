@@ -100,28 +100,28 @@ public class iManageWorkspacesHelper {
       Map<String, Object> generalSettings =  ConfigurationHelper.getGeneralSettings();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
       Logger.getInstance().info(logPrefix + ': Get template workspace');
-      IManageWorkspaceWrap templateWorkspaceWrap = getWorkspaceTemplateWrap(matterRow.Template, clientApi);
+      IManageWorkspaceWrap templateWorkspaceWrap = getWorkspaceTemplateWrap(wsTemplateId, libraryId);
 
       if (templateWorkspaceWrap == null) {
         throw new IManageExceptions.IManageApplicationException('Workspace template not found. WS Template Id = ' + wsTemplateId);
       }
 
-      List<IManageFolderWrap> templateFolders = templateWorkspaceWrap.GetFlatListAllFolders().Reverse().ToList();
-      Logger.getInstance().info('Found ' + String.valueOf(templateFolders.size()) + ' template folders.');
+      // List<IManageFolderWrap> templateFolders = templateWorkspaceWrap.GetFlatListAllFolders().Reverse().ToList();
+      // Logger.getInstance().info('Found ' + String.valueOf(templateFolders.size()) + ' template folders.');
 
-      // clone templateWorkspaceWrap.wrapItem
-      IManageWWorkspace templateWorkspace = ((IManageWWorkspace)templateWorkspaceWrap.wrapItem).cloneThis();
+      // // clone templateWorkspaceWrap.wrapItem
+      // IManageWWorkspace templateWorkspace = ((IManageWWorkspace)templateWorkspaceWrap.wrapItem).cloneThis();
 
-      Logger.getInstance().Info('Create destination workspace...');
-      templateWorkspace.custom1 = generalSettings['general:ClientField']; // TODO: get Custom1
-      templateWorkspace.custom2 = generalSettings['general:MatterField']; // TODO: get Custom2
-      templateWorkspace.Name = 'WS'; //TODO: build ws name?
+      // Logger.getInstance().Info('Create destination workspace...');
+      // templateWorkspace.custom1 = generalSettings['general:ClientField']; // TODO: get Custom1
+      // templateWorkspace.custom2 = generalSettings['general:MatterField']; // TODO: get Custom2
+      // templateWorkspace.Name = 'WS'; //TODO: build ws name?
 
-      IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(templateWorkspace);
-      Logger.getInstance().info('Workspace created.');
+      // IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(templateWorkspace);
+      // Logger.getInstance().info('Workspace created.');
 
-      Logger.getInstance().info('Compare folders and update by template.');
-      compareFoldersAndUpdateByTemplate();
+      // Logger.getInstance().info('Compare folders and update by template.');
+      // compareFoldersAndUpdateByTemplate();
 
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
@@ -131,15 +131,134 @@ public class iManageWorkspacesHelper {
     }
   }
 
-  public IManageWWorkspace createWorkspaceApiCall(IManageWWorkspace templateWorkspace) {
-    return null;
+  // public static IManageWWorkspace createWorkspaceApiCall(IManageWWorkspace templateWorkspace) {
+  // }
+
+  public static IManageWorkspaceWrap getWorkspaceTemplateWrap(String workspaceId, String libraryId) {
+    IManageWWorkspace workspace = getWorkspace(workspaceId, libraryId);
+    List<IManageWFolder> folders = getAllFoldersByWorkspace(workspaceId, libraryId);
+
+    return wrapWorkspaceContent(workspace, folders);
   }
 
-  public static IManageWorkspaceWrap getWorkspaceTemplateWrap() {
-    return null;
+  public static IManageWWorkspace getWorkspace(String workspaceId, String libraryId) {
+    LicenseService.CheckOrganizationLicense();
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+
+    // GET
+    // https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces/{workspaceId}
+    String query = '/work/api/v2/customers/' + apiInfo.customerId + '/libraries/' + libraryId + '/workspaces/' + workspaceId;
+    Logger.getInstance().info('iManageWorkspacesHelper::getWorkspace, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance().info('iManageWorkspacesHelper::getWorkspace, response=' + responseBody);
+    iManageWorkspaceResponse response = (iManageWorkspaceResponse) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceResponse.class
+    );
+    System.debug('*** getWorkspace. Response: ' + response);
+    return response == null ? null : response.data;
   }
 
-  public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate() {
+  public static List<IManageWFolder> getAllFoldersByWorkspace(String workspaceId, String libraryId) {
+    Integer packageSize = 200;
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+    List<IManageWFolder> allFolders = new List<IManageWFolder>();
 
+    for (Integer p = 0, total = 0; p == 0 || allFolders.size() < total; p++)
+    {
+        Integer offset = p * packageSize;
+
+        iManageFoldersResponse packageFoldersResp = getFoldersByWorkspace(
+          apiInfo.customerId,
+          libraryId,
+          workspaceId,
+          offset,
+          packageSize
+        );
+        allFolders.addAll(packageFoldersResp.data);
+
+        if (p == 0) {
+          total = packageFoldersResp.total_count;
+        }
+
+        if (p > 10) {
+          throw new IManageExceptions.IManageApplicationException('Infinite loop');
+        }
+    }
+
+    return allFolders;
   }
+
+  public static iManageFoldersResponse getFoldersByWorkspace(
+      String customerId,
+      String libraryId,
+      String workspaceTemplateId,
+      Integer offset,
+      Integer size
+      ) {
+      String query = '/work/api/v2/customers/' + customerId + '/libraries/' + libraryId + '/folders?total=true&offset=' + String.valueOf(offset)
+          + '&limit=' + String.valueOf(size) + '&container_id=' + workspaceTemplateId;
+      Logger.getInstance().info('iManageWorkspacesHelper::getFoldersByWorkspace, query=' + query);
+      String responseBody = IManageRequestHelper.Get(query);
+      Logger.getInstance().info('iManageWorkspacesHelper::getFoldersByWorkspace, response=' + responseBody);
+
+      iManageFoldersResponse response = (iManageFoldersResponse) JSON.deserialize(
+        responseBody,
+        iManageFoldersResponse.class
+      );
+      return response;
+  }
+
+  public static IManageWorkspaceWrap wrapWorkspaceContent(IManageWWorkspace sourceWorkspace, List<IManageWFolder> folders) {
+    IManageWorkspaceWrap workspaceWrap = new IManageWorkspaceWrap(sourceWorkspace);
+
+    List<IManageFolderWrap> children = new List<IManageFolderWrap>();
+    for (IManageWFolder folder: folders) {
+      IManageFolderWrap f = new IManageFolderWrap(folder);
+      f.workspaceId = sourceWorkspace.id;
+      children.add(f);
+    }
+    workspaceWrap.children.addAll(children);
+
+    for (Object x: workspaceWrap.children){
+      IManageFolderWrap folderWrap = (IManageFolderWrap)x;
+      mappingFolders(folderWrap, folders);
+    }
+    return workspaceWrap;
+  }
+
+  private static void mappingFolders(IManageFolderWrap folderWrap, List<IManageWFolder> folders)
+  {
+      List<IManageFolderWrap> children = new List<IManageFolderWrap>();
+      for (IManageWFolder folder: folders) {
+        if (folder.parent_id == ((IManageWFolder)folderWrap.wrapItem).id) {
+          IManageFolderWrap fw = new IManageFolderWrap(folder);
+          fw.parentFolder = folderWrap;
+          fw.workspaceId = folderWrap.workspaceId;
+          children.add(fw);
+        }
+      }
+      folderWrap.children.addAll(children);
+
+      for (Object x : folderWrap.children) {
+        IManageFolderWrap fw = (IManageFolderWrap)x;
+        mappingFolders(fw, folders);
+      }
+  }
+
+  // public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate() {
+
+  // }
+
+  public class iManageWorkspaceResponse {
+    IManageWWorkspace data;
+  }
+
+  public class iManageFoldersResponse {
+    List<IManageWFolder> data;
+    Integer total_count;
+  }
+  // public class iManageFoldersResponseResults {
+  //   List<IManageWFolder> results;
+  // }
 }

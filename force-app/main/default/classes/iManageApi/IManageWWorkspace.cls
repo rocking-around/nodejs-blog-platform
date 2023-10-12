@@ -8,7 +8,7 @@ public with sharing class IManageWWorkspace {
     public String description { get; set; }
     public Integer document_number { get; set; }
     public Boolean has_subfolders { get; set; }
-    public String Id { get; set; }
+    public String id { get; set; }
     public Boolean is_declared { get; set; }
     public Boolean is_external { get; set; }
     public Boolean is_external_as_normal { get; set; }

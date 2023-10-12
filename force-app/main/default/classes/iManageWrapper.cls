@@ -353,6 +353,7 @@ public class iManageWrapper {
         return response == null ? null : response.data.results;
     }
     
+    // TODO: duplicated in iManageWorkspaceHelper
     public static Map<string, Object> GetFoldersByWorkspace(
         String customerId,
         String libraryId,
