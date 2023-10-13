@@ -82,7 +82,12 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Void createWorkspace(String workspaceTemplate){
+  public static Void createWorkspace(
+    String custom1, // client alias
+    String custom2, // matter alias
+    String wsTemplate,
+    String workspaceTemplate // "libraryId::templateId"
+  ){
     String[] wsData = workspaceTemplate.split('::', 2);
     String libraryId = wsData[0];
     String wsTemplateId = wsData[1];
@@ -106,22 +111,30 @@ public class iManageWorkspacesHelper {
         throw new IManageExceptions.IManageApplicationException('Workspace template not found. WS Template Id = ' + wsTemplateId);
       }
 
-      // List<IManageFolderWrap> templateFolders = templateWorkspaceWrap.GetFlatListAllFolders().Reverse().ToList();
-      // Logger.getInstance().info('Found ' + String.valueOf(templateFolders.size()) + ' template folders.');
+      // get list and reverse it
+      List<IManageFolderWrap> templateFolders = new List<IManageFolderWrap>();
+      List<IManageFolderWrap> tmpTemplateFolders = templateWorkspaceWrap.getFlatListAllFolders();
+      for(Integer i = tmpTemplateFolders.size() - 1; i >= 0; i--){
+        templateFolders.add(tmpTemplateFolders[i]);
+      }
+      //
 
-      // // clone templateWorkspaceWrap.wrapItem
-      // IManageWWorkspace templateWorkspace = ((IManageWWorkspace)templateWorkspaceWrap.wrapItem).cloneThis();
+      Logger.getInstance().info('Found ' + String.valueOf(templateFolders.size()) + ' template folders.');
 
-      // Logger.getInstance().Info('Create destination workspace...');
-      // templateWorkspace.custom1 = generalSettings['general:ClientField']; // TODO: get Custom1
-      // templateWorkspace.custom2 = generalSettings['general:MatterField']; // TODO: get Custom2
-      // templateWorkspace.Name = 'WS'; //TODO: build ws name?
+      // clone templateWorkspaceWrap.wrapItem
+      IManageWWorkspace templateWorkspace = ((IManageWWorkspace)templateWorkspaceWrap.wrapItem).cloneThis();
 
-      // IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(templateWorkspace);
-      // Logger.getInstance().info('Workspace created.');
+      Logger.getInstance().Info('Create destination workspace...');
+      templateWorkspace.custom1 = custom1;
+      templateWorkspace.custom2 = custom2;
+      templateWorkspace.Name = wsTemplate;
 
-      // Logger.getInstance().info('Compare folders and update by template.');
-      // compareFoldersAndUpdateByTemplate();
+      IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(templateWorkspace, apiInfo.customerId, libraryId);
+      Logger.getInstance().info('Workspace created.');
+
+      Logger.getInstance().info('Compare folders and update by template.');
+
+      compareFoldersAndUpdateByTemplate();
 
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
@@ -131,8 +144,41 @@ public class iManageWorkspacesHelper {
     }
   }
 
-  // public static IManageWWorkspace createWorkspaceApiCall(IManageWWorkspace templateWorkspace) {
-  // }
+  public static IManageWWorkspace createWorkspaceApiCall(
+    IManageWWorkspace templateWorkspace,
+    String customerId,
+    String libraryId
+  ) {
+    //POST https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces',
+      new List<Object> {customerId, libraryId }
+    );
+    String body =
+        '{' +
+          '"database": "' + libraryId + '",' +
+          '"name": "' + templateWorkspace.name + '",' +
+          '"custom1": "' + templateWorkspace.custom1 + '",' +
+          '"custom2": "' + templateWorkspace.custom2 + '",' +
+          '"default_security": "' + templateWorkspace.default_security + '",' +
+          '"description":' + (templateWorkspace.description == null ? 'null' : '"'+ templateWorkspace.description + '"') + ',' +
+          '"is_declared":' + String.valueOf(templateWorkspace.is_declared).toLowerCase() + ',' +
+          '"is_external_as_normal":' + String.valueOf(templateWorkspace.is_external_as_normal).toLowerCase() + ',' +
+          '"subclass":' + (templateWorkspace.subclass == null ? 'null' : '"'+ templateWorkspace.subclass + '"') + //',' +
+          //'"profile":' + (templateWorkspace.profile == null ? 'null' : '{}') + //TODO: Serialize profile
+        '}';
+
+    Logger.getInstance().info('iManageWorkspacesHelper::createWorkspaceApiCall, query=' + query + '; body='+ body);
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance().info('iManageWorkspacesHelper::createWorkspaceApiCall, response=' + responseBody);
+    system.debug(responseBody);
+    iManageWorkspaceResponse response = (iManageWorkspaceResponse) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceResponse.class
+    );
+
+    return response.data;
+  }
 
   public static IManageWorkspaceWrap getWorkspaceTemplateWrap(String workspaceId, String libraryId) {
     IManageWWorkspace workspace = getWorkspace(workspaceId, libraryId);
@@ -155,7 +201,7 @@ public class iManageWorkspacesHelper {
         responseBody,
         iManageWorkspaceResponse.class
     );
-    System.debug('*** getWorkspace. Response: ' + response);
+
     return response == null ? null : response.data;
   }
 
@@ -246,9 +292,10 @@ public class iManageWorkspacesHelper {
       }
   }
 
-  // public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate() {
-
-  // }
+  public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate() {
+    Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, START');
+    Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, END');
+  }
 
   public class iManageWorkspaceResponse {
     IManageWWorkspace data;
