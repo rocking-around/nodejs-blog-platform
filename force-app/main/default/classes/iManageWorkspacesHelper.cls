@@ -134,7 +134,16 @@ public class iManageWorkspacesHelper {
 
       Logger.getInstance().info('Compare folders and update by template.');
 
-      compareFoldersAndUpdateByTemplate();
+      IManageWorkspaceWrap sourceWorkspaceWrap = getWorkspaceContentWrap(sourceWorkspace.Id, libraryId, true, false);
+
+      compareFoldersAndUpdateByTemplate(
+        sourceWorkspaceWrap,
+        templateFolders,
+        customerId,
+        libraryId,
+        custom1,
+        custom2
+      );
 
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
@@ -178,6 +187,25 @@ public class iManageWorkspacesHelper {
     );
 
     return response.data;
+  }
+
+  public static IManageWorkspaceWrap getWorkspaceContentWrap(
+    String workspaceId,
+    String libraryId,
+    Boolean onlyFolders,
+    Boolean foldersWithProfile
+  ) {
+    if (!onlyFolders)
+    {
+      throw new IManageExceptions.IManageApplicationException(
+        String.format(
+          'Not implemented. getWorkspaceContentWrap(... onlyFolders = {0} ...)',
+          new List<Object> { onlyFolders }
+        )
+      );
+    }
+
+    return getWorkspaceTemplateWrap(workspaceId, libraryId);
   }
 
   public static IManageWorkspaceWrap getWorkspaceTemplateWrap(String workspaceId, String libraryId) {
@@ -292,8 +320,141 @@ public class iManageWorkspacesHelper {
       }
   }
 
-  public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate() {
+  public static IManageWorkspaceWrap compareFoldersAndUpdateByTemplate(
+    IManageWorkspaceWrap mappingWorkspaceWrap,
+    List<IManageFolderWrap> templateFolders,
+    String customerId,
+    String libraryId,
+    String clientId,
+    String matterId
+  ) {
     Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, START');
+    var clientMatterCode = String.format('{0}.{1}', new List<Object> {clientId, matterId});
+    List<IManageFolderWrap> workspaceFolders = mappingWorkspaceWrap.getFlatListAllFolders();
+
+    var mappedTemplateFolders = templateFolders.Select(tf =>
+        new Tuple<FolderWrap, FolderWrap>(
+          tf,
+          workspaceFolders.FirstOrDefault(
+            rf => rf.WrapItem.FolderType.Equals(tf.WrapItem.FolderType, StringComparison.OrdinalIgnoreCase)
+            && rf.FolderFullPath.Equals(tf.FolderFullPath, StringComparison.OrdinalIgnoreCase)
+          )
+        )
+      )
+      .OrderBy(x => x.Item1.FolderFullPath.Length)
+      .ToList();
+    
+    List<Map<String, Object>> mappedTemplateFolders = new List<Map<String, Object>>();
+    for (IManageFolderWrap tf: templateFolders) {
+      IManageFolderWrap fw = null; //TODO: calc
+      Map<String, Object> mappedTemplateFoldersItem = new Map<String, Object> (
+        'item1' => tf,
+        'item1' => fw
+      );
+      mappedTemplateFolders.add(mappedTemplateFoldersItem); //TODO: sort
+    }
+
+    //var dbFoldersSecurity = await _dbClient.GetFoldersSecurityRows(matterRow.UID);
+    //create new folders
+    foreach (var templateFolderWrap in mappedTemplateFolders.Where(x => x.Item2 == null).Select(x => x.Item1))
+    {
+        workspaceFolders = mappingWorkspaceWrap.GetFlatListAllFolders();
+        var parentDestFolder = workspaceFolders.FirstOrDefault(fw => fw.FolderFullPath.Equals(templateFolderWrap.ParentFolder?.FolderFullPath, StringComparison.OrdinalIgnoreCase))?.WrapItem;
+        string parentDestFolderId = parentDestFolder?.Id;
+        var parentIsTab = parentDestFolder?.FolderType == "tab";
+
+        String folderType = ((IManageWFolder)templateFolderWrap.wrapItem).folder_type;
+        if (folderType == 'regular')
+        {
+            var tf = await GetTemplateWFolder(templateFolderWrap.WrapItem.Id, clientApi);
+            if (tf.IsOptional)
+            {
+                _log.Info($"Workspace: {clientMatterCode}. Optional Folder: {templateFolderWrap.FolderFullPath} add ignored.");
+                continue;
+            }
+
+            if (templateFolderWrap.ParentFolder != null && parentDestFolder == null)
+            {
+                _log.Info($"Workspace: {clientMatterCode}. Folder: {templateFolderWrap.FolderFullPath} add ignored because the parent folder is optional.");
+                continue;
+            }
+
+            tf = MappingProfileWorkspaceValues(mappingWorkspaceWrap.WrapItem, tf);
+
+            var needEmail = !string.IsNullOrWhiteSpace(tf.Email);
+            tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
+            var newDestFolder = await RetryHelper(async () =>
+                    await clientApi.CreateFolderAsync(mappingWorkspaceWrap.WrapItem.Id,
+                        tf, parentDestFolderId,
+                      _main.AccessToken, parentIsTab: parentIsTab, owner: _main.UserId),
+                      $"Create folder {clientMatterCode}-{templateFolderWrap.FolderFullPath}", throwException: true);
+            await RetryHelper(async () =>
+              await clientApi.PatchNameValuePair("folders", newDestFolder.Id, _main.AccessToken, new
+              {
+                  FolderTemplateId = tf.Id
+              }), "Patch folder name-value-pair", throwException: true);
+
+            if (needEmail)
+            {
+                _log.Info($"Patch Folder: {templateFolderWrap.FolderFullPath} email.");
+                var email = $"{newDestFolder.Name.Replace(" ", "_")}.{newDestFolder.Id.Split('!')[1]}";
+                await RetryHelper(async () =>
+                    {
+                        return await clientApi.PatchFolder(_main.AccessToken, newDestFolder.Id, new { email });
+                    }, $"Patch folder {email} email", throwException: true);
+            }
+            _log.Info($"Workspace: {clientMatterCode}. Folder: {templateFolderWrap.FolderFullPath}  added");
+            var dbFolderSecurity = dbFoldersSecurity.Where(fs => templateFolderWrap.FolderFullPath.ToLower().Replace("/", "\\") == fs.FolderName.ToLower()).ToList();
+            if (newDestFolder.DefaultSecurity != "inherit" || dbFolderSecurity.Any())
+            {
+                var templateWsSecurity = await RetryHelper(async () =>
+                await clientApi.GetFolderACL(_main.AccessToken, templateFolderWrap.WrapItem.Id), "Get template folder security", throwException: true);
+                var fSecurityList = templateWsSecurity.Data.ToList();
+                foreach (var wsAcl in dbFolderSecurity)
+                {
+                    var sourceFAcl = fSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
+                    if (sourceFAcl == null)
+                    {
+                        fSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access.ToLower(), Type = wsAcl.IsGroup ? "group" : "user" });
+                    }
+                }
+                if (fSecurityList.Any())
+                {
+
+                    var include = fSecurityList.Select(d => new { id = d.ID, access_level = d.AccessLevel, type = d.Type });
+                    await RetryHelper(async () =>
+                    {
+                        return await clientApi.PatchSecurityFolder(_main.AccessToken, newDestFolder.Id, new
+                        {
+                            default_security = newDestFolder.DefaultSecurity == "inherit" ? "public" : newDestFolder.DefaultSecurity,
+                            include
+                        });
+                    }, "Update folder security", throwException: true);
+                    _log.Info($"Workspace: {clientMatterCode}. Folder: {templateFolderWrap.FolderFullPath}  security added");
+                }
+            }
+            mappingWorkspaceWrap.AddFolderAndResetMapping(newDestFolder);
+        }
+        else if (folderType == 'tab')
+        {
+          Logger.getInstance().info(
+            String.format('The "{0}" type is not supported yet.', new List<Object>{folderType});
+          );
+        }
+        else if (folderType == 'search')
+        {
+          Logger.getInstance().info(
+            String.format('The "{0}" type is not supported yet.', new List<Object>{folderType});
+          );
+        }
+        else
+        {
+            throw new IManageExceptions.IManageApplicationException(
+              String.format('Unknown folder type: {0}', new List<Object>{folderType});
+            );
+        }
+    }
+
     Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, END');
   }
 
