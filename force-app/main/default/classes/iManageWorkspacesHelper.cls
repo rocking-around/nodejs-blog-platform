@@ -108,7 +108,7 @@ public class iManageWorkspacesHelper {
   public static Void createWorkspace(
     String custom1, // client alias
     String custom2, // matter alias
-    String wsTemplate,
+    String wsName,
     String workspaceTemplate // "libraryId::templateId"
   ) {
     String[] wsData = workspaceTemplate.split('::', 2);
@@ -161,7 +161,7 @@ public class iManageWorkspacesHelper {
       Logger.getInstance().Info('Create destination workspace...');
       templateWorkspace.custom1 = custom1;
       templateWorkspace.custom2 = custom2;
-      templateWorkspace.Name = wsTemplate;
+      templateWorkspace.Name = wsName;
 
       IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(
         templateWorkspace,
@@ -268,7 +268,7 @@ public class iManageWorkspacesHelper {
     Boolean onlyFolders,
     Boolean foldersWithProfile
   ) {
-    if (!onlyFolders) {
+    if (onlyFolders == false) {
       throw new IManageExceptions.IManageApplicationException(
         String.format(
           'Not implemented. getWorkspaceContentWrap(... onlyFolders = {0} ...)',
@@ -469,7 +469,7 @@ public class iManageWorkspacesHelper {
       }
       Map<String, Object> mappedTemplateFoldersItem = new Map<String, Object>{
         'item1' => tf,
-        'item1' => fw
+        'item2' => fw
       };
 
       // add to mappedTemplateFolders and sort by folderFullPath.length()
@@ -538,7 +538,8 @@ public class iManageWorkspacesHelper {
           customerId,
           libraryId
         );
-        if (tf.IsOptional) {
+
+        if (tf.IsOptional == true) {
           Logger.getInstance()
             .info(
               String.format(
@@ -603,7 +604,7 @@ public class iManageWorkspacesHelper {
           new Map<String, Object>{ 'folderTemplateId' => tf.id }
         );
 
-        if (needEmail) {
+        if (needEmail == true) {
           String email = String.format(
             '{0}.{1}',
             new List<Object>{
@@ -914,7 +915,7 @@ public class iManageWorkspacesHelper {
   ) {
     String query = '';
     if (String.isNotBlank(parentFolderId)) {
-      if (parentIsTab) {
+      if (parentIsTab == true) {
         query = String.format(
           '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/folders',
           new List<Object>{ customerId, libraryId, parentFolderId }

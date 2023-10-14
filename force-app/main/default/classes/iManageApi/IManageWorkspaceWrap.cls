@@ -37,7 +37,7 @@ public class IManageWorkspaceWrap extends IManageWrapBase {
 
         // firstOrDefault
         for (IManageFolderWrap item : allFolders) {
-            IManageWWorkspace wrapItem = (IManageWWorkspace)item.wrapItem;
+            IManageWFolder wrapItem = (IManageWFolder)item.wrapItem;
             if (wrapItem.id.toLowerCase() == folder.parent_id.toLowerCase()) {
                 parentFolder = item;
                 break;
