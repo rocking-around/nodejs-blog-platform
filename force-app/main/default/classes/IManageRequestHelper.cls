@@ -11,6 +11,10 @@ public class IManageRequestHelper {
     return MakeRequest('POST', query, body).getBody();
   }
 
+  public static String Patch(String query, String body) {
+    return MakeRequest('PATCH', query, body).getBody();
+  }
+
   public static String PostFile(
     String query,
     Blob formBlob,

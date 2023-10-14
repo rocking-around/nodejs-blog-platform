@@ -74,4 +74,7 @@ public with sharing class IManageWFolder {
     public String workspace_name { get; set; }
 
     public String wstype { get; set; }
+
+    // JsonIgnore
+    public Boolean IsOptional { get; set; }
 }
