@@ -2,8 +2,8 @@ public class iManageWorkspacesHelper {
   public static String SearchWorkspace(iManageSettings__c mc, 
     iManageWrapper.ApiInfo apiData, IManageMappingHelper.IManageIFrameData link) {
     Logger.getInstance().info('iManageWorkspacesHelper::SearchWorkspace, start method');
-    String libraries = mc?.iManage_Libraries__c == null || mc.iManage_Libraries__c == '' 
-      ? apiData.library 
+    String libraries = mc?.iManage_Libraries__c == null || mc.iManage_Libraries__c == ''
+      ? apiData.library
       : mc.iManage_Libraries__c;
     Logger.getInstance().info('iManageWorkspacesHelper::SearchWorkspace, list libraries: ' + libraries);
     for(String library : libraries.split(';')) {
@@ -329,53 +329,90 @@ public class iManageWorkspacesHelper {
     String matterId
   ) {
     Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, START');
-    var clientMatterCode = String.format('{0}.{1}', new List<Object> {clientId, matterId});
+    String clientMatterCode = String.format('{0}.{1}', new List<Object> {clientId, matterId});
     List<IManageFolderWrap> workspaceFolders = mappingWorkspaceWrap.getFlatListAllFolders();
 
-    var mappedTemplateFolders = templateFolders.Select(tf =>
-        new Tuple<FolderWrap, FolderWrap>(
-          tf,
-          workspaceFolders.FirstOrDefault(
-            rf => rf.WrapItem.FolderType.Equals(tf.WrapItem.FolderType, StringComparison.OrdinalIgnoreCase)
-            && rf.FolderFullPath.Equals(tf.FolderFullPath, StringComparison.OrdinalIgnoreCase)
-          )
-        )
-      )
-      .OrderBy(x => x.Item1.FolderFullPath.Length)
-      .ToList();
-    
     List<Map<String, Object>> mappedTemplateFolders = new List<Map<String, Object>>();
     for (IManageFolderWrap tf: templateFolders) {
-      IManageFolderWrap fw = null; //TODO: calc
+      IManageFolderWrap fw = null;
+      // find first or default
+      for (IManageFolderWrap wsFolder: workspaceFolders) {
+        if (
+          ((IManageWFolder)wsFolder.wrapItem).folder_type.equalsIgnoreCase(((IManageWFolder)tf.wrapItem).folder_type)
+          && wsFolder.folderFullPath.equalsIgnoreCase(tf.folderFullPath)
+        ) {
+          fw = wsFolder;
+          break;
+        }
+      }
       Map<String, Object> mappedTemplateFoldersItem = new Map<String, Object> (
         'item1' => tf,
         'item1' => fw
       );
-      mappedTemplateFolders.add(mappedTemplateFoldersItem); //TODO: sort
+
+      // add to mappedTemplateFolders and sort by folderFullPath.length()
+      Integer mappedTemplateFoldersSize = mappedTemplateFolders.size();
+      if (mappedTemplateFoldersSize == 0 ) {
+        mappedTemplateFolders.add(mappedTemplateFoldersItem);
+      } else {
+        for (Integer i = 0; i < mappedTemplateFoldersSize; i++) {
+          Integer currentItemLength = mappedTemplateFolders.get(i).get('item1').folderFullPath.length();
+          Integer newItemLength = mappedTemplateFoldersItem.get('item1').folderFullPath.length();
+          if (newItemLength <= currentItemLength) {
+            mappedTemplateFolders.add(i, mappedTemplateFoldersItem);
+            break;
+          } else if (i == mappedTemplateFoldersSize - 1) {
+            mappedTemplateFolders.add(mappedTemplateFoldersItem);
+          }
+        }
+      }
     }
 
     //var dbFoldersSecurity = await _dbClient.GetFoldersSecurityRows(matterRow.UID);
     //create new folders
-    foreach (var templateFolderWrap in mappedTemplateFolders.Where(x => x.Item2 == null).Select(x => x.Item1))
+    for(Map<String, Object> mtfs : mappedTemplateFolders)
     {
-        workspaceFolders = mappingWorkspaceWrap.GetFlatListAllFolders();
-        var parentDestFolder = workspaceFolders.FirstOrDefault(fw => fw.FolderFullPath.Equals(templateFolderWrap.ParentFolder?.FolderFullPath, StringComparison.OrdinalIgnoreCase))?.WrapItem;
-        string parentDestFolderId = parentDestFolder?.Id;
-        var parentIsTab = parentDestFolder?.FolderType == "tab";
+        if (mtfs.get('item2') != null) {
+          continue;
+        }
+        IManageFolderWrap templateFolderWrap = (IManageFolderWrap)mtfs.get('item1');
+
+        workspaceFolders = mappingWorkspaceWrap.getFlatListAllFolders();
+
+        IManageWFolder parentDestFolder = null;
+        // first or default
+        for(IManageFolderWrap wf : workspaceFolders) {
+          IManageFolderWrap tfwParentFolder = templateFolderWrap.parentFolder;
+          if (w.folderFullPath.equalsIgnoreCase(tfwParentFolder == null ? null : tfwParentFolder.folderFullPath)) {
+            parentDestFolder = (IManageWFolder)wf.wrapItem;
+            break;
+          }
+        }
+
+        String parentDestFolderId = parentDestFolder == null ? null : parentDestFolder.id;
+        Boolean parentIsTab = parentDestFolder != null && parentDestFolder.folder_type == 'tab';
 
         String folderType = ((IManageWFolder)templateFolderWrap.wrapItem).folder_type;
         if (folderType == 'regular')
         {
-            var tf = await GetTemplateWFolder(templateFolderWrap.WrapItem.Id, clientApi);
+            IManageWFolder tf = getTemplateWFolder(templateFolderWrap.WrapItem.Id, customerId, libraryId);
             if (tf.IsOptional)
             {
-                _log.Info($"Workspace: {clientMatterCode}. Optional Folder: {templateFolderWrap.FolderFullPath} add ignored.");
+                Logger.getInstance().info(
+                  String.format(
+                    'Workspace: {0}. Optional Folder: {1} add ignored.',
+                    new List<Object>{clientMatterCode, templateFolderWrap.folderFullPath}
+                );
                 continue;
             }
 
-            if (templateFolderWrap.ParentFolder != null && parentDestFolder == null)
+            if (templateFolderWrap.parentFolder != null && parentDestFolder == null)
             {
-                _log.Info($"Workspace: {clientMatterCode}. Folder: {templateFolderWrap.FolderFullPath} add ignored because the parent folder is optional.");
+                Logger.getInstance().info(
+                  String.format(
+                    'Workspace: {0}. Optional Folder: {1} add ignored because the parent folder is optional.',
+                    new List<Object>{clientMatterCode, templateFolderWrap.folderFullPath}
+                );
                 continue;
             }
 
@@ -433,7 +470,7 @@ public class iManageWorkspacesHelper {
                     _log.Info($"Workspace: {clientMatterCode}. Folder: {templateFolderWrap.FolderFullPath}  security added");
                 }
             }
-            mappingWorkspaceWrap.AddFolderAndResetMapping(newDestFolder);
+            mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
         }
         else if (folderType == 'tab')
         {
@@ -458,6 +495,50 @@ public class iManageWorkspacesHelper {
     Logger.getInstance().info('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, END');
   }
 
+  public static IManageWFolder getTemplateWFolder(String folderId, String customerId, String libraryId) {
+      Map<String, String> kvPair = getNameValuePair('folders', folderId, customerId, libraryId);
+      IManageWFolder folder = getFolderById(folderId, customerId, libraryId);
+      if (kvPair.containsKey('IMCC_IsOptional'))
+      {
+        folder.IsOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
+      }
+      return folder;
+  }
+
+  public static IManageWFolder getFolderById(String folderId, String customerId, String libraryId) {
+    //GET https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/folders/{folderId}
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+      new List<Object> { customerId, libraryId, folderId }
+    );
+    Logger.getInstance().info('iManageWorkspacesHelper::getFolderById, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance().info('iManageWorkspacesHelper::getFolderById, response=' + responseBody);
+
+    iManageFolderResponse response = (iManageFolderResponse) JSON.deserialize(
+      responseBody,
+      iManageFolderResponse.class
+    );
+    return response.data;
+  }
+
+  public static Map<String, String> getNameValuePair(String objectName, String folderId, String customerId, String libraryId) {
+    //GET https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/folders/{folderId}/name-value-pairs
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}',
+      new List<Object> { customerId, libraryId, objectName, folderId }
+    );
+    Logger.getInstance().info('iManageWorkspacesHelper::getNameValuePair, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance().info('iManageWorkspacesHelper::getNameValuePair, response=' + responseBody);
+
+    iManageNameValuePairResponse response = (iManageNameValuePairResponse) JSON.deserialize(
+      responseBody,
+      iManageNameValuePairResponse.class
+    );
+    return response.data;
+  }
+
   public class iManageWorkspaceResponse {
     IManageWWorkspace data;
   }
@@ -465,6 +546,14 @@ public class iManageWorkspacesHelper {
   public class iManageFoldersResponse {
     List<IManageWFolder> data;
     Integer total_count;
+  }
+
+  public class iManageFolderResponse {
+    IManageWFolder data;
+  }
+
+  public class iManageNameValuePairResponse {
+    Map<String, String> data;
   }
   // public class iManageFoldersResponseResults {
   //   List<IManageWFolder> results;
