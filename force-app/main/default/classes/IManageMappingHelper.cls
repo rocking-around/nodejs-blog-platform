@@ -306,6 +306,24 @@ public with sharing class IManageMappingHelper {
     }
   }
 
+  @AuraEnabled
+  public static Map<String, Object> getIManageDataFromSObject(String entityId) {
+    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+    Map<String, Object> result = new Map<String, Object>();
+
+    Object clientId = GetDataFromObject(entityId, mapping.ClientIdField);
+    Object matterId = GetDataFromObject(entityId, mapping.MatterIdField);
+    Object clientName = GetDataFromObject(entityId, mapping.ClientNameField);
+    Object matterName = GetDataFromObject(entityId, mapping.MatterNameField);
+
+    return new Map<String, Object> {
+      'clientId' => clientId,
+      'matterId' => matterId,
+      'clientName' => clientName,
+      'matterName' => matterName
+    };
+  }
+
   public class GetFieldResult {
     private String fieldName;
     private String fieldLabel;

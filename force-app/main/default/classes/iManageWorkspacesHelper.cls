@@ -117,6 +117,9 @@ public class iManageWorkspacesHelper {
 
     String logPrefix = 'iManageWorkspacesHelper::createWorkspace';
     Map<String, Object> params = new Map<String, Object>{
+      'custom1' => custom1,
+      'custom2' => custom2,
+      'wsName' => wsName,
       'workspaceTemplate' => workspaceTemplate
     };
     Logger.getInstance()
