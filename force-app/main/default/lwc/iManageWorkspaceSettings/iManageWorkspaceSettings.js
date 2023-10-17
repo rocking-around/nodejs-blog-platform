@@ -4,16 +4,27 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 
 import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import loadFolderTemplates from "@salesforce/apex/ConfigurationHelper.loadFolderTemplates";
-import getIManageWSDefaultFolderTemplateId from "@salesforce/apex/ConfigurationHelper.getIManageWSDefaultFolderTemplateId";
-import saveIManageWSDefaultFolderTemplateId from "@salesforce/apex/ConfigurationHelper.saveIManageWSDefaultFolderTemplateId";
-import getFoldersByWorkspace from "@salesforce/apex/iManageWorkspacesHelper.getFoldersByWorkspace";
+import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.getIManageWorkspaceSettings";
+import saveIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.saveIManageWorkspaceSettings";
 
+const WS_SETTINGS_PREFIX = "iManageWs";
+const WS_SETTINGS_PREFIX_DELIMETER = ":";
 export default class IManageWorkspaceSettings extends LightningElement {
   saving = false;
-  showSpinner = false;
+  loading = true;
   isChanged = false;
 
   iManageApiInitialized = false;
+
+  wsSettingsDefault = {
+    Name_Pattern: "",
+    Folder_Template_Id: "",
+    Create_Ws_Enabled: false,
+    Auto_Create: false
+  };
+
+  wsSettings = undefined;
+  wsSettingsEdt = undefined;
 
   wsFolderTemplateId = undefined;
   wsFolderTemplateIdEdit = undefined;
@@ -46,7 +57,7 @@ export default class IManageWorkspaceSettings extends LightningElement {
 
   async loadData() {
     try {
-      this.showSpinner = true;
+      this.loading = true;
 
       // load folder templates from iManage
       const resp = await loadFolderTemplates();
@@ -55,49 +66,43 @@ export default class IManageWorkspaceSettings extends LightningElement {
         value: key
       }));
 
-      // load wsFolderTemplateId from custom settings
-      this.wsFolderTemplateId = await getIManageWSDefaultFolderTemplateId();
-
-      await this.test();
-      
-      this.resetEdit();
+      // load data from custom settings
+      await this.loadWsSettings();
     } catch (error) {
       this.handleErrors(error);
     } finally {
-      this.showSpinner = false;
+      this.loading = false;
     }
   }
 
-  async test( ) {
-    debugger;
-    const workspaceTemplate = 'ACTIVE::ACTIVE!9';
-    const offset = 0;
-    const size = 10;
-    const t = await getFoldersByWorkspace({
-      workspaceTemplate,
-      offset,
-      size
-    });
-    console.log('+++++++++++++++++++++++', t);
+  async loadWsSettings() {
+    const wsSettings = await getIManageWorkspaceSettings();
+    this.applySettingsFromDb(wsSettings);
+    this.loading = false;
   }
 
-  onFolderTemplateChanged(e) {
-    const { value } = e.detail;
-
-    this.wsFolderTemplateIdEdit = value;
-
-    if (
-      this.wsFolderTemplateId !== this.wsFolderTemplateIdEdit &&
-      !this.isChanged
-    ) {
-      this.isChanged = true;
+  applySettingsFromDb(source) {
+    const data = {};
+    for (const [key, value] of Object.entries(source)) {
+      const [fieldPrefix, fieldName] = key.split(WS_SETTINGS_PREFIX_DELIMETER);
+      if (fieldPrefix === WS_SETTINGS_PREFIX) {
+        data[fieldName] = value;
+      }
     }
-    if (
-      this.wsFolderTemplateId === this.wsFolderTemplateIdEdit &&
-      this.isChanged
-    ) {
-      this.isChanged = false;
-    }
+
+    this.wsSettings = { ...this.wsSettingsDefault, ...data };
+
+    this.resetEdit();
+  }
+
+  onIManageWsSettingChanged(e) {
+    const { name } = e.target;
+    const { value, checked } = e.detail;
+    const isCkeckbox = checked !== undefined;
+    const newValue = isCkeckbox ? checked : value;
+
+    this.wsSettingsEdt[name] = newValue;
+    this.isChanged = this.detectChanges().length > 0;
   }
 
   async saveClick() {
@@ -106,12 +111,15 @@ export default class IManageWorkspaceSettings extends LightningElement {
     }
 
     try {
-      this.showSpinner = true;
       this.saving = true;
 
-      await saveIManageWSDefaultFolderTemplateId({
-        folderTemplateId: this.wsFolderTemplateIdEdit
-      });
+      const data = {};
+      for (const [key, value] of Object.entries(this.wsSettingsEdt)) {
+        const fieldName = `${WS_SETTINGS_PREFIX}${WS_SETTINGS_PREFIX_DELIMETER}${key}`;
+        data[fieldName] = value;
+      }
+
+      await saveIManageWorkspaceSettings({ data });
 
       this.dispatchEvent(
         new ShowToastEvent({
@@ -125,7 +133,6 @@ export default class IManageWorkspaceSettings extends LightningElement {
     } catch (error) {
       this.handleErrors(error);
     } finally {
-      this.showSpinner = false;
       this.saving = false;
     }
   }
@@ -146,8 +153,9 @@ export default class IManageWorkspaceSettings extends LightningElement {
   }
 
   resetEdit() {
-    this.wsFolderTemplateIdEdit = undefined;
+    // this.wsFolderTemplateIdEdit = undefined;
     this.isChanged = false;
+    this.wsSettingsEdt = { ...this.wsSettings };
   }
 
   get isSaveBtnDisabled() {
@@ -158,5 +166,23 @@ export default class IManageWorkspaceSettings extends LightningElement {
     return this.isChanged
       ? this.wsFolderTemplateIdEdit
       : this.wsFolderTemplateId;
+  }
+
+  detectChanges() {
+    const result = [];
+    for (const oKey of Object.keys(this.wsSettingsEdt)) {
+      if (this.wsSettingsEdt[oKey] !== this.wsSettings[oKey]) {
+        result.push({
+          key: oKey,
+          oldValue: this.wsSettings[oKey],
+          newValue: this.wsSettingsEdt[oKey]
+        });
+      }
+    }
+    return result;
+  }
+
+  get showSpinner() {
+    return this.loading || this.saving;
   }
 }

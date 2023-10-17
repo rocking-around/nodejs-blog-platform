@@ -558,7 +558,7 @@ public with sharing class ConfigurationHelper {
         apiInfo.customerId,
         libraryId
       );
-      
+
       Map<String, String> templates = new Map<String, String>();
       for (iManageWrapper.iManageTemplate templ : results) {
         String key = libraryId + '::' + templ.id;
@@ -576,24 +576,30 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
-  public static String getIManageWSDefaultFolderTemplateId() {
+  public static Map<String, Object> getIManageWorkspaceSettings() {
     Logger.getInstance()
-      .info(
-        'ConfigurationHelper::getIManageWSDefaultFolderTemplateId, start method'
-      );
+      .info('ConfigurationHelper::getIManageWorkspaceSettings, start method');
     LicenseService.CheckOrganizationLicense();
 
     try {
       iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+      Map<String, Object> result = new Map<String, Object>{
+        'iManageWs:Name_Pattern' => settings.iManage_Ws_Name_Pattern__c,
+        'iManageWs:Create_Ws_Enabled' => settings.iManage_Create_Ws_Enabled__c,
+        'iManageWs:Auto_Create' => settings.iManage_Ws_Auto_Create__c,
+        'iManageWs:Folder_Template_Id' => settings.iManage_Ws_Folder_Template_Id__c
+      };
+
       Logger.getInstance()
         .info(
-          'ConfigurationHelper::getIManageWSDefaultFolderTemplateId, Result: ' +
-          settings?.iManage_Workspace_Folder_Template_Id__c
+          'ConfigurationHelper::getIManageWorkspaceSettings, result: ' +
+          JSON.serialize(result)
         );
-      return settings.iManage_Workspace_Folder_Template_Id__c;
+      return result;
     } catch (Exception ex) {
       Logger.getInstance()
-        .error(ex, 'ConfigurationHelper::getIManageWSDefaultFolderTemplateId');
+        .error(ex, 'ConfigurationHelper::getIManageWorkspaceSettings');
       throw ex;
     } finally {
       Logger.getInstance().Flush();
@@ -601,27 +607,44 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
-  public static void saveIManageWSDefaultFolderTemplateId(
-    String folderTemplateId
-  ) {
-    String logPrefix = 'ConfigurationHelper::saveIManageWSDefaultFolderTemplateId';
-    Map<String, Object> params = new Map<String, Object>{
-      'folderTemplateId' => folderTemplateId
-    };
+  public static void saveIManageWorkspaceSettings(Map<String, Object> data) {
+    Map<String, Object> params = new Map<String, Object>{ 'data' => data };
     Logger.getInstance()
-      .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
-
+      .info(
+        'ConfigurationHelper::saveIManageWorkspaceSettings, start method. Params: ' +
+        JSON.serialize(data)
+      );
     LicenseService.CheckOrganizationLicense();
 
     try {
       iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
-      settings.iManage_Workspace_Folder_Template_Id__c = folderTemplateId;
+
+      for (String key : data.keySet()) {
+        switch on key {
+          when 'iManageWs:Name_Pattern' {
+            settings.iManage_Ws_Name_Pattern__c = (String) data.get(key);
+          }
+          when 'iManageWs:Folder_Template_Id' {
+            settings.iManage_Ws_Folder_Template_Id__c = (String) data.get(key);
+          }
+          when 'iManageWs:Create_Ws_Enabled' {
+            settings.iManage_Create_Ws_Enabled__c = (Boolean) data.get(key);
+          }
+          when 'iManageWs:Auto_Create' {
+            settings.iManage_Ws_Auto_Create__c = (Boolean) data.get(key);
+          }
+        }
+      }
 
       upsert settings;
       Logger.getInstance()
-        .info(logPrefix + '. Saved: ' + JSON.serialize(settings));
+        .info(
+          'ConfigurationHelper::saveIManageWorkspaceSettings. Saved: ' +
+          JSON.serialize(settings)
+        );
     } catch (Exception ex) {
-      Logger.getInstance().error(ex, logPrefix);
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::saveIManageWorkspaceSettings');
       throw ex;
     } finally {
       Logger.getInstance().Flush();

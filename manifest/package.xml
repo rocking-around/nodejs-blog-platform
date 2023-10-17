@@ -7,6 +7,13 @@
         <members>DescribePackageCustomLabelsTest</members>
         <members>EchoHttpMock</members>
         <members>HttpCalloutQueueMock</members>
+        <members>IManageFolderWrap</members>
+        <members>IManageUtils</members>
+        <members>IManageWFolder</members>
+        <members>IManageWorkspaceWrap</members>
+        <members>IManageWrapBase</members>
+        <members>IManageWSecurity</members>
+        <members>IManageWWorkspace</members>
         <members>IManageBaseHelper</members>
         <members>IManageBaseResponse</members>
         <members>IManageCsvEndpoint</members>
@@ -60,6 +67,7 @@
         <members>iManageMappingEditor</members>
         <members>iManageMappingConfiguration</members>
         <name>LightningComponentBundle</name>
+        <name>iManageCreateWsContainer</name>
     </types>
     <types>
         <members>AppCSS</members>

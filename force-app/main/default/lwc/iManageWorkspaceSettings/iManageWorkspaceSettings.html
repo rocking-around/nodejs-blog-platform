@@ -7,20 +7,69 @@
           size="medium"
         ></lightning-spinner>
       </template>
+      <template if:false={loading}>
+        <div class="line">
+          <lightning-input
+            type="checkbox"
+            label="Enabled"
+            name="Create_Ws_Enabled"
+            checked={wsSettingsEdt.Create_Ws_Enabled}
+            disabled={saving}
+            onchange={onIManageWsSettingChanged}
+          ></lightning-input>
+        </div>
+        <div class="line">
+          <template if:true={folderTemplateOptions}>
+            <lightning-combobox
+              name="Folder_Template_Id"
+              label="Folder Template"
+              value={wsSettingsEdt.Folder_Template_Id}
+              placeholder="Select Folder Template"
+              options={folderTemplateOptions}
+              onchange={onIManageWsSettingChanged}
+            >
+            </lightning-combobox>
+          </template>
+        </div>
+        <div class="line">
+          <div class="ws-name-pattern-container">
+            <div class="ws-name-input">
+              <div class="ws-name-pattern-label">
+                <div class="slds-form-element__label slds-no-flex">
+                  Workspace Name Template
+                </div>
+                <div class="ws-name-hint">
+                  <lightning-helptext
+                    content="Placeholders: {CLIENTCODE}, {CLIENTNAME}, {MATTERCODE}, {MATTERNAME}"
+                  >
+                  </lightning-helptext>
+                </div>
+              </div>
+              <lightning-input
+                name="Name_Pattern"
+                type="text"
+                disabled={saving}
+                variant="label-hidden"
+                aria-labelledby="Workspace Name Template"
+                value={wsSettingsEdt.Name_Pattern}
+                onchange={onIManageWsSettingChanged}
+              >
+              </lightning-input>
+            </div>
+          </div>
+        </div>
 
-      <div class="inp">
-        <template if:true={folderTemplateOptions}>
-          <lightning-combobox
-            name="progress"
-            label="Folder Template"
-            value={folderTemplateIdViewValue}
-            placeholder="Select Folder Template"
-            options={folderTemplateOptions}
-            onchange={onFolderTemplateChanged}
-          >
-          </lightning-combobox>
-        </template>
-      </div>
+        <div class="line">
+          <lightning-input
+            type="checkbox"
+            label="Auto-create Workspaces"
+            name="Auto_Create"
+            disabled={saving}
+            checked={wsSettingsEdt.Auto_Create}
+            onchange={onIManageWsSettingChanged}
+          ></lightning-input>
+        </div>
+      </template>
     </div>
     <div slot="actions">
       <template if:true={isChanged}>

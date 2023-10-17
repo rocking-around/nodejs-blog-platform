@@ -1,4 +1,4 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
 import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
@@ -44,7 +44,7 @@ export default class IManageCreateWsContainer extends LightningElement {
       workspaceTemplate: this.wsFolderTemplate // "libraryId::templateId"
     };
 
-    console.log('**** handleCreateWsClick: ', data)
+    console.log("**** handleCreateWsClick: ", data);
     if (!this.validate(data)) {
       return;
     }
@@ -111,7 +111,4 @@ export default class IManageCreateWsContainer extends LightningElement {
       })
     );
   }
-
-
-
 }
