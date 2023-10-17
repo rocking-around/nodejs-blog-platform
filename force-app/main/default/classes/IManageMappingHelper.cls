@@ -316,7 +316,7 @@ public with sharing class IManageMappingHelper {
     Object clientName = GetDataFromObject(entityId, mapping.ClientNameField);
     Object matterName = GetDataFromObject(entityId, mapping.MatterNameField);
 
-    return new Map<String, Object> {
+    return new Map<String, Object>{
       'clientId' => clientId,
       'matterId' => matterId,
       'clientName' => clientName,

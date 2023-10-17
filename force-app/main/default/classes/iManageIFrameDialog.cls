@@ -116,13 +116,15 @@ public class iManageIFrameDialog {
     if (link == null || link.ClientId == null || link.MatterId == null)
       return dialogUrl;
 
-    String workspaceId = iManageWorkspacesHelper.SearchWorkspace(mc, apiData, link);
-    
+    String workspaceId = iManageWorkspacesHelper.SearchWorkspace(
+      mc,
+      apiData,
+      link
+    );
+
     if (workspaceId == null || workspaceId == '')
       return dialogUrl;
 
-    return dialogUrl +
-      '&start=' +
-      EncodingUtil.urlEncode(workspaceId, 'UTF-8');
+    return dialogUrl + '&start=' + EncodingUtil.urlEncode(workspaceId, 'UTF-8');
   }
 }

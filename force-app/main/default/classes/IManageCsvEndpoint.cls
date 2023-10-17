@@ -2,18 +2,18 @@
 global class IManageCsvEndpoint {
   @HttpGet
   global static String doGet() {
-
     try {
       Logger.getInstance().info('IManageCsvEndpoint::doGet, start method.');
       RestResponse res = RestContext.response;
-  
+
       // Checking is export enabled
       if (!iManageSettings__c.getOrgDefaults().Enable_CSV_Export__c) {
         res.statusCode = 400;
-        Logger.getInstance().warn('IManageCsvEndpoint::doGet, CSV export disabled.');
+        Logger.getInstance()
+          .warn('IManageCsvEndpoint::doGet, CSV export disabled.');
         return '';
       }
-  
+
       RestRequest req = RestContext.request;
       Map<String, String> params = RestContext.request.params;
 
@@ -25,14 +25,16 @@ global class IManageCsvEndpoint {
       // Checking and preparations params
       if (objectName == null || startDateString == null || separator == null) {
         res.statusCode = 400;
-        Logger.getInstance().warn('IManageCsvEndpoint::doGet, Missed parameters.');
+        Logger.getInstance()
+          .warn('IManageCsvEndpoint::doGet, Missed parameters.');
         return '';
       }
 
       Logger.getInstance()
-      .info(
-        'IManageCsvEndpoint::doGet, Param->startDateString: ' + startDateString
-      );
+        .info(
+          'IManageCsvEndpoint::doGet, Param->startDateString: ' +
+          startDateString
+        );
       Datetime startDate = DateTime.valueOf(startDateString);
       Datetime endDate = DateTime.now();
 
@@ -42,11 +44,16 @@ global class IManageCsvEndpoint {
       // Get all iManage objects
 
       Logger.getInstance()
-      .info(
-        'IManageCsvEndpoint::doGet, Param->objectName: ' + objectName + ' --- --- ' +
-        'IManageCsvEndpoint::doGet, Param->startDate: ' + startDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ') + ' --- --- ' +
-        'IManageCsvEndpoint::doGet, Param->endDate: ' + endDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ')
-      );
+        .info(
+          'IManageCsvEndpoint::doGet, Param->objectName: ' +
+          objectName +
+          ' --- --- ' +
+          'IManageCsvEndpoint::doGet, Param->startDate: ' +
+          startDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ') +
+          ' --- --- ' +
+          'IManageCsvEndpoint::doGet, Param->endDate: ' +
+          endDate.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSZ')
+        );
 
       List<IManageCsvHelper.CsvRow> data = IManageCsvHelper.getData(
         startDate,
@@ -54,9 +61,10 @@ global class IManageCsvEndpoint {
       );
 
       Logger.getInstance()
-      .info(
-        'IManageCsvEndpoint::doGet, IManageCsvHelper.getData results: ' + json.serialize(data)
-      );
+        .info(
+          'IManageCsvEndpoint::doGet, IManageCsvHelper.getData results: ' +
+          json.serialize(data)
+        );
 
       // Get csv for all
       List<String> rows = new List<String>();
@@ -67,9 +75,9 @@ global class IManageCsvEndpoint {
       }
 
       Logger.getInstance()
-      .info(
-        'IManageCsvEndpoint::doGet, Result: ' + String.join(rows, '\r\n')
-      );
+        .info(
+          'IManageCsvEndpoint::doGet, Result: ' + String.join(rows, '\r\n')
+        );
       return String.join(rows, '\r\n');
     } catch (Exception e) {
       Logger.getInstance().error(e, 'IManageCsvEndpoint::doGet');
