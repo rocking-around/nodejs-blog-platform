@@ -10,10 +10,13 @@
         <members>IManageFolderWrap</members>
         <members>IManageUtils</members>
         <members>IManageWFolder</members>
+        <members>IManageWFolderProfile</members>
         <members>IManageWorkspaceWrap</members>
         <members>IManageWrapBase</members>
         <members>IManageWSecurity</members>
         <members>IManageWWorkspace</members>
+        <members>IManageWCustomFields</members>
+        <members>IManageWCustomFieldsWithDesc</members>
         <members>IManageBaseHelper</members>
         <members>IManageBaseResponse</members>
         <members>IManageCsvEndpoint</members>
@@ -68,6 +71,7 @@
         <members>iManageMappingConfiguration</members>
         <name>LightningComponentBundle</name>
         <name>iManageCreateWsContainer</name>
+        <name>iManageCreateWsModal</name>
     </types>
     <types>
         <members>AppCSS</members>

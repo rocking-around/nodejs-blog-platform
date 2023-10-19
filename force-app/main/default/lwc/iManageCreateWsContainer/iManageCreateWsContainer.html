@@ -1,20 +1,22 @@
 <template>
-  <div class="i-manage-cteate-ws-container">
-    <template if:true={loading}>
-      <div class="spinnerContainer">
-        <lightning-spinner
-          alternative-text="Loading"
-          size="medium"
-        ></lightning-spinner>
-      </div>
-    </template>
-    <template if:false={loading}>
-      <lightning-button
-        label="Create Workspace"
-        onclick={handleCreateWsClick}
-        variant="brand"
-        disabled={createWsBtnDisabled}
-      ></lightning-button>
-    </template>
-  </div>
+  <template if:true={createWsEnabled}>
+    <div class="i-manage-cteate-ws-container">
+      <template if:true={loading}>
+        <div class="spinnerContainer">
+          <lightning-spinner
+            alternative-text="Loading"
+            size="medium"
+          ></lightning-spinner>
+        </div>
+      </template>
+      <template if:false={loading}>
+        <lightning-button
+          label="Create Workspace"
+          onclick={handleCreateWsClick}
+          variant="brand"
+          disabled={createWsBtnDisabled}
+        ></lightning-button>
+      </template>
+    </div>
+  </template>
 </template>

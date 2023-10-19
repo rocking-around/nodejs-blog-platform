@@ -105,6 +105,46 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
+  public static IManageWWorkspace findTemplateWorkspaceByName(
+    String templateName,
+    String libraryId) {
+    String logPrefix = 'iManageWorkspacesHelper::findTemplateWorkspaceByName';
+    Map<String, Object> params = new Map<String, Object>{
+      'libraryId' => libraryId,
+      'templateName' => templateName
+    };
+    Logger.getInstance()
+      .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+
+      Integer offset = 0;
+      Integer batchSize = 2000;
+      iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
+        apiInfo.customerId,
+        libraryId,
+        templateName,
+        offset,
+        batchSize
+      );
+
+      // first or default
+      if (resp != null && resp.total_count > 0) {
+        return resp.data.results[0];
+      }
+      return null;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
   public static Void createWorkspace(
     String custom1, // client alias
     String custom2, // matter alias
@@ -416,6 +456,7 @@ public class iManageWorkspacesHelper {
     return workspaceWrap;
   }
 
+  @TestVisible
   private static void mappingFolders(
     IManageFolderWrap folderWrap,
     List<IManageWFolder> folders
@@ -573,7 +614,8 @@ public class iManageWorkspacesHelper {
           continue;
         }
 
-        // TODO: Profiles not implemented. tf = MappingProfileWorkspaceValues(mappingWorkspaceWrap.WrapItem, tf);
+        // TODO: Profiles not implemented.
+        tf = mappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
 
         Boolean needEmail = String.isNotBlank(tf.email);
         //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
@@ -697,13 +739,14 @@ public class iManageWorkspacesHelper {
         }
         mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
       } else if (folderType == 'tab') {
-        Logger.getInstance()
-          .info(
-            String.format(
-              'The "{0}" type is not supported yet.',
-              new List<Object>{ folderType }
-            )
-          );
+        createTabFolder(
+          customerId,
+          libraryId,
+          clientMatterCode,
+          templateFolderWrap,
+          parentDestFolder,
+          mappingWorkspaceWrap
+        );
       } else if (folderType == 'search') {
         Logger.getInstance()
           .info(
@@ -970,6 +1013,138 @@ public class iManageWorkspacesHelper {
     );
 
     return response.data;
+  }
+
+  @TestVisible
+  private static void createRegularFolder(
+    String customerId,
+    String libraryId,
+    String clientMatterCode,
+    IManageFolderWrap templateFolderWrap) {
+      // TODO: move code from the compareFoldersAndUpdateByTemplate method here
+  }
+
+  @TestVisible
+  private static void createTabFolder(
+    String customerId,
+    String libraryId,
+    String clientMatterCode,
+    IManageFolderWrap templateFolderWrap,
+    IManageWFolder parentDestFolder,
+    IManageWorkspaceWrap mappingWorkspaceWrap
+  ) {
+    IManageWFolder tf = getTemplateWFolder(
+      ((IManageWFolder) templateFolderWrap.wrapItem).id,
+      customerId,
+      libraryId
+    );
+    if (tf.IsOptional == true) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Optional Tab: {1} add ignored.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+      return;
+    }
+
+    if (
+          templateFolderWrap.parentFolder != null &&
+          parentDestFolder == null
+        ) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Optional Folder: {1} add ignored because the parent folder is optional.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+        return;
+    }
+
+        tf = MappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
+        //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
+        // var newDestTab = await RetryHelper(async () =>
+        //         await clientApi.CreateTabAsync(tf, mappingWorkspaceWrap.WrapItem.Id,
+        //                                                   _main.AccessToken),
+        //                                                   $"Create tab {clientMatterCode}-{templateFolderWrap.FolderFullPath}", throwException: true);
+
+        // await RetryHelper(async () =>
+        //   await clientApi.PatchNameValuePair("folders", newDestTab.Id, _main.AccessToken, new
+        //   {
+        //       FolderTemplateId = tf.Id
+        //   }), "Patch folder name-value-pair", throwException: true);
+
+        // _log.Info($"Workspace: {clientMatterCode}. Tab: {templateFolderWrap.FolderFullPath}  added");
+        // var dbFolderSecurity = dbFoldersSecurity
+        //       .Where(fs => templateFolderWrap.FolderFullPath.ToLower().Replace("/", "\\") == fs.FolderName.ToLower()).ToList();
+        // if (newDestTab.DefaultSecurity != "inherit" || dbFolderSecurity.Any())
+        // {
+        //     var templateWsSecurity = await RetryHelper(async () =>
+        //     await clientApi.GetTabACL(_main.AccessToken, templateFolderWrap.WrapItem.Id), "Get template tab security", throwException: true);
+        //     var fSecurityList = templateWsSecurity.Data.ToList();
+        //     foreach (var wsAcl in dbFolderSecurity)
+        //     {
+        //         var sourceFAcl = fSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
+        //         if (sourceFAcl == null)
+        //         {
+        //             fSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access.ToLower(), Type = wsAcl.IsGroup ? "group" : "user" });
+        //         }
+        //     }
+        //     if (fSecurityList.Any())
+        //     {
+
+        //         var include = fSecurityList.Select(d => new { id = d.ID, access_level = d.AccessLevel, type = d.Type });
+        //         await RetryHelper(async () =>
+        //         {
+        //             return await clientApi.PatchSecurityTab(_main.AccessToken, newDestTab.Id, new
+        //             {
+        //                 default_security = newDestTab.DefaultSecurity == "inherit" ? "public" : newDestTab.DefaultSecurity,
+        //                 include
+        //             });
+        //         }, "Update tab security", throwException: true);
+        //         _log.Info($"Workspace: {clientMatterCode}. Tab: {templateFolderWrap.FolderFullPath}  security added");
+        //     }
+        // }
+        // mappingWorkspaceWrap.AddFolderAndResetMapping(newDestTab);
+  }
+
+  @TestVisible
+  private static IManageWFolder mappingProfileWorkspaceValues(
+    IManageWWorkspace workspace,
+    IManageWFolder templateFolder
+  )
+  {
+      if (templateFolder.profile == null)
+          return templateFolder;
+
+      String mapTemplate = '%WORKSPACE_VALUE%';
+      // var templateFolderProps = templateFolder.Profile.GetType()
+      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+      // var workspaceProps = workspace.GetType()
+      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+      // foreach (var templateProp in templateFolderProps)
+      // {
+      //     var value = templateProp.GetValue(templateFolder.Profile);
+      //     if (value?.ToString() == mapTemplate)
+      //     {
+      //         var propName = templateProp.Name;
+      //         var workspaceProp = workspaceProps.FirstOrDefault(p => p.Name == propName);
+      //         if (workspaceProp != null)
+      //         {
+      //             templateProp.SetValue(templateFolder.Profile, workspaceProp.GetValue(workspace));
+      //         }
+
+      //     }
+      // }
+      return templateFolder;
   }
 
   public class iManageWorkspaceResponse {

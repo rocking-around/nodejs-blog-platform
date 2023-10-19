@@ -365,27 +365,6 @@ public class iManageWrapper {
     return response == null ? null : response.data;
   }
 
-  public static List<iManageTemplate> GetTemplates(
-    String customerId,
-    String libraryId
-  ) {
-    String query =
-      '/work/api/v2/customers/' +
-      customerId +
-      '/libraries/' +
-      libraryId +
-      '/templates';
-    Logger.getInstance().info('iManageWrapper::GetTemplates, query=' + query);
-    String responseBody = IManageRequestHelper.Get(query);
-    Logger.getInstance()
-      .info('iManageWrapper::GetTemplates, response=' + responseBody);
-    iManageTemplatesResponse response = (iManageTemplatesResponse) JSON.deserialize(
-      responseBody,
-      iManageTemplatesResponse.class
-    );
-    return response == null ? null : response.data.results;
-  }
-
   // TODO: duplicated in iManageWorkspaceHelper
   public static Map<string, Object> GetFoldersByWorkspace(
     String customerId,
@@ -414,6 +393,37 @@ public class iManageWrapper {
       responseBody
     );
     return response;
+  }
+
+  public static iManageTemplatesResponse searchTemplateWorkspace(
+    String customerId,
+    String libraryId,
+    String templateName,
+    Integer offset,
+    Integer size) {
+      String query = String.format(
+        '/work/api/v2/customers/{0}/libraries/{1}/templates?offset={2}&limit={3}&total=true',
+        new List<Object>{ customerId, libraryId, offset, size }
+      );
+
+      if (String.isNotBlank(templateName)) {
+        query = query + '&name_or_description=' + templateName;
+      }
+
+      Logger.getInstance()
+      .info('iManageWrapper::searchTemplateWorkspaceByName, query=' + query);
+      String responseBody = IManageRequestHelper.Get(query);
+      Logger.getInstance()
+        .info(
+          'iManageWrapper::searchTemplateWorkspaceByName, response=' +
+          responseBody
+        );
+
+      iManageTemplatesResponse response = (iManageTemplatesResponse) JSON.deserialize(
+        responseBody,
+        iManageTemplatesResponse.class
+      );
+      return response;
   }
 
   /* Private */
@@ -561,20 +571,12 @@ public class iManageWrapper {
   }
 
   public class iManageTemplatesResponse {
-    iManageTemplates data;
+    public iManageTemplates data;
+    public Integer total_count;
   }
 
   public class iManageTemplates {
-    public List<iManageTemplate> results;
+    public List<IManageWWorkspace> results;
   }
 
-  public class iManageTemplate {
-    public String id;
-    public String wstype;
-    public String name;
-    public String description;
-    public Boolean has_subfolders;
-    public String custom1;
-    public String custom2;
-  }
 }

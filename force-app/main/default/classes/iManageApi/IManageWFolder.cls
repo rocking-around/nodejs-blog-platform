@@ -53,7 +53,7 @@ public with sharing class IManageWFolder {
 
   public String parent_id { get; set; }
 
-  //public WFolderProfile profile { get; set; }
+  public IManageWFolderProfile profile { get; set; }
 
   //public WSearchFolderProfile searchprofile { get; set; }
 

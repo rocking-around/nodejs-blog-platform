@@ -548,19 +548,23 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
-  public static Map<String, String> loadFolderTemplates() {
+  public static Map<String, String> loadFolderTemplates(String libraryId) {
     Logger.getInstance().info('ConfigurationHelper::createWorkspace');
     LicenseService.CheckOrganizationLicense();
-    String libraryId = 'ACTIVE';
     try {
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      List<iManageWrapper.iManageTemplate> results = iManageWrapper.GetTemplates(
+      Integer offset = 0;
+      Integer batchSize = 2000;
+      iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
         apiInfo.customerId,
-        libraryId
+        libraryId,
+        null,
+        offset,
+        batchSize
       );
 
       Map<String, String> templates = new Map<String, String>();
-      for (iManageWrapper.iManageTemplate templ : results) {
+      for (IManageWWorkspace templ : resp.data.results) {
         String key = libraryId + '::' + templ.id;
         templates.put(key, templ.name);
       }

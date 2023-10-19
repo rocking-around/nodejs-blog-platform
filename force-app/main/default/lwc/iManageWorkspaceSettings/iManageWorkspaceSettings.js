@@ -60,7 +60,9 @@ export default class IManageWorkspaceSettings extends LightningElement {
       this.loading = true;
 
       // load folder templates from iManage
-      const resp = await loadFolderTemplates();
+      const resp = await loadFolderTemplates({
+        libraryId: 'ACTIVE' //TODO: what library is have to be here?
+      });
       this.folderTemplateOptions = Object.entries(resp).map(([key, value]) => ({
         label: value,
         value: key
