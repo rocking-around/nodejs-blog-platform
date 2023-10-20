@@ -65,6 +65,40 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
+  public static Boolean isWorkspaceWithNameExists(
+    String name
+  ){
+    String logPrefix = 'iManageWorkspacesHelper::searchWorkspaceByName';
+    Map<String, Object> params = new Map<String, Object>{
+      'name' => name
+    };
+    Logger.getInstance()
+      .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+
+    if (String.isBlank(name)) {
+      return false;
+    }
+
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.searchWorkspaceByName(
+        apiInfo.customerId,
+        apiInfo.library,
+        name
+      );
+
+      return searchResult != null && searchResult.data != null && searchResult.data.size() > 0;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
   public static Map<String, Object> getFoldersByWorkspace(
     String workspaceTemplate,
     Integer offset,
@@ -145,12 +179,16 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Void createWorkspace(
+  public static Map<String, String> createWorkspace(
     String custom1, // client alias
     String custom2, // matter alias
     String wsName,
     String workspaceTemplate // "libraryId::templateId"
   ) {
+    Map<String, String> result = new Map<String, String> {
+      'id' => null,
+      'name' => null
+    };
     String[] wsData = workspaceTemplate.split('::', 2);
     String libraryId = wsData[0];
     String wsTemplateId = wsData[1];
@@ -213,6 +251,9 @@ public class iManageWorkspacesHelper {
       );
       Logger.getInstance().info('Workspace created.');
 
+      result.put('id', sourceWorkspace.id);
+      result.put('name', sourceWorkspace.name);
+
       Logger.getInstance().info('Compare folders and update by template.');
 
       IManageWorkspaceWrap sourceWorkspaceWrap = getWorkspaceContentWrap(
@@ -230,6 +271,8 @@ public class iManageWorkspacesHelper {
         custom1,
         custom2
       );
+
+      return result;
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;

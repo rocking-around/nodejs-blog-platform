@@ -194,6 +194,45 @@ public class iManageWrapper {
     }
   }
 
+  public static iManageWorkspaceSearch searchWorkspaceByName(
+    String customerId,
+    String libraryId,
+    String name
+  ) {
+    String nameEncoded = EncodingUtil.urlEncode(name, 'UTF-8');
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces?name={2}',
+        new List<Object>{ customerId, libraryId, nameEncoded }
+    );
+
+    Logger.getInstance()
+      .info('iManageWrapper::SearchWorkspaceByName, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::SearchWorkspaceByName, response=' + responseBody);
+    try {
+      return (iManageWorkspaceSearch) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceSearch.class
+      );
+    } catch (Exception ex) {
+      // Try to de-serialize again for on-premise iManage version
+      Logger.getInstance()
+        .warn(
+          'iManageWrapper::SearchWorkspaceByName, Cannot parse. Try to parse for on-prem version'
+        );
+      iManageWorkspaceOnPremiseSearch onPremResult = (iManageWorkspaceOnPremiseSearch) JSON.deserialize(
+        responseBody,
+        iManageWorkspaceOnPremiseSearch.class
+      );
+
+      iManageWorkspaceSearch result = new iManageWorkspaceSearch();
+      result.data = onPremResult.data.results;
+
+      return result;
+    }
+  }
+
   public static iManageFolder GetFolder(
     String customerId,
     String library,

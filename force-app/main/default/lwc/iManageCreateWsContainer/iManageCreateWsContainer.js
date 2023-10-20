@@ -1,20 +1,25 @@
 import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.getIManageWorkspaceSettings";
+import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
+import isWorkspaceWithNameExists from "@salesforce/apex/iManageWorkspacesHelper.isWorkspaceWithNameExists";
+import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
 import iManageCreateWsModal from "c/iManageCreateWsModal";
 export default class IManageCreateWsContainer extends LightningElement {
   @api recordId;
   loading = true;
 
   wsSettings = undefined;
+  isWorkspaceExists = true;
+  clientId = undefined;
+  matterId = undefined;
+  clientName = undefined;
+  matterName = undefined;
 
   error = {}; //code, message
 
   async connectedCallback() {
     // check option automatic sync to iManage
-
-    // check if ws already exists
-
     await this.loadData();
     this.loading = false;
   }
@@ -22,12 +27,31 @@ export default class IManageCreateWsContainer extends LightningElement {
   async loadData() {
     this.wsSettings = await getIManageWorkspaceSettings();
     this.wsFolderTemplate = this.wsSettings["iManageWs:Folder_Template_Id"];
+
+    const { clientId, matterId, clientName, matterName } =
+        await getIManageDataFromSObject({
+          entityId: this.recordId
+        });
+    this.clientId = clientId;
+    this.matterId = matterId;
+    this.clientName = clientName;
+    this.matterName = matterName;
+
+    const wsName = this.wsName;
+
+    // check if ws already exists
+    this.isWorkspaceExists = await isWorkspaceWithNameExists({
+      name: wsName
+    });
   }
 
   async handleCreateWsClick() {
     const result = await iManageCreateWsModal.open({
       size: "large",
       recordId: this.recordId,
+      wsSettings: this.wsSettings,
+      newWsName: this.wsName,
+      createWs: (ft) => this.createWs(ft),
       createdCallback: () => this.loadData(),
       ifErrorCallback: (err) => this.handleErrors(err)
     });
@@ -36,7 +60,7 @@ export default class IManageCreateWsContainer extends LightningElement {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Create Workspace...",
-          message: `The Workspace "${result.name}" created successfuly`,
+          message: `The Workspace "${result.name}" (#${result.id}) created successfuly`,
           variant: "success"
         })
       );
@@ -64,5 +88,68 @@ export default class IManageCreateWsContainer extends LightningElement {
       this.wsSettings["iManageWs:Create_Ws_Enabled"] &&
       !this.wsSettings["iManageWs:Auto_Create"]
     );
+  }
+
+  get isVisible() {
+    return this.createWsEnabled && !this.isWorkspaceExists;
+  }
+
+  get wsName() {
+    if (!this.wsSettings) {
+        return undefined;
+    }
+    let wsName = (this.wsSettings["iManageWs:Name_Pattern"] || '').trim();
+
+    if (!wsName.length) {
+        return undefined;
+    }
+
+    const wsNamePlaceholders = {
+      "{CLIENTCODE}": this.clientId,
+      "{MATTERCODE}": this.matterId,
+      "{CLIENTNAME}": this.clientName,
+      "{MATTERNAME}": this.matterName
+    };
+    //const ts = new Date().toISOString().split(".")[0].replace(/[^\d]/gi, "");
+    for (const [placeholder, value] of Object.entries(wsNamePlaceholders)) {
+      wsName = wsName.replaceAll(placeholder, value);
+    }
+    return wsName;
+  }
+
+  async createWs(folderTemplate) {
+    const data = {
+      custom1: this.clientId, // client alias
+      custom2: this.matterId, // matter alias
+      wsName: this.wsName,
+      workspaceTemplate: folderTemplate // "libraryId::te
+    };
+    console.log("**** create ws data: ", data);
+    if (!this.validate(data)) {
+      return null;
+    }
+    const ws = await createWorkspace(data);
+    return {
+      id: ws.id,
+      name: ws.name
+    };
+  }
+
+  validate(data) {
+    let errors = [];
+    if (!data.custom1) {
+      errors.push("Client is empty");
+    }
+    if (!data.custom2) {
+      errors.push("Matter is empty");
+    }
+    if (!data.workspaceTemplate) {
+      errors.push("Workspace template is empty");
+    }
+    const isValid = errors.length === 0;
+    if (!isValid) {
+        this.handleErrors(errors.join("\n"));
+    }
+    return isValid;
   }
 }
