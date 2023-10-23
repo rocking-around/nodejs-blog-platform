@@ -465,6 +465,154 @@ public class iManageWrapper {
       return response;
   }
 
+  public static IManageWFolder createTab(
+    IManageWFolder sourceTab,
+    String workspaceId,
+    String customerId,
+    String libraryId
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/tabs',
+      new List<Object>{ customerId, libraryId, workspaceId }
+    );
+    Map<String, Object> reqBody = sourceTab.toWFolderRequestMap();
+    reqBody.put('database', libraryId);
+    String body = JSON.serialize(reqBody, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::createTab, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::createTab, response=' + responseBody);
+    System.debug(responseBody);
+
+    IManageTabResponse response = (IManageTabResponse) JSON.deserialize(
+      responseBody,
+      IManageTabResponse.class
+    );
+
+    return response.data;
+  }
+
+  public static List<IManageWSecurity> getFolderACL(
+    string folderId,
+    String customerId,
+    String libraryId
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+      new List<Object>{ customerId, libraryId, folderId }
+    );
+    Logger.getInstance()
+      .info('iManageWrapper::getFolderACL, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::getFolderACL, response=' + responseBody);
+
+    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+      responseBody,
+      iManageFolderSecurityResponse.class
+    );
+
+    return response.data;
+  }
+
+  public static List<IManageWSecurity> getTabACL(
+    string tabId,
+    String customerId,
+    String libraryId
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/security',
+      new List<Object>{ customerId, libraryId, tabId }
+    );
+    Logger.getInstance()
+      .info('iManageWrapper::getTabACL, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::getTabACL, response=' + responseBody);
+
+    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+      responseBody,
+      iManageFolderSecurityResponse.class
+    );
+
+    return response.data;
+  }
+
+  public static List<IManageWSecurity> patchSecurityFolder(
+    String id,
+    String customerId,
+    String libraryId,
+    Object data
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+      new List<Object>{ customerId, libraryId, id }
+    );
+    String body = JSON.serialize(data, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchSecurityFolder, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchSecurityFolder, response=' + responseBody
+      );
+    System.debug(responseBody);
+
+    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+      responseBody,
+      iManageFolderSecurityResponse.class
+    );
+
+    return response.data;
+  }
+
+  public static List<IManageWSecurity> patchSecurityTab(
+    String id,
+    String customerId,
+    String libraryId,
+    Object data
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/security',
+      new List<Object>{ customerId, libraryId, id }
+    );
+    String body = JSON.serialize(data, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchSecurityTab, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchSecurityTab, response=' + responseBody
+      );
+    System.debug(responseBody);
+
+    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+      responseBody,
+      iManageFolderSecurityResponse.class
+    );
+
+    return response.data;
+  }
+
   /* Private */
 
   private static Blob GetFormBase64(Blob jsonBlob, Blob data) {
@@ -616,6 +764,15 @@ public class iManageWrapper {
 
   public class iManageTemplates {
     public List<IManageWWorkspace> results;
+  }
+
+  public class IManageTabResponse {
+    public IManageWFolder data;
+  }
+
+  public class iManageFolderSecurityResponse {
+    List<IManageWSecurity> data;
+    String default_security;
   }
 
 }

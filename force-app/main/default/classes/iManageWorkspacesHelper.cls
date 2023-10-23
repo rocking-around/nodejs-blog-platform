@@ -626,7 +626,7 @@ public class iManageWorkspacesHelper {
           libraryId
         );
 
-        if (tf.IsOptional == true) {
+        if (tf.isOptional == true) {
           Logger.getInstance()
             .info(
               String.format(
@@ -726,28 +726,17 @@ public class iManageWorkspacesHelper {
             )
           );
 
-        List<Object> dbFolderSecurity = new List<Object>(); // dbFoldersSecurity.Where(fs => templateFolderWrap.FolderFullPath.ToLower().Replace("/", "\\") == fs.FolderName.ToLower()).ToList();
 
         if (
-          newDestFolder.default_security != 'inherit' ||
-          dbFolderSecurity.size() > 0
+          newDestFolder.default_security != 'inherit'
         ) {
           Logger.getInstance().info('Get template folder security');
-          List<IManageWSecurity> fSecurityList = getFolderACL(
+          List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
             ((IManageWFolder) templateFolderWrap.wrapItem).id,
             customerId,
             libraryId
           );
 
-          for (Object wsAcl : dbFolderSecurity) {
-            // Not implemented
-
-            // var sourceFAcl = fSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
-            // if (sourceFAcl == null)
-            // {
-            //     fSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access.ToLower(), Type = wsAcl.IsGroup ? "group" : "user" });
-            // }
-          }
           if (fSecurityList.size() > 0) {
             Logger.getInstance().info('Update folder security');
             List<Map<String, Object>> include = new List<Map<String, Object>>();
@@ -761,11 +750,16 @@ public class iManageWorkspacesHelper {
               );
             }
 
-            patchSecurityFolder(
+            iManageWrapper.patchSecurityFolder(
               newDestFolder.id,
               customerId,
               libraryId,
-              include
+              new Map<String, Object> {
+                'default_security' => newDestFolder.default_security == 'inherit'
+                  ? 'public'
+                  : newDestFolder.default_security,
+                'include' => include
+              }
             );
 
             Logger.getInstance()
@@ -825,7 +819,7 @@ public class iManageWorkspacesHelper {
     );
     IManageWFolder folder = getFolderById(folderId, customerId, libraryId);
     if (kvPair.containsKey('IMCC_IsOptional')) {
-      folder.IsOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
+      folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
     }
     return folder;
   }
@@ -846,6 +840,7 @@ public class iManageWorkspacesHelper {
     Logger.getInstance()
       .info('iManageWorkspacesHelper::getFolderById, response=' + responseBody);
 
+    responseBody = responseBody.replace('"class"', '"klass"');
     iManageFolderResponse response = (iManageFolderResponse) JSON.deserialize(
       responseBody,
       iManageFolderResponse.class
@@ -880,62 +875,6 @@ public class iManageWorkspacesHelper {
     return response;
   }
 
-  public static List<IManageWSecurity> getFolderACL(
-    string folderId,
-    String customerId,
-    String libraryId
-  ) {
-    String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
-      new List<Object>{ customerId, libraryId, folderId }
-    );
-    Logger.getInstance()
-      .info('iManageWorkspacesHelper::getFolderACL, query=' + query);
-    String responseBody = IManageRequestHelper.Get(query);
-    Logger.getInstance()
-      .info('iManageWorkspacesHelper::getFolderACL, response=' + responseBody);
-
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
-      responseBody,
-      iManageFolderSecurityResponse.class
-    );
-
-    return response.data;
-  }
-
-  public static List<IManageWSecurity> patchSecurityFolder(
-    String id,
-    String customerId,
-    String libraryId,
-    Object data
-  ) {
-    String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
-      new List<Object>{ customerId, libraryId, id }
-    );
-    String body = JSON.serialize(data, true);
-
-    Logger.getInstance()
-      .info(
-        'iManageWorkspacesHelper::patchSecurityFolder, query=' +
-        query +
-        '; body=' +
-        body
-      );
-    String responseBody = IManageRequestHelper.Post(query, body);
-    Logger.getInstance()
-      .info(
-        'iManageWorkspacesHelper::patchSecurityFolder, response=' + responseBody
-      );
-    System.debug(responseBody);
-
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
-      responseBody,
-      iManageFolderSecurityResponse.class
-    );
-
-    return response.data;
-  }
 
   public static Map<String, String> getNameValuePair(
     String objectName,
@@ -1081,7 +1020,7 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
-    if (tf.IsOptional == true) {
+    if (tf.isOptional == true) {
       Logger.getInstance()
         .info(
           String.format(
@@ -1114,49 +1053,93 @@ public class iManageWorkspacesHelper {
 
         tf = MappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
         //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
-        // var newDestTab = await RetryHelper(async () =>
-        //         await clientApi.CreateTabAsync(tf, mappingWorkspaceWrap.WrapItem.Id,
-        //                                                   _main.AccessToken),
-        //                                                   $"Create tab {clientMatterCode}-{templateFolderWrap.FolderFullPath}", throwException: true);
 
-        // await RetryHelper(async () =>
-        //   await clientApi.PatchNameValuePair("folders", newDestTab.Id, _main.AccessToken, new
-        //   {
-        //       FolderTemplateId = tf.Id
-        //   }), "Patch folder name-value-pair", throwException: true);
 
-        // _log.Info($"Workspace: {clientMatterCode}. Tab: {templateFolderWrap.FolderFullPath}  added");
-        // var dbFolderSecurity = dbFoldersSecurity
-        //       .Where(fs => templateFolderWrap.FolderFullPath.ToLower().Replace("/", "\\") == fs.FolderName.ToLower()).ToList();
-        // if (newDestTab.DefaultSecurity != "inherit" || dbFolderSecurity.Any())
-        // {
-        //     var templateWsSecurity = await RetryHelper(async () =>
-        //     await clientApi.GetTabACL(_main.AccessToken, templateFolderWrap.WrapItem.Id), "Get template tab security", throwException: true);
-        //     var fSecurityList = templateWsSecurity.Data.ToList();
-        //     foreach (var wsAcl in dbFolderSecurity)
-        //     {
-        //         var sourceFAcl = fSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
-        //         if (sourceFAcl == null)
-        //         {
-        //             fSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access.ToLower(), Type = wsAcl.IsGroup ? "group" : "user" });
-        //         }
-        //     }
-        //     if (fSecurityList.Any())
-        //     {
+        Logger.getInstance()
+        .info(
+          String.format(
+            'Create tab {0}-{1}',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+        IManageWFolder newDestTab = iManageWrapper.createTab(
+          tf,
+          ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
+          customerId,
+          libraryId
+        );
 
-        //         var include = fSecurityList.Select(d => new { id = d.ID, access_level = d.AccessLevel, type = d.Type });
-        //         await RetryHelper(async () =>
-        //         {
-        //             return await clientApi.PatchSecurityTab(_main.AccessToken, newDestTab.Id, new
-        //             {
-        //                 default_security = newDestTab.DefaultSecurity == "inherit" ? "public" : newDestTab.DefaultSecurity,
-        //                 include
-        //             });
-        //         }, "Update tab security", throwException: true);
-        //         _log.Info($"Workspace: {clientMatterCode}. Tab: {templateFolderWrap.FolderFullPath}  security added");
-        //     }
-        // }
-        // mappingWorkspaceWrap.AddFolderAndResetMapping(newDestTab);
+        Logger.getInstance().info('Patch folder name-value-pair');
+        patchNameValuePair(
+          'folders',
+          newDestTab.id,
+          customerId,
+          libraryId,
+          new Map<String, Object>{ 'folderTemplateId' => tf.id }
+        );
+        Logger.getInstance()
+          .info(
+            String.format(
+              'Workspace: {0}. Tab: {1} added',
+              new List<Object>{
+                clientMatterCode,
+                templateFolderWrap.folderFullPath
+              }
+            )
+          );
+
+        if (newDestTab.default_security != 'inherit')
+        {
+          Logger.getInstance().info('Get template tab security');
+          List<IManageWSecurity> fSecurityList = iManageWrapper.getTabACL(
+            ((IManageWFolder) templateFolderWrap.wrapItem).id,
+            customerId,
+            libraryId
+          );
+
+          if (fSecurityList.size() > 0)
+          {
+            List<Map<String, Object>> include = new List<Map<String, Object>>();
+            for (IManageWSecurity d : fSecurityList) {
+              include.add(
+                new Map<String, Object>{
+                  'id' => d.id,
+                  'access_level' => d.access_level,
+                  'type' => d.type
+                }
+              );
+            }
+
+            Logger.getInstance().info('Update tab security');
+            iManageWrapper.patchSecurityTab(
+              newDestTab.id,
+              customerId,
+              libraryId,
+              new Map<String, Object> {
+                'default_security' => newDestTab.default_security == 'inherit'
+                  ? 'public'
+                  : newDestTab.default_security,
+                'include' => include
+              }
+            );
+
+            Logger.getInstance()
+              .info(
+                String.format(
+                  'Workspace: {0}. Tab: {1} security added',
+                  new List<Object>{
+                    clientMatterCode,
+                    templateFolderWrap.folderFullPath
+                  }
+                )
+              );
+          }
+        }
+
+        mappingWorkspaceWrap.addFolderAndResetMapping(newDestTab);
   }
 
   @TestVisible
@@ -1169,6 +1152,7 @@ public class iManageWorkspacesHelper {
           return templateFolder;
 
       String mapTemplate = '%WORKSPACE_VALUE%';
+      // TODO:IMPLEMENT IT
       // var templateFolderProps = templateFolder.Profile.GetType()
       //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
       // var workspaceProps = workspace.GetType()
@@ -1201,11 +1185,6 @@ public class iManageWorkspacesHelper {
 
   public class iManageFolderResponse {
     IManageWFolder data;
-  }
-
-  public class iManageFolderSecurityResponse {
-    List<IManageWSecurity> data;
-    String default_security;
   }
 
   public class iManageNameValuePairResponse {

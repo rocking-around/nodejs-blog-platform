@@ -76,5 +76,38 @@ public with sharing class IManageWFolder {
   public String wstype { get; set; }
 
   // JsonIgnore
-  public Boolean IsOptional { get; set; }
+  public transient Boolean isOptional { get; set; }
+
+  public Map<String, Object> toMap(Boolean suppressNulls) {
+    String jsonThis = JSON.serialize(this);
+    Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(jsonThis);
+    result.put('profile', profile.toMap(true));
+
+    if (suppressNulls == true) {
+      for (String key : result.keySet()) {
+        if (result.containsKey(key) && result.get(key) == null) {
+          result.remove(key);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  public Map<String, Object> toWFolderRequestMap() {
+    List<String> fields = new List<String>{'default_security', 'description', 'is_external_as_normal', 'email', 'name', 'owner', 'parent_id', 'profile', 'searchprofile', 'project_custom1', 'project_custom2', 'project_custom3', 'database'};
+
+    Map<String, Object> result = toMap(false);
+    for (String key : result.keySet()) {
+      if (!fields.contains(key)) {
+        result.remove(key);
+      }
+    }
+
+    if (result.containsKey('is_external_as_normal') && result.get('is_external_as_normal') == null) {
+      result.put('is_external_as_normal', false);
+    }
+
+    return result;
+  }
 }
