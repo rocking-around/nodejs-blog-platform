@@ -533,6 +533,28 @@ public class iManageWorkspacesHelper {
       .info(
         'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, START'
       );
+      // Logger.getInstance()
+      // .info(
+      //   'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, templateFolders: ' + JSON.serialize(templateFolders)
+      // );
+    //   Logger.getInstance()
+    //   .info(
+    //     'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, mappingWorkspaceWrap' + JSON.serialize(mappingWorkspaceWrap)
+    //   );
+    // Map<String, Object> params = new Map<String, Object>{
+    //   'mappingWorkspaceWrap' => mappingWorkspaceWrap,
+    //   'templateFolders' => templateFolders,
+    //   'customerId' => customerId,
+    //   'libraryId' => libraryId,
+    //   'clientId' => clientId,
+    //   'matterId' => matterId
+    // };
+    // Logger.getInstance()
+    //   .info(
+    //     'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, Params: ' +
+    //     JSON.serialize(params)
+    //   );
+
     String clientMatterCode = String.format(
       '{0}.{1}',
       new List<Object>{ clientId, matterId }
@@ -583,6 +605,11 @@ public class iManageWorkspacesHelper {
         }
       }
     }
+
+    Logger.getInstance()
+      .info(
+        'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, mappedTemplateFolders: ' + JSON.serializePretty(mappedTemplateFolders)
+      );
 
     //var dbFoldersSecurity = await _dbClient.GetFoldersSecurityRows(matterRow.UID);
     //create new folders
@@ -673,7 +700,7 @@ public class iManageWorkspacesHelper {
               }
             )
           );
-        IManageWFolder newDestFolder = createFolder(
+        IManageWFolder newDestFolder = iManageWrapper.createFolder(
           ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
           tf,
           parentDestFolderId,
@@ -785,13 +812,14 @@ public class iManageWorkspacesHelper {
           mappingWorkspaceWrap
         );
       } else if (folderType == 'search') {
-        Logger.getInstance()
-          .info(
-            String.format(
-              'The "{0}" type is not supported yet.',
-              new List<Object>{ folderType }
-            )
-          );
+        createSearchFolder(
+          customerId,
+          libraryId,
+          clientMatterCode,
+          templateFolderWrap,
+          parentDestFolder,
+          mappingWorkspaceWrap
+        );
       } else {
         throw new IManageExceptions.IManageApplicationException(
           String.format(
@@ -817,35 +845,29 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
-    IManageWFolder folder = getFolderById(folderId, customerId, libraryId);
+    IManageWFolder folder = iManageWrapper.getFolderById(folderId, customerId, libraryId);
     if (kvPair.containsKey('IMCC_IsOptional')) {
       folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
     }
     return folder;
   }
 
-  public static IManageWFolder getFolderById(
+  public static IManageWFolder getSearchTemplateWFolder(
     String folderId,
     String customerId,
     String libraryId
   ) {
-    //GET https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/folders/{folderId}
-    String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
-      new List<Object>{ customerId, libraryId, folderId }
+    Map<String, String> kvPair = getNameValuePair(
+      'folders',
+      folderId,
+      customerId,
+      libraryId
     );
-    Logger.getInstance()
-      .info('iManageWorkspacesHelper::getFolderById, query=' + query);
-    String responseBody = IManageRequestHelper.Get(query);
-    Logger.getInstance()
-      .info('iManageWorkspacesHelper::getFolderById, response=' + responseBody);
-
-    responseBody = responseBody.replace('"class"', '"klass"');
-    iManageFolderResponse response = (iManageFolderResponse) JSON.deserialize(
-      responseBody,
-      iManageFolderResponse.class
-    );
-    return response.data;
+    IManageWFolder folder = iManageWrapper.getSearchFolderById(folderId, customerId, libraryId);
+    if (kvPair.containsKey('IMCC_IsOptional')) {
+      folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
+    }
+    return folder;
   }
 
   public static Object patchFolder(
@@ -932,71 +954,6 @@ public class iManageWorkspacesHelper {
     return response;
   }
 
-  public static IManageWFolder createFolder(
-    String workspaceId,
-    IManageWFolder sourceFolder,
-    String parentFolderId,
-    Boolean parentIsTab,
-    String owner,
-    String customerId,
-    String libraryId
-  ) {
-    String query = '';
-    if (String.isNotBlank(parentFolderId)) {
-      if (parentIsTab == true) {
-        query = String.format(
-          '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/folders',
-          new List<Object>{ customerId, libraryId, parentFolderId }
-        );
-      } else {
-        query = String.format(
-          '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/subfolders',
-          new List<Object>{ customerId, libraryId, parentFolderId }
-        );
-      }
-    } else {
-      query = String.format(
-        '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/folders',
-        new List<Object>{ customerId, libraryId, workspaceId }
-      );
-    }
-
-    Map<String, Object> reqBody = new Map<String, Object>{
-      'name' => sourceFolder.name,
-      'description' => sourceFolder.description,
-      'default_security' => sourceFolder.default_security,
-      'is_external_as_normal' => sourceFolder.is_external_as_normal,
-      'email' => null,
-      'owner' => owner != null ? owner : sourceFolder.owner,
-      'parent_id' => workspaceId,
-      'project_custom1' => sourceFolder.project_custom1,
-      'project_custom2' => sourceFolder.project_custom2,
-      'project_custom3' => sourceFolder.project_custom3,
-      'database' => libraryId
-    };
-
-    String body = JSON.serialize(reqBody, true);
-
-    Logger.getInstance()
-      .info(
-        'iManageWorkspacesHelper::createFolder, query=' +
-        query +
-        '; body=' +
-        body
-      );
-    String responseBody = IManageRequestHelper.Post(query, body);
-    Logger.getInstance()
-      .info('iManageWorkspacesHelper::createFolder, response=' + responseBody);
-    System.debug(responseBody);
-
-    iManageFolderResponse response = (iManageFolderResponse) JSON.deserialize(
-      responseBody,
-      iManageFolderResponse.class
-    );
-
-    return response.data;
-  }
-
   @TestVisible
   private static void createRegularFolder(
     String customerId,
@@ -1053,7 +1010,6 @@ public class iManageWorkspacesHelper {
 
         tf = MappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
         //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
-
 
         Logger.getInstance()
         .info(
@@ -1143,6 +1099,146 @@ public class iManageWorkspacesHelper {
   }
 
   @TestVisible
+  private static void createSearchFolder(
+    String customerId,
+    String libraryId,
+    String clientMatterCode,
+    IManageFolderWrap templateFolderWrap,
+    IManageWFolder parentDestFolder,
+    IManageWorkspaceWrap mappingWorkspaceWrap
+  ) {
+    String parentDestFolderId = parentDestFolder == null
+        ? null
+        : parentDestFolder.id;
+
+    IManageWFolder tf = getSearchTemplateWFolder(
+      ((IManageWFolder) templateFolderWrap.wrapItem).id,
+      customerId,
+      libraryId
+    );
+    if (tf.isOptional == true) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Search Folder: {1} add ignored.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+      return;
+    }
+
+    if (
+      templateFolderWrap.parentFolder != null &&
+      parentDestFolder == null
+    ) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Optional Folder: {1} add ignored because the parent folder is optional.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+        return;
+    }
+
+    //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
+
+    tf = mappingSearchProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
+
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Create search folder profile: {0}',
+          new List<Object>{
+            JSON.serializePretty(tf, true)
+          }
+        )
+      );
+
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Create search folder {0}-{1}',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+
+    IManageWFolder newDestFolder = iManageWrapper.createSearchFolder(
+      tf,
+      ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
+      parentDestFolderId,
+      customerId,
+      libraryId
+    );
+
+    if (newDestFolder.default_security != 'inherit')
+    {
+      Logger.getInstance().info('Get template folder security');
+      List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
+        ((IManageWFolder) templateFolderWrap.wrapItem).id,
+        customerId,
+        libraryId
+      );
+
+      if (fSecurityList.size() > 0)
+      {
+        List<Map<String, Object>> include = new List<Map<String, Object>>();
+        for (IManageWSecurity d : fSecurityList) {
+          include.add(
+            new Map<String, Object>{
+              'id' => d.id,
+              'access_level' => d.access_level,
+              'type' => d.type
+            }
+          );
+        }
+        Logger.getInstance().info('Update folder security');
+        iManageWrapper.patchSecurityFolder(
+          newDestFolder.id,
+          customerId,
+          libraryId,
+          new Map<String, Object> {
+            'default_security' => newDestFolder.default_security == 'inherit'
+              ? 'public'
+              : newDestFolder.default_security,
+            'include' => include
+          }
+        );
+        Logger.getInstance()
+          .info(
+            String.format(
+              'Workspace: {0}. Folder: {1} security added',
+              new List<Object>{
+                clientMatterCode,
+                templateFolderWrap.folderFullPath
+              }
+            )
+          );
+      }
+    }
+    mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Workspace: {0}. Search Folder: {1} security added',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+  }
+
+  @TestVisible
   private static IManageWFolder mappingProfileWorkspaceValues(
     IManageWWorkspace workspace,
     IManageWFolder templateFolder
@@ -1174,6 +1270,37 @@ public class iManageWorkspacesHelper {
       return templateFolder;
   }
 
+  @TestVisible
+  private static IManageWFolder mappingSearchProfileWorkspaceValues(
+    IManageWWorkspace workspace,
+    IManageWFolder templateSearchFolder
+  ) {
+    if (templateSearchFolder.searchProfile == null)
+      return templateSearchFolder;
+
+      String mapTemplate = '%WORKSPACE_VALUE%';
+      // TODO:IMPLEMENT IT
+      // var templateFolderProps = templateSearchFolder.SearchProfile.GetType()
+      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+      // var workspaceProps = workspace.GetType()
+      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+      // foreach (var templateProp in templateFolderProps)
+      // {
+      //     var value = templateProp.GetValue(templateSearchFolder.SearchProfile);
+      //     if (value?.ToString() == mapTemplate)
+      //     {
+      //         var propName = templateProp.Name;
+      //         var workspaceProp = workspaceProps.FirstOrDefault(p => p.Name == propName);
+      //         if (workspaceProp != null)
+      //         {
+      //             templateProp.SetValue(templateSearchFolder.SearchProfile, workspaceProp.GetValue(workspace));
+      //         }
+
+      //     }
+      // }
+    return templateSearchFolder;
+  }
+
   public class iManageWorkspaceResponse {
     IManageWWorkspace data;
   }
@@ -1183,9 +1310,9 @@ public class iManageWorkspacesHelper {
     Integer total_count;
   }
 
-  public class iManageFolderResponse {
-    IManageWFolder data;
-  }
+  // public class iManageWFolderResponse {
+  //   IManageWFolder data;
+  // }
 
   public class iManageNameValuePairResponse {
     Map<String, String> data;

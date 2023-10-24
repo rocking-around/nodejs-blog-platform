@@ -55,7 +55,7 @@ public with sharing class IManageWFolder {
 
   public IManageWFolderProfile profile { get; set; }
 
-  //public WSearchFolderProfile searchprofile { get; set; }
+  public IManageWSearchFolderProfile searchprofile { get; set; }
 
   public String project_custom1 { get; set; }
 
@@ -81,7 +81,8 @@ public with sharing class IManageWFolder {
   public Map<String, Object> toMap(Boolean suppressNulls) {
     String jsonThis = JSON.serialize(this);
     Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(jsonThis);
-    result.put('profile', profile.toMap(true));
+    result.put('profile', profile != null ? profile.toMap(true) : null);
+    result.put('searchprofile', searchprofile != null ? searchprofile.toMap(true) : null);
 
     if (suppressNulls == true) {
       for (String key : result.keySet()) {
@@ -97,6 +98,15 @@ public with sharing class IManageWFolder {
   public Map<String, Object> toWFolderRequestMap() {
     List<String> fields = new List<String>{'default_security', 'description', 'is_external_as_normal', 'email', 'name', 'owner', 'parent_id', 'profile', 'searchprofile', 'project_custom1', 'project_custom2', 'project_custom3', 'database'};
 
+    return toRequest(fields);
+  }
+
+  public Map<String, Object> toWSearchFolderRequest() {
+    List<String> fields = new List<String>{'database', 'name', 'default_security', 'searchprofile'};
+    return toRequest(fields);
+  }
+
+  private Map<String, Object> toRequest(List<String> fields) {
     Map<String, Object> result = toMap(false);
     for (String key : result.keySet()) {
       if (!fields.contains(key)) {

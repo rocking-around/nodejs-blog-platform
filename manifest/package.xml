@@ -11,6 +11,7 @@
         <members>IManageUtils</members>
         <members>IManageWFolder</members>
         <members>IManageWFolderProfile</members>
+        <members>IManageWSearchFolderProfile</members>
         <members>IManageWorkspaceWrap</members>
         <members>IManageWrapBase</members>
         <members>IManageWSecurity</members>

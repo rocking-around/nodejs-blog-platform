@@ -434,6 +434,53 @@ public class iManageWrapper {
     return response;
   }
 
+  public static IManageWFolder getFolderById(
+    String folderId,
+    String customerId,
+    String libraryId
+  ) {
+    //GET https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/folders/{folderId}
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+      new List<Object>{ customerId, libraryId, folderId }
+    );
+    Logger.getInstance()
+      .info('iManageWrapper::getFolderById, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::getFolderById, response=' + responseBody);
+
+    responseBody = responseBody.replace('"class"', '"klass"');
+    iManageWFolderResponse response = (iManageWFolderResponse) JSON.deserialize(
+      responseBody,
+      iManageWFolderResponse.class
+    );
+    return response.data;
+  }
+
+  public static IManageWFolder getSearchFolderById(
+    String folderId,
+    String customerId,
+    String libraryId
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/search-folders/{2}',
+      new List<Object>{ customerId, libraryId, folderId }
+    );
+    Logger.getInstance()
+      .info('iManageWrapper::getSearchFolderById, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::getSearchFolderById, response=' + responseBody);
+
+    responseBody = responseBody.replace('"class"', '"klass"');
+    iManageWFolderResponse response = (iManageWFolderResponse) JSON.deserialize(
+      responseBody,
+      iManageWFolderResponse.class
+    );
+    return response.data;
+  }
+
   public static iManageTemplatesResponse searchTemplateWorkspace(
     String customerId,
     String libraryId,
@@ -465,6 +512,71 @@ public class iManageWrapper {
       return response;
   }
 
+  public static IManageWFolder createFolder(
+    String workspaceId,
+    IManageWFolder sourceFolder,
+    String parentFolderId,
+    Boolean parentIsTab,
+    String owner,
+    String customerId,
+    String libraryId
+  ) {
+    String query = '';
+    if (String.isNotBlank(parentFolderId)) {
+      if (parentIsTab == true) {
+        query = String.format(
+          '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/folders',
+          new List<Object>{ customerId, libraryId, parentFolderId }
+        );
+      } else {
+        query = String.format(
+          '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/subfolders',
+          new List<Object>{ customerId, libraryId, parentFolderId }
+        );
+      }
+    } else {
+      query = String.format(
+        '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/folders',
+        new List<Object>{ customerId, libraryId, workspaceId }
+      );
+    }
+
+    Map<String, Object> reqBody = new Map<String, Object>{
+      'name' => sourceFolder.name,
+      'description' => sourceFolder.description,
+      'default_security' => sourceFolder.default_security,
+      'is_external_as_normal' => sourceFolder.is_external_as_normal,
+      'email' => null,
+      'owner' => owner != null ? owner : sourceFolder.owner,
+      'parent_id' => workspaceId,
+      'project_custom1' => sourceFolder.project_custom1,
+      'project_custom2' => sourceFolder.project_custom2,
+      'project_custom3' => sourceFolder.project_custom3,
+      'database' => libraryId
+    };
+
+    String body = JSON.serialize(reqBody, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::createFolder, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::createFolder, response=' + responseBody);
+    System.debug(responseBody);
+
+    iManageWFolderResponse response = (iManageWFolderResponse) JSON.deserialize(
+      responseBody,
+      iManageWFolderResponse.class
+    );
+
+    return response.data;
+  }
+
   public static IManageWFolder createTab(
     IManageWFolder sourceTab,
     String workspaceId,
@@ -489,6 +601,46 @@ public class iManageWrapper {
     String responseBody = IManageRequestHelper.Post(query, body);
     Logger.getInstance()
       .info('iManageWrapper::createTab, response=' + responseBody);
+    System.debug(responseBody);
+
+    IManageTabResponse response = (IManageTabResponse) JSON.deserialize(
+      responseBody,
+      IManageTabResponse.class
+    );
+
+    return response.data;
+  }
+
+  public static IManageWFolder createSearchFolder(
+    IManageWFolder sourceTab,
+    String workspaceId,
+    String parentFolderId,
+    String customerId,
+    String libraryId
+  ) {
+    String query = String.isNotBlank(parentFolderId)
+      ? String.format(
+        '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/search-folders',
+        new List<Object>{ customerId, libraryId, parentFolderId }
+      )
+      : String.format(
+        '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/search-folders',
+        new List<Object>{ customerId, libraryId, workspaceId }
+      );
+    Map<String, Object> reqBody = sourceTab.toWSearchFolderRequest();
+    reqBody.put('database', libraryId);
+    String body = JSON.serialize(reqBody, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::createSearchFolder, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::createSearchFolder, response=' + responseBody);
     System.debug(responseBody);
 
     IManageTabResponse response = (IManageTabResponse) JSON.deserialize(
@@ -724,6 +876,11 @@ public class iManageWrapper {
     public List<iManageFolder> data;
   }
 
+  public class iManageWFolderResponse {
+    IManageWFolder data;
+  }
+
+  // TODO: Deprecated. use iManageWFolderResponse
   public class iManageFolderResponse {
     public iManageFolder data;
   }
