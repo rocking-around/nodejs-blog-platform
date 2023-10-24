@@ -220,12 +220,19 @@ public class iManageWorkspacesHelper {
         );
       }
 
+      // System.debug('***** templateWorkspaceWrap = ' + JSON.serialize(templateWorkspaceWrap));
+
       // get list and reverse it
       List<IManageFolderWrap> templateFolders = new List<IManageFolderWrap>();
       List<IManageFolderWrap> tmpTemplateFolders = templateWorkspaceWrap.getFlatListAllFolders();
+
+      // System.debug('***** tmpTemplateFolders = ' + JSON.serialize(tmpTemplateFolders));
+
       for (Integer i = tmpTemplateFolders.size() - 1; i >= 0; i--) {
         templateFolders.add(tmpTemplateFolders[i]);
       }
+
+      // System.debug('***** templateFolders (reversed tmpTemplateFolders) = ' + JSON.serialize(templateFolders));
       //
 
       Logger.getInstance()
@@ -243,6 +250,7 @@ public class iManageWorkspacesHelper {
       templateWorkspace.custom1 = custom1;
       templateWorkspace.custom2 = custom2;
       templateWorkspace.Name = wsName;
+      // System.debug('***** templateWorkspace = ' + JSON.serialize(templateWorkspace));
 
       IManageWWorkspace sourceWorkspace = createWorkspaceApiCall(
         templateWorkspace,
@@ -262,6 +270,7 @@ public class iManageWorkspacesHelper {
         true,
         false
       );
+      // System.debug('***** sourceWorkspaceWrap = ' + JSON.serialize(sourceWorkspaceWrap));
 
       compareFoldersAndUpdateByTemplate(
         sourceWorkspaceWrap,
@@ -371,11 +380,12 @@ public class iManageWorkspacesHelper {
     String libraryId
   ) {
     IManageWWorkspace workspace = getWorkspace(workspaceId, libraryId);
+    // System.debug('***** getWorkspaceTemplateWrap: workspace = ' + JSON.serialize(workspace));
     List<IManageWFolder> folders = getAllFoldersByWorkspace(
       workspaceId,
       libraryId
     );
-
+    // System.debug('***** getWorkspaceTemplateWrap: folders = ' + JSON.serialize(folders));
     return wrapWorkspaceContent(workspace, folders);
   }
 
@@ -486,12 +496,19 @@ public class iManageWorkspacesHelper {
 
     List<IManageFolderWrap> children = new List<IManageFolderWrap>();
     for (IManageWFolder folder : folders) {
-      IManageFolderWrap f = new IManageFolderWrap(folder);
-      f.workspaceId = sourceWorkspace.id;
-      children.add(f);
+      if (folder.parent_id == sourceWorkspace.id) {
+        IManageFolderWrap f = new IManageFolderWrap(folder);
+        f.workspaceId = sourceWorkspace.id;
+        // System.debug('***** wrapWorkspaceContent: child folder = ' + JSON.serialize(f));
+        children.add(f);
+      }
     }
-    workspaceWrap.children.addAll(children);
+    // System.debug('***** wrapWorkspaceContent: workspaceWrap.children before addAll(children) = ' + JSON.serialize(workspaceWrap.children));
+    // System.debug('***** wrapWorkspaceContent: children = ' + JSON.serialize(children));
 
+    workspaceWrap.children.addAll(children);
+    // System.debug('***** wrapWorkspaceContent: workspaceWrap.children = ' + JSON.serialize(workspaceWrap.children));
+    // System.debug('***** wrapWorkspaceContent: workspaceWrap before mappingFolders = ' + JSON.serialize(workspaceWrap));
     for (Object x : workspaceWrap.children) {
       IManageFolderWrap folderWrap = (IManageFolderWrap) x;
       mappingFolders(folderWrap, folders);
@@ -606,10 +623,7 @@ public class iManageWorkspacesHelper {
       }
     }
 
-    Logger.getInstance()
-      .info(
-        'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, mappedTemplateFolders: ' + JSON.serializePretty(mappedTemplateFolders)
-      );
+    //System.debug('iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, mappedTemplateFolders: ' + JSON.serializePretty(mappedTemplateFolders));
 
     //var dbFoldersSecurity = await _dbClient.GetFoldersSecurityRows(matterRow.UID);
     //create new folders
