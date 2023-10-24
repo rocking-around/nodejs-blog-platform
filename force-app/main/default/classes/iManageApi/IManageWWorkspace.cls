@@ -19,7 +19,9 @@ public with sharing class IManageWWorkspace {
   public String owner_description { get; set; }
   public String subclass { get; set; }
   public String wstype { get; set; }
-  //public Object profile { get; set; }
+  public Integer retain_days { get; set; }
+  public Boolean has_documents { get; set; }
+  public Object profile { get; set; }
 
   public IManageWWorkspace cloneThis() {
     return (IManageWWorkspace) JSON.deserialize(

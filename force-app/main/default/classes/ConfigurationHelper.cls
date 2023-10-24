@@ -548,31 +548,45 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
-  public static Map<String, String> loadFolderTemplates(String libraryId) {
-    Logger.getInstance().info('ConfigurationHelper::createWorkspace');
+  public static Map<String, String> loadFolderTemplates() {
+    Logger.getInstance().info('ConfigurationHelper::loadFolderTemplates');
     LicenseService.CheckOrganizationLicense();
     try {
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      Integer offset = 0;
-      Integer batchSize = 2000;
-      iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
-        apiInfo.customerId,
-        libraryId,
-        null,
-        offset,
-        batchSize
-      );
+      Set<String>libraries = new Set<String>();
+      if (String.isNotBlank(mc?.iManage_Libraries__c)) {
+        libraries.addAll(mc?.iManage_Libraries__c.split(';'));
+      }
+      if (String.isNotBlank(apiInfo?.library)) {
+        libraries.add(apiInfo?.library);
+      }
 
       Map<String, String> templates = new Map<String, String>();
-      for (IManageWWorkspace templ : resp.data.results) {
-        String key = libraryId + '::' + templ.id;
-        templates.put(key, templ.name);
+
+      for (String libraryId : libraries) {
+        Integer offset = 0;
+        Integer batchSize = 2000;
+        iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
+          apiInfo.customerId,
+          libraryId,
+          null,
+          offset,
+          batchSize
+        );
+
+        if (resp.data?.results != null) {
+          for (IManageWWorkspace templ : resp.data.results) {
+            String key = libraryId + '::' + templ.id;
+            templates.put(key, libraryId + ' : ' + templ.name);
+          }
+        }
       }
 
       return templates;
     } catch (Exception ex) {
       Logger.getInstance()
-        .error(ex, 'ConfigurationHelper::GetIManageLibraries');
+        .error(ex, 'ConfigurationHelper::loadFolderTemplates');
       throw ex;
     } finally {
       Logger.getInstance().Flush();
