@@ -27,19 +27,26 @@ export default class IManageCreateWsModal extends LightningModal {
 
       // load folder templates from iManage
       const resp = await loadFolderTemplates();
-      this.folderTemplateOptions = Object.entries(resp).map(([key, value]) => ({
+      let folderTemplateOptions = Object.entries(resp).map(([key, value]) => ({
         label: value,
         value: key
       }));
+      folderTemplateOptions = folderTemplateOptions.sort(
+        this.compareFolderTemplateOptions()
+      );
+      this.folderTemplateOptions = folderTemplateOptions;
 
       // load data from custom settings
       await this.loadWsSettings();
-
     } catch (error) {
       this.handleErrors(error);
     } finally {
       this.loading = false;
     }
+  }
+
+  compareFolderTemplateOptions() {
+    return (a, b) => a.label.localeCompare(b.label);
   }
 
   async loadWsSettings() {
@@ -83,7 +90,7 @@ export default class IManageCreateWsModal extends LightningModal {
 
   handleErrors(err) {
     if (this.ifErrorCallback) {
-        this.ifErrorCallback(err.message || err?.body?.message || err)
+      this.ifErrorCallback(err.message || err?.body?.message || err);
     }
   }
 

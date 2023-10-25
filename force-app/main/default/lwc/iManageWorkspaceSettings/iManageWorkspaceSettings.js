@@ -61,10 +61,14 @@ export default class IManageWorkspaceSettings extends LightningElement {
 
       // load folder templates from iManage
       const resp = await loadFolderTemplates();
-      this.folderTemplateOptions = Object.entries(resp).map(([key, value]) => ({
+      let folderTemplateOptions = Object.entries(resp).map(([key, value]) => ({
         label: value,
         value: key
       }));
+      folderTemplateOptions = folderTemplateOptions.sort(
+        this.compareFolderTemplateOptions()
+      );
+      this.folderTemplateOptions = folderTemplateOptions;
 
       // load data from custom settings
       await this.loadWsSettings();
@@ -73,6 +77,10 @@ export default class IManageWorkspaceSettings extends LightningElement {
     } finally {
       this.loading = false;
     }
+  }
+
+  compareFolderTemplateOptions() {
+    return (a, b) => a.label.localeCompare(b.label);
   }
 
   async loadWsSettings() {
