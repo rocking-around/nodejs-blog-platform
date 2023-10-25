@@ -404,36 +404,6 @@ public class iManageWrapper {
     return response == null ? null : response.data;
   }
 
-  // TODO: duplicated in iManageWorkspaceHelper
-  public static Map<string, Object> GetFoldersByWorkspace(
-    String customerId,
-    String libraryId,
-    String workspaceTemplateId,
-    Integer offset,
-    Integer size
-  ) {
-    String query =
-      '/work/api/v2/customers/' +
-      customerId +
-      '/libraries/' +
-      libraryId +
-      '/folders?total=true&offset=' +
-      String.valueOf(offset) +
-      '&limit=' +
-      String.valueOf(size) +
-      '&container_id=' +
-      workspaceTemplateId;
-    Logger.getInstance()
-      .info('iManageWrapper::GetFoldersByWorkspace, query=' + query);
-    String responseBody = IManageRequestHelper.Get(query);
-    Logger.getInstance()
-      .info('iManageWrapper::GetFoldersByWorkspace, response=' + responseBody);
-    Map<String, Object> response = (Map<String, Object>) JSON.deserializeUntyped(
-      responseBody
-    );
-    return response;
-  }
-
   public static IManageWFolder getFolderById(
     String folderId,
     String customerId,
@@ -454,6 +424,32 @@ public class iManageWrapper {
     iManageWFolderResponse response = (iManageWFolderResponse) JSON.deserialize(
       responseBody,
       iManageWFolderResponse.class
+    );
+    return response.data;
+  }
+
+  public static Map<String, String> getNameValuePair(
+    String objectName,
+    String folderId,
+    String customerId,
+    String libraryId
+  ) {
+    //GET https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/folders/{folderId}/name-value-pairs
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}/name-value-pairs',
+      new List<Object>{ customerId, libraryId, objectName, folderId }
+    );
+    Logger.getInstance()
+      .info('iManageWrapper::getNameValuePair, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::getNameValuePair, response=' + responseBody
+      );
+
+    iManageNameValuePairResponse response = (iManageNameValuePairResponse) JSON.deserialize(
+      responseBody,
+      iManageNameValuePairResponse.class
     );
     return response.data;
   }
@@ -479,6 +475,35 @@ public class iManageWrapper {
       iManageWFolderResponse.class
     );
     return response.data;
+  }
+
+  public static IManageWWorkspace getWorkspace(
+    String workspaceId,
+    String libraryId
+  ) {
+    LicenseService.CheckOrganizationLicense();
+    iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+
+    // GET
+    // https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces/{workspaceId}
+    String query =
+      '/work/api/v2/customers/' +
+      apiInfo.customerId +
+      '/libraries/' +
+      libraryId +
+      '/workspaces/' +
+      workspaceId;
+    Logger.getInstance()
+      .info('iManageWrapper::getWorkspace, query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info('iManageWrapper::getWorkspace, response=' + responseBody);
+    iManageWorkspaceResponse response = (iManageWorkspaceResponse) JSON.deserialize(
+      responseBody,
+      iManageWorkspaceResponse.class
+    );
+
+    return response == null ? null : response.data;
   }
 
   public static iManageTemplatesResponse searchTemplateWorkspace(
@@ -510,6 +535,55 @@ public class iManageWrapper {
         iManageTemplatesResponse.class
       );
       return response;
+  }
+
+  public static IManageWWorkspace createWorkspaceApiCall(
+    IManageWWorkspace templateWorkspace,
+    String customerId,
+    String libraryId
+  ) {
+    //POST https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces',
+      new List<Object>{ customerId, libraryId }
+    );
+    Map<String, Object> reqBody = new Map<String, Object>{
+      'name' => templateWorkspace.name,
+      'database' => libraryId,
+      'custom1' => templateWorkspace.custom1,
+      'custom2' => templateWorkspace.custom2,
+      'default_security' => templateWorkspace.default_security,
+      'description' => templateWorkspace.description,
+      'is_declared' => templateWorkspace.is_declared,
+      'is_external_as_normal' => templateWorkspace.is_external_as_normal,
+      'retain_days' => templateWorkspace.retain_days,
+      'subclass' => templateWorkspace.subclass
+    };
+
+    reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
+
+    String body = JSON.serialize(reqBody, true);
+
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::createWorkspaceApiCall, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::createWorkspaceApiCall, response=' +
+        responseBody
+      );
+    system.debug(responseBody);
+    iManageWorkspaceResponse response = (iManageWorkspaceResponse) JSON.deserialize(
+      responseBody,
+      iManageWorkspaceResponse.class
+    );
+
+    return response.data;
   }
 
   public static IManageWFolder createFolder(
@@ -653,6 +727,41 @@ public class iManageWrapper {
     return response.data;
   }
 
+  public static iManageFoldersResponse getFoldersByWorkspace(
+    String customerId,
+    String libraryId,
+    String workspaceTemplateId,
+    Integer offset,
+    Integer size
+  ) {
+    String logPrefix = 'iManageWrapper::getFoldersByWorkspace';
+    String query =
+      '/work/api/v2/customers/' +
+      customerId +
+      '/libraries/' +
+      libraryId +
+      '/folders?total=true&offset=' +
+      String.valueOf(offset) +
+      '&limit=' +
+      String.valueOf(size) +
+      '&container_id=' +
+      workspaceTemplateId;
+    Logger.getInstance()
+      .info(logPrefix + ', query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info(
+        logPrefix + ', response=' +
+        responseBody
+      );
+
+    iManageFoldersResponse response = (iManageFoldersResponse) JSON.deserialize(
+      responseBody,
+      iManageFoldersResponse.class
+    );
+    return response;
+  }
+
   public static List<IManageWSecurity> getFolderACL(
     string folderId,
     String customerId,
@@ -697,6 +806,63 @@ public class iManageWrapper {
     );
 
     return response.data;
+  }
+
+  public static Object patchFolder(
+    String folderId,
+    String customerId,
+    String libraryId,
+    Map<String, Object> data
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+      new List<Object>{ customerId, libraryId, folderId }
+    );
+
+    String body = JSON.serialize(data, true);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchFolder, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Patch(query, body);
+    Logger.getInstance()
+      .info('iManageWrapper::patchFolder, response=' + responseBody);
+
+    Object response = JSON.deserializeUntyped(responseBody);
+    return response;
+  }
+
+  public static Object patchNameValuePair(
+    String objectName,
+    String objectId,
+    String customerId,
+    String libraryId,
+    Map<String, Object> data
+  ) {
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}',
+      new List<Object>{ customerId, libraryId, objectName, objectId }
+    );
+
+    String body = JSON.serialize(data, true);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchNameValuePair, query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Patch(query, body);
+    Logger.getInstance()
+      .info(
+        'iManageWrapper::patchNameValuePair, response=' + responseBody
+      );
+
+    Object response = JSON.deserializeUntyped(responseBody);
+    return response;
   }
 
   public static List<IManageWSecurity> patchSecurityFolder(
@@ -916,6 +1082,11 @@ public class iManageWrapper {
     public String dialog_token;
   }
 
+  public class iManageFoldersResponse {
+    public List<IManageWFolder> data;
+    public Integer total_count;
+  }
+
   public class iManageTemplatesResponse {
     public iManageTemplates data;
     public Integer total_count;
@@ -930,8 +1101,16 @@ public class iManageWrapper {
   }
 
   public class iManageFolderSecurityResponse {
-    List<IManageWSecurity> data;
-    String default_security;
+    public List<IManageWSecurity> data;
+    public String default_security;
+  }
+
+  public class iManageNameValuePairResponse {
+    public Map<String, String> data;
+  }
+
+  public class iManageWorkspaceResponse {
+    public IManageWWorkspace data;
   }
 
 }
