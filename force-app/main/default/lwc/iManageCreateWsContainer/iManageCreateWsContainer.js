@@ -22,6 +22,9 @@ export default class IManageCreateWsContainer extends LightningElement {
     // check option automatic sync to iManage
     await this.loadData();
     this.loading = false;
+
+    // The feature is temporarily disabled.
+    // await this.tryAutoCreateWs();
   }
 
   async loadData() {
@@ -29,9 +32,9 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.wsFolderTemplate = this.wsSettings["iManageWs:Folder_Template_Id"];
 
     const { clientId, matterId, clientName, matterName } =
-        await getIManageDataFromSObject({
-          entityId: this.recordId
-        });
+      await getIManageDataFromSObject({
+        entityId: this.recordId
+      });
     this.clientId = clientId;
     this.matterId = matterId;
     this.clientName = clientName;
@@ -44,6 +47,22 @@ export default class IManageCreateWsContainer extends LightningElement {
       name: wsName
     });
   }
+
+  // The feature is temporarily disabled.
+  // async tryAutoCreateWs() {
+  //   const folderTemplate = (
+  //     this.wsSettings
+  //       ? this.wsSettings["iManageWs:Folder_Template_Id"] || ""
+  //       : ""
+  //   ).trim();
+  //   if (this.createWsEnabled && this.autoCreateWsEnabled && folderTemplate.length > 0) {
+  //     try {
+  //       await this.createWs(folderTemplate);
+  //     } catch (error) {
+  //       console.error('Auto-creation iManage Workspace ERROR: ', error);
+  //     }
+  //   }
+  // }
 
   async handleCreateWsClick() {
     const result = await iManageCreateWsModal.open({
@@ -85,23 +104,29 @@ export default class IManageCreateWsContainer extends LightningElement {
   get createWsEnabled() {
     return (
       this.wsSettings &&
-      this.wsSettings["iManageWs:Create_Ws_Enabled"] &&
-      !this.wsSettings["iManageWs:Auto_Create"]
+      this.wsSettings["iManageWs:Create_Ws_Enabled"]
+    );
+  }
+
+  get autoCreateWsEnabled() {
+    return (
+      this.wsSettings &&
+      this.wsSettings["iManageWs:Auto_Create"]
     );
   }
 
   get isVisible() {
-    return this.createWsEnabled && !this.isWorkspaceExists;
+    return this.createWsEnabled && !this.isWorkspaceExists && !this.autoCreateWsEnabled;
   }
 
   get wsName() {
     if (!this.wsSettings) {
-        return undefined;
+      return undefined;
     }
-    let wsName = (this.wsSettings["iManageWs:Name_Pattern"] || '').trim();
+    let wsName = (this.wsSettings["iManageWs:Name_Pattern"] || "").trim();
 
     if (!wsName.length) {
-        return undefined;
+      return undefined;
     }
 
     const wsNamePlaceholders = {
@@ -148,7 +173,7 @@ export default class IManageCreateWsContainer extends LightningElement {
     }
     const isValid = errors.length === 0;
     if (!isValid) {
-        this.handleErrors(errors.join("\n"));
+      this.handleErrors(errors.join("\n"));
     }
     return isValid;
   }
