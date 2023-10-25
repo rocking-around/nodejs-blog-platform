@@ -20,6 +20,7 @@ public with sharing class IManageWWorkspace {
   public String subclass { get; set; }
   public String wstype { get; set; }
   public Integer retain_days { get; set; }
+  public String create_date { get; set; }
   //public Object profile { get; set; }
 
   public IManageWWorkspace cloneThis() {

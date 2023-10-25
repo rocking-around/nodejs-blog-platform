@@ -65,31 +65,25 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Boolean isWorkspaceWithNameExists(
-    String name
-  ){
-    String logPrefix = 'iManageWorkspacesHelper::searchWorkspaceByName';
+  public static Boolean isEntityWorkspaceAlreadyCreated(
+    Id entityId
+  ) {
+    String logPrefix = 'iManageWorkspacesHelper::isEntityWorkspaceAlreadyCreated';
     Map<String, Object> params = new Map<String, Object>{
-      'name' => name
+      'entityId' => entityId
     };
     Logger.getInstance()
       .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
-    if (String.isBlank(name)) {
-      return false;
-    }
-
-    LicenseService.CheckOrganizationLicense();
-
     try {
-      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.searchWorkspaceByName(
-        apiInfo.customerId,
-        apiInfo.library,
-        name
-      );
-
-      return searchResult != null && searchResult.data != null && searchResult.data.size() > 0;
+      List<IManage_WS_to_Entity_Mapping__c> result = [
+        SELECT Id, EntityId__c, iManage_WS_Id__c
+        FROM IManage_WS_to_Entity_Mapping__c
+        WHERE EntityId__c = :entityId
+      ];
+      Logger.getInstance()
+        .info(logPrefix + ', Found: ' + result.size() + ' record(s)');
+      return result.size() > 0;
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
@@ -97,6 +91,40 @@ public class iManageWorkspacesHelper {
       Logger.getInstance().Flush();
     }
   }
+
+  // @AuraEnabled
+  // public static Boolean isWorkspaceWithNameExists(
+  //   String name
+  // ){
+  //   String logPrefix = 'iManageWorkspacesHelper::searchWorkspaceByName';
+  //   Map<String, Object> params = new Map<String, Object>{
+  //     'name' => name
+  //   };
+  //   Logger.getInstance()
+  //     .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+
+  //   if (String.isBlank(name)) {
+  //     return false;
+  //   }
+
+  //   LicenseService.CheckOrganizationLicense();
+
+  //   try {
+  //     iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+  //     iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.searchWorkspaceByName(
+  //       apiInfo.customerId,
+  //       apiInfo.library,
+  //       name
+  //     );
+
+  //     return searchResult != null && searchResult.data != null && searchResult.data.size() > 0;
+  //   } catch (Exception ex) {
+  //     Logger.getInstance().error(ex, logPrefix);
+  //     throw ex;
+  //   } finally {
+  //     Logger.getInstance().Flush();
+  //   }
+  // }
 
   @AuraEnabled
   public static IManageWWorkspace findTemplateWorkspaceByName(
@@ -221,6 +249,7 @@ public class iManageWorkspacesHelper {
 
       result.put('id', sourceWorkspace.id);
       result.put('name', sourceWorkspace.name);
+      result.put('database', sourceWorkspace.database);
 
       Logger.getInstance().info('Compare folders and update by template.');
 
@@ -711,6 +740,28 @@ public class iManageWorkspacesHelper {
       folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
     }
     return folder;
+  }
+
+  @AuraEnabled
+  public static Id updateEntityToWsMapping(
+    String workspaceId,
+    String libraryId,
+    String entityId,
+    Boolean autoCreated,
+    String source
+  ) {
+    IManageWWorkspace workspace = iManageWrapper.getWorkspace(workspaceId, libraryId);
+    IManage_WS_to_Entity_Mapping__c mapping = new IManage_WS_to_Entity_Mapping__c(
+      Auto_created__c = autoCreated,
+      EntityId__c = entityId,
+      iManage_Workspace_Created_On__c = workspace.create_date,
+      iManage_WS_Id__c = workspace.id,
+      iManage_WS_Name__c = workspace.name,
+      Source__c = source
+    );
+    insert mapping;
+
+    return mapping.id;
   }
 
   @TestVisible

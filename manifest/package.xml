@@ -88,6 +88,7 @@
         <members>iManageSettings__c</members>
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
+        <members>IManage_WS_to_Entity_Mapping__c</members>
         <members>iManageAuthSetting__mdt</members>
         <members>Log__c</members>
         <name>CustomObject</name>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source__c</fullName>
+    <description>SF - if the record was created by a user in Salesforce.
+IM- if the record was created by a user in iManage.</description>
+    <externalId>false</externalId>
+    <label>Source</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>SF</fullName>
+                <default>false</default>
+                <label>SF</label>
+            </value>
+            <value>
+                <fullName>IM</fullName>
+                <default>false</default>
+                <label>IM</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -2,8 +2,9 @@ import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.getIManageWorkspaceSettings";
 import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
-import isWorkspaceWithNameExists from "@salesforce/apex/iManageWorkspacesHelper.isWorkspaceWithNameExists";
+import isEntityWorkspaceAlreadyCreated from "@salesforce/apex/iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated";
 import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
+import updateEntityToWsMapping from "@salesforce/apex/iManageWorkspacesHelper.updateEntityToWsMapping";
 import iManageCreateWsModal from "c/iManageCreateWsModal";
 export default class IManageCreateWsContainer extends LightningElement {
   @api recordId;
@@ -40,11 +41,13 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.clientName = clientName;
     this.matterName = matterName;
 
-    const wsName = this.wsName;
-
     // check if ws already exists
-    this.isWorkspaceExists = await isWorkspaceWithNameExists({
-      name: wsName
+    // const wsName = this.wsName;
+    // this.isWorkspaceExists = await isWorkspaceWithNameExists({
+    //   name: wsName
+    // });
+    this.isWorkspaceExists = await isEntityWorkspaceAlreadyCreated({
+      entityId: this.recordId
     });
   }
 
@@ -57,7 +60,7 @@ export default class IManageCreateWsContainer extends LightningElement {
   //   ).trim();
   //   if (this.createWsEnabled && this.autoCreateWsEnabled && folderTemplate.length > 0) {
   //     try {
-  //       await this.createWs(folderTemplate);
+  //       await this.createWs(folderTemplate, true);
   //     } catch (error) {
   //       console.error('Auto-creation iManage Workspace ERROR: ', error);
   //     }
@@ -70,7 +73,7 @@ export default class IManageCreateWsContainer extends LightningElement {
       recordId: this.recordId,
       wsSettings: this.wsSettings,
       newWsName: this.wsName,
-      createWs: (ft) => this.createWs(ft),
+      createWs: (ft) => this.createWs(ft, false),
       createdCallback: () => this.loadData(),
       ifErrorCallback: (err) => this.handleErrors(err)
     });
@@ -142,7 +145,7 @@ export default class IManageCreateWsContainer extends LightningElement {
     return wsName;
   }
 
-  async createWs(folderTemplate) {
+  async createWs(folderTemplate, autoCreate) {
     const data = {
       custom1: this.clientId, // client alias
       custom2: this.matterId, // matter alias
@@ -154,10 +157,28 @@ export default class IManageCreateWsContainer extends LightningElement {
       return null;
     }
     const ws = await createWorkspace(data);
+
+    await this.tryUpdateEntityToWsMapping(ws, autoCreate);
+
     return {
       id: ws.id,
-      name: ws.name
+      name: ws.name,
+      database: ws.database
     };
+  }
+
+  async tryUpdateEntityToWsMapping(ws, autoCreate) {
+    try {
+      await updateEntityToWsMapping({
+        entityId: this.recordId,
+        workspaceId: ws.id,
+        libraryId: ws.database,
+        autoCreated: autoCreate,
+        source: 'SF'
+      });
+    } catch (error) {
+      this.handleErrors(error);
+    }
   }
 
   validate(data) {

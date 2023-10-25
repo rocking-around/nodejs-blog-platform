@@ -143,7 +143,7 @@
     <allowInChatterGroups>false</allowInChatterGroups>
     <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
     <deploymentStatus>Deployed</deploymentStatus>
-    <deprecated>false</deprecated>
+    <description>Relation between Salesforce Object and iManage Workspace.</description>
     <enableActivities>false</enableActivities>
     <enableBulkApi>true</enableBulkApi>
     <enableFeeds>false</enableFeeds>
@@ -154,12 +154,12 @@
     <enableSharing>true</enableSharing>
     <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>iManage Document Metadata</label>
+    <label>IManage WS to Entity Mapping</label>
     <nameField>
-        <label>iManage Document Metadata Name</label>
+        <label>IManage WS to Entity Mapping Name</label>
         <type>Text</type>
     </nameField>
-    <pluralLabel>iManage Documents Metadata</pluralLabel>
+    <pluralLabel>IManage WS to Entity Mappings</pluralLabel>
     <searchLayouts></searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
