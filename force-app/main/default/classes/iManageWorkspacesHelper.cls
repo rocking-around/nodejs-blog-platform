@@ -300,40 +300,22 @@ public class iManageWorkspacesHelper {
       '/work/api/v2/customers/{0}/libraries/{1}/workspaces',
       new List<Object>{ customerId, libraryId }
     );
-    String body =
-      '{' +
-      '"database": "' +
-      libraryId +
-      '",' +
-      '"name": "' +
-      templateWorkspace.name +
-      '",' +
-      '"custom1": "' +
-      templateWorkspace.custom1 +
-      '",' +
-      '"custom2": "' +
-      templateWorkspace.custom2 +
-      '",' +
-      '"default_security": "' +
-      templateWorkspace.default_security +
-      '",' +
-      '"description":' +
-      (templateWorkspace.description == null
-        ? 'null'
-        : '"' + templateWorkspace.description + '"') +
-      ',' +
-      '"is_declared":' +
-      String.valueOf(templateWorkspace.is_declared).toLowerCase() +
-      ',' +
-      '"is_external_as_normal":' +
-      String.valueOf(templateWorkspace.is_external_as_normal).toLowerCase() +
-      ',' +
-      '"subclass":' +
-      (templateWorkspace.subclass == null
-        ? 'null'
-        : '"' + templateWorkspace.subclass + '"') + //',' +
-      //'"profile":' + (templateWorkspace.profile == null ? 'null' : '{}') + //TODO: Serialize profile
-      '}';
+    Map<String, Object> reqBody = new Map<String, Object>{
+      'name' => templateWorkspace.name,
+      'database' => libraryId,
+      'custom1' => templateWorkspace.custom1,
+      'custom2' => templateWorkspace.custom2,
+      'default_security' => templateWorkspace.default_security,
+      'description' => templateWorkspace.description,
+      'is_declared' => templateWorkspace.is_declared,
+      'is_external_as_normal' => templateWorkspace.is_external_as_normal,
+      'retain_days' => templateWorkspace.retain_days,
+      'subclass' => templateWorkspace.subclass
+    };
+
+    reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
+
+    String body = JSON.serialize(reqBody, true);
 
     Logger.getInstance()
       .info(

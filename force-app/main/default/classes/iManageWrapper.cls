@@ -554,7 +554,7 @@ public class iManageWrapper {
       'project_custom3' => sourceFolder.project_custom3,
       'database' => libraryId
     };
-
+    reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
     String body = JSON.serialize(reqBody, true);
 
     Logger.getInstance()
@@ -589,6 +589,7 @@ public class iManageWrapper {
     );
     Map<String, Object> reqBody = sourceTab.toWFolderRequestMap();
     reqBody.put('database', libraryId);
+    reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
     String body = JSON.serialize(reqBody, true);
 
     Logger.getInstance()
@@ -629,6 +630,7 @@ public class iManageWrapper {
       );
     Map<String, Object> reqBody = sourceTab.toWSearchFolderRequest();
     reqBody.put('database', libraryId);
+    reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
     String body = JSON.serialize(reqBody, true);
 
     Logger.getInstance()

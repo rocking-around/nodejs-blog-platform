@@ -8,4 +8,18 @@ public with sharing class IManageUtils {
 
     return reversed;
   }
+
+  public static Map<String, Object> removeNullItemsFromMap(Map<String, Object> source, Set<String> ignore) {
+    List<String> ignoreKeys = new List<String>(ignore);
+    Set<String> mapKeysToRemoveSet = new Set<String>();
+    for(String key :source.keySet()){
+      if(!ignoreKeys.contains(key) && source.get(key) == null){
+          mapKeysToRemoveSet.add(key);
+      }
+    }
+
+    source.keySet().removeAll(mapKeysToRemoveSet);
+
+    return source;
+  }
 }
