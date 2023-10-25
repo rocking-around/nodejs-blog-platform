@@ -290,6 +290,7 @@ public class iManageWorkspacesHelper {
     }
   }
 
+  // TODO: move to iManageWrapper
   public static IManageWWorkspace createWorkspaceApiCall(
     IManageWWorkspace templateWorkspace,
     String customerId,
@@ -371,6 +372,7 @@ public class iManageWorkspacesHelper {
     return wrapWorkspaceContent(workspace, folders);
   }
 
+  // TODO: move to iManageWrapper
   public static IManageWWorkspace getWorkspace(
     String workspaceId,
     String libraryId
@@ -434,6 +436,7 @@ public class iManageWorkspacesHelper {
     return allFolders;
   }
 
+  // TODO: move to iManageWrapper
   public static iManageFoldersResponse getFoldersByWorkspace(
     String customerId,
     String libraryId,
@@ -680,7 +683,6 @@ public class iManageWorkspacesHelper {
           continue;
         }
 
-        // TODO: Profiles not implemented.
         tf = mappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
 
         Boolean needEmail = String.isNotBlank(tf.email);
@@ -866,6 +868,7 @@ public class iManageWorkspacesHelper {
     return folder;
   }
 
+  // TODO: move to iManageWrapper
   public static Object patchFolder(
     String folderId,
     String customerId,
@@ -893,7 +896,7 @@ public class iManageWorkspacesHelper {
     return response;
   }
 
-
+  // TODO: move to iManageWrapper
   public static Map<String, String> getNameValuePair(
     String objectName,
     String folderId,
@@ -920,6 +923,7 @@ public class iManageWorkspacesHelper {
     return response.data;
   }
 
+  // TODO: move to iManageWrapper
   public static Object patchNameValuePair(
     String objectName,
     String objectId,
@@ -1240,30 +1244,39 @@ public class iManageWorkspacesHelper {
     IManageWFolder templateFolder
   )
   {
-      if (templateFolder.profile == null)
-          return templateFolder;
-
-      String mapTemplate = '%WORKSPACE_VALUE%';
-      // TODO:IMPLEMENT IT
-      // var templateFolderProps = templateFolder.Profile.GetType()
-      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-      // var workspaceProps = workspace.GetType()
-      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-      // foreach (var templateProp in templateFolderProps)
-      // {
-      //     var value = templateProp.GetValue(templateFolder.Profile);
-      //     if (value?.ToString() == mapTemplate)
-      //     {
-      //         var propName = templateProp.Name;
-      //         var workspaceProp = workspaceProps.FirstOrDefault(p => p.Name == propName);
-      //         if (workspaceProp != null)
-      //         {
-      //             templateProp.SetValue(templateFolder.Profile, workspaceProp.GetValue(workspace));
-      //         }
-
-      //     }
-      // }
+    String logPrefix = 'IManageWorkspacesHelper::mappingProfileWorkspaceValues';
+    Logger.getInstance().info(logPrefix + ': templateFolder.profile is null = ' + templateFolder.profile == null);
+    if (templateFolder.profile == null) {
       return templateFolder;
+    }
+
+    Logger.getInstance().info(logPrefix + ': templateFolder.profile before = ' + JSON.serialize(templateFolder.profile));
+
+    String mapTemplate = '%WORKSPACE_VALUE%';
+    String jsonWorkspace = Json.serialize(workspace);
+    Map<String, Object> mapWorkspace = (Map<String, Object>)JSON.deserializeUntyped(jsonWorkspace);
+
+    String jsonTemolateFolderProfile = Json.serialize(templateFolder.profile);
+    Map<String, Object> mapTemplateFolderProfile = (Map<String, Object>)JSON.deserializeUntyped(jsonTemolateFolderProfile);
+
+    for (String templatePropName : mapTemplateFolderProfile.keySet()) {
+      Object value = mapTemplateFolderProfile.get(templatePropName);
+      if (String.valueOf(value) == mapTemplate)
+      {
+          if (mapWorkspace.containsKey(templatePropName)) {
+            mapTemplateFolderProfile.put(templatePropName, mapWorkspace.get(templatePropName));
+          }
+      }
+    }
+
+    templateFolder.profile = (IManageWFolderProfile) JSON.deserialize(
+      JSON.serialize(mapTemplateFolderProfile),
+      IManageWFolderProfile.class
+    );
+
+    Logger.getInstance().info(logPrefix + ': templateFolder.profile after = ' + JSON.serialize(templateFolder.profile));
+
+    return templateFolder;
   }
 
   @TestVisible
@@ -1271,29 +1284,36 @@ public class iManageWorkspacesHelper {
     IManageWWorkspace workspace,
     IManageWFolder templateSearchFolder
   ) {
-    if (templateSearchFolder.searchProfile == null)
+    String logPrefix = 'IManageWorkspacesHelper::mappingSearchProfileWorkspaceValues';
+    Logger.getInstance().info(logPrefix + ': templateSearchFolder.searchprofile is null = ' + templateSearchFolder.searchprofile  == null);
+    if (templateSearchFolder.searchprofile == null) {
       return templateSearchFolder;
+    }
 
-      String mapTemplate = '%WORKSPACE_VALUE%';
-      // TODO:IMPLEMENT IT
-      // var templateFolderProps = templateSearchFolder.SearchProfile.GetType()
-      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-      // var workspaceProps = workspace.GetType()
-      //               .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-      // foreach (var templateProp in templateFolderProps)
-      // {
-      //     var value = templateProp.GetValue(templateSearchFolder.SearchProfile);
-      //     if (value?.ToString() == mapTemplate)
-      //     {
-      //         var propName = templateProp.Name;
-      //         var workspaceProp = workspaceProps.FirstOrDefault(p => p.Name == propName);
-      //         if (workspaceProp != null)
-      //         {
-      //             templateProp.SetValue(templateSearchFolder.SearchProfile, workspaceProp.GetValue(workspace));
-      //         }
+    Logger.getInstance().info(logPrefix = ': templateSearchFolder.searchprofile before = ' + JSON.serialize(templateSearchFolder.searchprofile));
 
-      //     }
-      // }
+    String mapTemplate = '%WORKSPACE_VALUE%';
+    String jsonWorkspace = Json.serialize(workspace);
+    Map<String, Object> mapWorkspace = (Map<String, Object>)JSON.deserializeUntyped(jsonWorkspace);
+
+    String jsonSearchProfile = Json.serialize(templateSearchFolder.searchprofile);
+    Map<String, Object> mapSearchProfile = (Map<String, Object>)JSON.deserializeUntyped(jsonSearchProfile);
+
+    for (String templatePropName : mapSearchProfile.keySet()) {
+      Object value = mapSearchProfile.get(templatePropName);
+      if (String.valueOf(value) == mapTemplate)
+      {
+          if (mapWorkspace.containsKey(templatePropName)) {
+            mapSearchProfile.put(templatePropName, mapWorkspace.get(templatePropName));
+          }
+      }
+    }
+    templateSearchFolder.searchprofile = (IManageWSearchFolderProfile) JSON.deserialize(
+      JSON.serialize(mapSearchProfile),
+      IManageWSearchFolderProfile.class
+    );
+
+    Logger.getInstance().info(logPrefix = ': templateSearchFolder.searchprofile after = ' + JSON.serialize(templateSearchFolder.searchprofile));
     return templateSearchFolder;
   }
 
