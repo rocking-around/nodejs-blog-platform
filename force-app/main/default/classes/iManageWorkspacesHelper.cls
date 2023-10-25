@@ -510,170 +510,18 @@ public class iManageWorkspacesHelper {
         }
       }
 
-      String parentDestFolderId = parentDestFolder == null
-        ? null
-        : parentDestFolder.id;
-      Boolean parentIsTab =
-        parentDestFolder != null &&
-        parentDestFolder.folder_type == 'tab';
-
       String folderType = ((IManageWFolder) templateFolderWrap.wrapItem)
         .folder_type;
+
       if (folderType == 'regular') {
-        IManageWFolder tf = getTemplateWFolder(
-          ((IManageWFolder) templateFolderWrap.wrapItem).id,
-          customerId,
-          libraryId
-        );
-
-        if (tf.isOptional == true) {
-          Logger.getInstance()
-            .info(
-              String.format(
-                'Workspace: {0}. Optional Folder: {1} add ignored.',
-                new List<Object>{
-                  clientMatterCode,
-                  templateFolderWrap.folderFullPath
-                }
-              )
-            );
-          continue;
-        }
-
-        if (
-          templateFolderWrap.parentFolder != null &&
-          parentDestFolder == null
-        ) {
-          Logger.getInstance()
-            .info(
-              String.format(
-                'Workspace: {0}. Optional Folder: {1} add ignored because the parent folder is optional.',
-                new List<Object>{
-                  clientMatterCode,
-                  templateFolderWrap.folderFullPath
-                }
-              )
-            );
-          continue;
-        }
-
-        tf = mappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
-
-        Boolean needEmail = String.isNotBlank(tf.email);
-        //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
-
-        Logger.getInstance()
-          .info(
-            String.format(
-              'Create folder {0}-{1}',
-              new List<Object>{
-                clientMatterCode,
-                templateFolderWrap.folderFullPath
-              }
-            )
-          );
-        IManageWFolder newDestFolder = iManageWrapper.createFolder(
-          ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
-          tf,
-          parentDestFolderId,
-          parentIsTab,
-          null,
-          customerId,
-          libraryId
-        );
-
-        Logger.getInstance().info('Patch folder name-value-pair');
-        iManageWrapper.patchNameValuePair(
-          'folders',
-          newDestFolder.id,
+        createRegularFolder(
           customerId,
           libraryId,
-          new Map<String, Object>{ 'folderTemplateId' => tf.id }
+          clientMatterCode,
+          templateFolderWrap,
+          parentDestFolder,
+          mappingWorkspaceWrap
         );
-
-        if (needEmail == true) {
-          String email = String.format(
-            '{0}.{1}',
-            new List<Object>{
-              newDestFolder.name.replace(' ', '_'),
-              newDestFolder.id.Split('!')[1]
-            }
-          );
-          Logger.getInstance()
-            .info(
-              String.format(
-                'Patch Folder: {0} email: {1}',
-                new List<Object>{ templateFolderWrap.folderFullPath, email }
-              )
-            );
-          iManageWrapper.patchFolder(
-            newDestFolder.id,
-            customerId,
-            libraryId,
-            new Map<String, Object>{ 'email' => email }
-          );
-        }
-
-        Logger.getInstance()
-          .info(
-            String.format(
-              'Workspace: {0}. Folder: {1} added',
-              new List<Object>{
-                clientMatterCode,
-                templateFolderWrap.folderFullPath
-              }
-            )
-          );
-
-
-        if (
-          newDestFolder.default_security != 'inherit'
-        ) {
-          Logger.getInstance().info('Get template folder security');
-          List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
-            ((IManageWFolder) templateFolderWrap.wrapItem).id,
-            customerId,
-            libraryId
-          );
-
-          if (fSecurityList.size() > 0) {
-            Logger.getInstance().info('Update folder security');
-            List<Map<String, Object>> include = new List<Map<String, Object>>();
-            for (IManageWSecurity d : fSecurityList) {
-              include.add(
-                new Map<String, Object>{
-                  'id' => d.id,
-                  'access_level' => d.access_level,
-                  'type' => d.type
-                }
-              );
-            }
-
-            iManageWrapper.patchSecurityFolder(
-              newDestFolder.id,
-              customerId,
-              libraryId,
-              new Map<String, Object> {
-                'default_security' => newDestFolder.default_security == 'inherit'
-                  ? 'public'
-                  : newDestFolder.default_security,
-                'include' => include
-              }
-            );
-
-            Logger.getInstance()
-              .info(
-                String.format(
-                  'Workspace: {0}. Folder: {1} security added',
-                  new List<Object>{
-                    clientMatterCode,
-                    templateFolderWrap.folderFullPath
-                  }
-                )
-              );
-          }
-        }
-        mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
       } else if (folderType == 'tab') {
         createTabFolder(
           customerId,
@@ -769,8 +617,171 @@ public class iManageWorkspacesHelper {
     String customerId,
     String libraryId,
     String clientMatterCode,
-    IManageFolderWrap templateFolderWrap) {
-      // TODO: move code from the compareFoldersAndUpdateByTemplate method here
+    IManageFolderWrap templateFolderWrap,
+    IManageWFolder parentDestFolder,
+    IManageWorkspaceWrap mappingWorkspaceWrap
+  ) {
+    String parentDestFolderId = parentDestFolder == null
+        ? null
+        : parentDestFolder.id;
+    Boolean parentIsTab =
+      parentDestFolder != null &&
+      parentDestFolder.folder_type == 'tab';
+
+    IManageWFolder tf = getTemplateWFolder(
+      ((IManageWFolder) templateFolderWrap.wrapItem).id,
+      customerId,
+      libraryId
+    );
+
+    if (tf.isOptional == true) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Optional Folder: {1} add ignored.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+      return;
+    }
+
+    if (
+      templateFolderWrap.parentFolder != null &&
+      parentDestFolder == null
+    ) {
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Workspace: {0}. Optional Folder: {1} add ignored because the parent folder is optional.',
+            new List<Object>{
+              clientMatterCode,
+              templateFolderWrap.folderFullPath
+            }
+          )
+        );
+      return;
+    }
+
+    tf = mappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
+
+    Boolean needEmail = String.isNotBlank(tf.email);
+    //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
+
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Create folder {0}-{1}',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+    IManageWFolder newDestFolder = iManageWrapper.createFolder(
+      ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
+      tf,
+      parentDestFolderId,
+      parentIsTab,
+      null,
+      customerId,
+      libraryId
+    );
+
+    Logger.getInstance().info('Patch folder name-value-pair');
+    iManageWrapper.patchNameValuePair(
+      'folders',
+      newDestFolder.id,
+      customerId,
+      libraryId,
+      new Map<String, Object>{ 'folderTemplateId' => tf.id }
+    );
+
+    if (needEmail == true) {
+      String email = String.format(
+        '{0}.{1}',
+        new List<Object>{
+          newDestFolder.name.replace(' ', '_'),
+          newDestFolder.id.Split('!')[1]
+        }
+      );
+      Logger.getInstance()
+        .info(
+          String.format(
+            'Patch Folder: {0} email: {1}',
+            new List<Object>{ templateFolderWrap.folderFullPath, email }
+          )
+        );
+      iManageWrapper.patchFolder(
+        newDestFolder.id,
+        customerId,
+        libraryId,
+        new Map<String, Object>{ 'email' => email }
+      );
+    }
+
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Workspace: {0}. Folder: {1} added',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+
+
+    if (
+      newDestFolder.default_security != 'inherit'
+    ) {
+      Logger.getInstance().info('Get template folder security');
+      List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
+        ((IManageWFolder) templateFolderWrap.wrapItem).id,
+        customerId,
+        libraryId
+      );
+
+      if (fSecurityList.size() > 0) {
+        Logger.getInstance().info('Update folder security');
+        List<Map<String, Object>> include = new List<Map<String, Object>>();
+        for (IManageWSecurity d : fSecurityList) {
+          include.add(
+            new Map<String, Object>{
+              'id' => d.id,
+              'access_level' => d.access_level,
+              'type' => d.type
+            }
+          );
+        }
+
+        iManageWrapper.patchSecurityFolder(
+          newDestFolder.id,
+          customerId,
+          libraryId,
+          new Map<String, Object> {
+            'default_security' => newDestFolder.default_security == 'inherit'
+              ? 'public'
+              : newDestFolder.default_security,
+            'include' => include
+          }
+        );
+
+        Logger.getInstance()
+          .info(
+            String.format(
+              'Workspace: {0}. Folder: {1} security added',
+              new List<Object>{
+                clientMatterCode,
+                templateFolderWrap.folderFullPath
+              }
+            )
+          );
+      }
+    }
+    mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
   }
 
   @TestVisible
