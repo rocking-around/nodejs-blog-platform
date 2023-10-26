@@ -59,6 +59,7 @@
         <members>Logger</members>
         <members>LoggerBase</members>
         <members>iManageWorkspacesHelper</members>
+        <members>iManageWorkspacesHelperTests</members>
         <name>ApexClass</name>
     </types>
     <types>
