@@ -719,9 +719,9 @@ public class iManageWrapper {
       .info('iManageWrapper::createSearchFolder, response=' + responseBody);
     System.debug(responseBody);
 
-    IManageTabResponse response = (IManageTabResponse) JSON.deserialize(
+    iManageWFolderResponse response = (iManageWFolderResponse) JSON.deserialize(
       responseBody,
-      IManageTabResponse.class
+      iManageWFolderResponse.class
     );
 
     return response.data;
@@ -1045,7 +1045,7 @@ public class iManageWrapper {
   }
 
   public class iManageWFolderResponse {
-    IManageWFolder data;
+    public IManageWFolder data;
   }
 
   // TODO: Deprecated. use iManageWFolderResponse

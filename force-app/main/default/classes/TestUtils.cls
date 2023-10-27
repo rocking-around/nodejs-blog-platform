@@ -156,4 +156,8 @@ public class TestUtils {
     Organization org = [SELECT Id FROM Organization];
     return org;
   }
+
+  public static String buildCalloutUrl(String path, List<Object> formattingArgs) {
+    return 'callout:iManageCreds' + String.format(path, formattingArgs);
+  }
 }
