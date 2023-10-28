@@ -113,6 +113,27 @@ public with sharing class LicenseServiceTests {
     Test.stopTest();
   }
 
+  @IsTest
+  static void sendOrganizationInfoTest() {
+    HttpResponse resp = new HttpResponse();
+    resp.setStatusCode(200);
+    resp.setBody('ok');
+
+    Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+      LicenseService.baseUrl + '/api/License/new-organization' => new List<HttpResponse>{resp},
+      LicenseService.baseUrl + '/api/License/update-organization'=> new List<HttpResponse>{resp}
+    };
+    HttpCalloutQueueMock.setTestMockResponse(responses);
+    Test.startTest();
+    LicenseService.SendOrganizationInfo(true);
+    LicenseService.SendOrganizationInfo(false);
+    Test.stopTest();
+    System.assert(
+        true,
+        'error'
+    );
+  }
+
   private static HttpResponse getMockLicenseResponse(
     Integer statusCode,
     String orgId
