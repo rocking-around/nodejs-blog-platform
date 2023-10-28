@@ -9,15 +9,37 @@ public class TestUtils {
       return sot.getDescribe().getKeyPrefix() + result.leftPad(15, '0');
   }
 
+  public static String getLicenseUrl() {
+    return LicenseService.baseUrl + '/api/License/organization';
+  }
+
   public static Map<String, HttpResponse> getMockActiveLicenseResponse() {
+    Map<String, List<HttpResponse>> responses = getMockActiveLicenseResponses(1);
+
+    //Setup Mock responses
+    String licenseUrl = getLicenseUrl();
+    Map<String, HttpResponse> result = new Map<String, HttpResponse>{
+      licenseUrl => responses.get(licenseUrl).get(0)
+    };
+    return result;
+  }
+
+  public static Map<String, List<HttpResponse>> getMockActiveLicenseResponses(Integer count) {
     Organization org = [SELECT Id FROM Organization];
     String orgId = String.valueOf(org.Id);
     //Setup Mock responses
-    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
-    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
-      licenseUrl => getMockLicenseResponse(200, orgId)
+    String licenseUrl = getLicenseUrl();
+
+    List<HttpResponse> responses = new List<HttpResponse>();
+
+    for (Integer i = 0; i < count; i++) {
+      responses.add(getMockLicenseResponse(200, orgId));
+    }
+
+    Map<String, List<HttpResponse>> result = new Map<String, List<HttpResponse>>{
+      licenseUrl => responses
     };
-    return responses;
+    return result;
   }
 
   public static void setupMockActiveLicense() {

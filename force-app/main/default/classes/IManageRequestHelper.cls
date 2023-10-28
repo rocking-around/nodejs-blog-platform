@@ -111,6 +111,9 @@ public class IManageRequestHelper {
       httpRequest.setBody(body);
     Http http = new Http();
     HTTPResponse res = http.send(httpRequest);
+
+    tryLogAsJson(httpRequest, res);
+
     if (res.getStatusCode() == 401)
       throw new IManageExceptions.IManageUnauthorizedException();
 
@@ -152,5 +155,66 @@ public class IManageRequestHelper {
       throw new IManageExceptions.IManageUnauthorizedException();
 
     return res.getBody();
+  }
+
+  private static void tryLogAsJson(HttpRequest req, HTTPResponse resp) {
+    try {
+      Map<String, Object> result = new Map<String, Object>();
+      // request info
+      if (req != null) {
+        String contentType = req.getHeader('content-type');
+        Map<String, Object> reqInfo = new Map<String, Object> {
+          'endpoint' => req.getEndpoint(),
+          'method' => req.getMethod(),
+          'contentType' => contentType
+        };
+        Object reqBody = null;
+        String rawBody = req.getBody();
+        if (contentType == 'application/json' && isJson(rawBody)) {
+          reqBody = JSON.deserializeUntyped(rawBody);
+        } else {
+          reqBody = rawBody;
+        }
+        reqInfo.put('body', reqBody);
+        result.put('request', reqInfo);
+      }
+
+      // response info
+      if (resp != null) {
+        String contentType = resp.getHeader('content-type');
+        Map<String, Object> respInfo = new Map<String, Object> {
+          'statusCode' => resp.getStatusCode(),
+          'status' => resp.getStatus(),
+          'contentType' => contentType
+        };
+        Object respBody = null;
+        String rawBody = req.getBody();
+        if (contentType == 'application/json' && isJson(rawBody)) {
+          respBody = JSON.deserializeUntyped(rawBody);
+        } else {
+          respBody = rawBody;
+        }
+        respInfo.put('body', respBody);
+        result.put('response', respInfo);
+      }
+
+      Logger.getInstance()
+        .info('iManageWrapper::tryLogAsJson: ' + JSON.serialize(result));
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .warn('IManageRequestHelper::tryLogAsJson, error:' + ex.getMessage());
+    }
+  }
+
+  private static Boolean isJson(String s) {
+    try {
+      if (String.isBlank(s)) {
+        return false;
+      }
+      JSON.deserializeUntyped(s);
+      return true;
+    } catch(Exception e) {
+      return false;
+    }
   }
 }
