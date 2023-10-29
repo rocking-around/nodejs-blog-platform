@@ -188,7 +188,7 @@ public class IManageRequestHelper {
           'contentType' => contentType
         };
         Object respBody = null;
-        String rawBody = req.getBody();
+        String rawBody = resp.getBody();
         if (contentType == 'application/json' && isJson(rawBody)) {
           respBody = JSON.deserializeUntyped(rawBody);
         } else {

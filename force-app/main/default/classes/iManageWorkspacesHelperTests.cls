@@ -2,6 +2,37 @@
 @isTest
 private class iManageWorkspacesHelperTests {
     @IsTest
+    static void iManageWFolderProfileToMapTest() {
+        Set<String> doubleFields = new Set<String> {'custom17','custom18', 'custom19', 'custom20'};
+        Set<String> boolFields = new Set<String> {'custom25', 'custom26', 'custom27', 'custom28'};
+        Set<String> dateFields = new Set<String> {'custom21', 'custom22', 'custom23', 'custom24'};
+        Map<String, Object> m = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(new IManageWFolderProfile()));
+        for (String key : m.keySet()) {
+            if (doubleFields.contains(key)) {
+                m.put(key, 1);
+                continue;
+            }
+            if (boolFields.contains(key)) {
+                m.put(key, false);
+                continue;
+            }
+            if (dateFields.contains(key)) {
+                m.put(key, Datetime.now());
+                continue;
+            }
+            m.put(key, key);
+        }
+        String pfjson = JSON.serialize(m);
+        IManageWFolderProfile profile = (IManageWFolderProfile) JSON.deserialize(
+            pfjson,
+            IManageWFolderProfile.class
+        );
+        Map<String, Object> result =  profile.toMap(false);
+        System.assert(!result.containsKey('klass'), 'Invalid key = klass');
+        System.assert(result.containsKey('class'), 'The key "class" does not exist');
+    }
+
+    @IsTest
     static void isEntityWorkspaceAlreadyCreatedTest() {
         // prepare data
         String entityId = TestUtils.getFakeId(Opportunity.SObjectType);
@@ -583,6 +614,512 @@ private class iManageWorkspacesHelperTests {
         System.assert(resultDatabase == library, String.format('Wrong value = {0}, Expected = {1}', new List<Object> {resultDatabase, library}));
     }
 
+    @isTest
+    static void createWorkspaceOptionalFoldersTest() {
+        // prepare data
+        Integer customerId = 1;
+        String library = 'Active';
+        String matterId = '1B71446';
+        String workspaceName = '1-1B71446_Test 1';
+        //-- Folder template
+        String folderTemplate_id = library + '!2840';
+
+        // -- Created ws
+        String ws_id = library + '!2872';
+        String workspaceTemplate = library + '::' + folderTemplate_id;
+
+        // mock callouts
+        IManageApiResponseHelper respHelper = new IManageApiResponseHelper();
+
+        // createWorkspaceApiCall
+        String createWorkspaceEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces',
+            new List<Object>{ customerId, library }
+        );
+        String wsJson_create = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-29T12:10:34.163Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254941&&ver=1","is_hipaa":false,"document_number":254941,"custom2":"1B71446","custom2_ssid":"100490070984242874","custom2_description":"Salesforce test","custom1_ssid":"100490070984242850","custom1":"1","custom1_description":"Salesforce test","create_profile_date":"2023-10-29T12:10:34.163Z","owner_description":"testuser","owner":"TESTUSER","name":"1-1B71446_Test 1","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2872","has_subfolders":false,"effective_security":"full_access","edit_date":"2023-10-29T12:10:34.163Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-29T12:10:34.163Z"}';
+        IManageWWorkspace createdWs = (IManageWWorkspace) JSON.deserialize(
+            wsJson_create,
+            IManageWWorkspace.class
+        );
+        HttpResponse createWorkspaceResponse = respHelper.buildWorkspaceResponse(200, createdWs);
+
+        // folder template !2840
+        String getFolderTemplateEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{ customerId, library, folderTemplate_id }
+        );
+        String folderTemplateJson = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-28T16:40:50.467Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254932&&ver=1","is_hipaa":false,"document_number":254932,"create_profile_date":"2023-10-28T16:38:36.353Z","name":"sf_test_optional","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2840","has_subfolders":true,"effective_security":"full_access","edit_date":"2023-10-28T16:40:50.467Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-28T16:38:36.353Z"}';
+        IManageWWorkspace folderTemplate = (IManageWWorkspace) JSON.deserialize(
+            folderTemplateJson,
+            IManageWWorkspace.class
+        );
+        HttpResponse getFolderTemplateResponse = respHelper.buildWorkspaceResponse(200, folderTemplate);
+
+        // workspace !2872
+        String getWorkspaceEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{ customerId, library, ws_id }
+        );
+        String wsJson_get = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-29T12:10:34.163Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254941&&ver=1","is_hipaa":false,"document_number":254941,"custom2_description":"Salesforce test","custom2":"1B71446","custom2_ssid":"100490070984242874","custom1_ssid":"100490070984242850","custom1":"1","custom1_description":"Salesforce test","create_profile_date":"2023-10-29T12:10:34.163Z","owner_description":"testuser","owner":"TESTUSER","name":"1-1B71446_Test 1","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2872","has_subfolders":false,"effective_security":"full_access","edit_date":"2023-10-29T12:10:34.163Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-29T12:10:34.163Z"}';
+        IManageWWorkspace workspace_get = (IManageWWorkspace) JSON.deserialize(
+            wsJson_get,
+            IManageWWorkspace.class
+        );
+        HttpResponse getWorkspaceResponse = respHelper.buildWorkspaceResponse(200, workspace_get);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2841
+        String getFolderByIdEndpoint_folderTemplate_2841 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2841' }
+        );
+        String  folderTemplate_2841_json = '{"wstype":"folder","workspace_name":"sf_test_optional","workspace_id":"Active!2840","view_type":"document","profile":{},"parent_id":"Active!2840","owner_info":{"is_external":false,"allow_logon":true},"owner":"TESTUSER","owner_description":"testuser","name":"sf_tab_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2841","has_subfolders":false,"has_documents":false,"folder_type":"tab","effective_security":"full_access","edit_date":"2023-10-28T16:39:22.255Z","default_security":"inherit","database":"ACTIVE"}';
+        IManageWFolder folderTemplate_2841_data = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2841_json,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2841 = respHelper.buildWFolderResponse(200, folderTemplate_2841_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2842
+        String getFolderByIdEndpoint_folderTemplate_2842 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2842' }
+        );
+        String  folderTemplate_2842_json = '{"wstype":"folder","workspace_id":"Active!2840","workspace_name":"sf_test_optional","view_type":"document","profile":{},"parent_id":"Active!2840","owner_info":{"is_external":false,"allow_logon":true},"owner_description":"testuser","owner":"TESTUSER","name":"sf_folder_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2842","has_subfolders":false,"has_documents":false,"folder_type":"regular","effective_security":"full_access","edit_date":"2023-10-28T16:39:41.678Z","default_security":"inherit","database":"ACTIVE"}';
+        IManageWFolder folderTemplate_2842_data = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2842_json,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2842 = respHelper.buildWFolderResponse(200, folderTemplate_2842_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2841/name-value-pairs
+        String getNvpEndpoint_2841 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2841' }
+        );
+        String nvp_json_2841 = '{"IMCC_IsOptional":"true"}';
+        Map<String, String> nvp_data_2841 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2841,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2841 = respHelper.buildNameValuePairResponse(200, nvp_data_2841);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2842/name-value-pairs
+        String getNvpEndpoint_2842 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2842' }
+        );
+        String nvp_json_2842 = '{"IMCC_IsOptional":"true"}';
+        Map<String, String> nvp_data_2842 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2842,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2842 = respHelper.buildNameValuePairResponse(200, nvp_data_2842);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2843/name-value-pairs
+        String getNvpEndpoint_2843 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2843' }
+        );
+        String nvp_json_2843 = '{"IMCC_IsOptional":"true"}';
+        Map<String, String> nvp_data_2843 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2843,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2843 = respHelper.buildNameValuePairResponse(200, nvp_data_2843);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders?total=true&offset=0&limit=200&container_id=Active!2840
+        String getFoldersEndpoint_2840 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders?total=true&offset=0&limit=200&container_id={2}',
+            new List<Object>{ customerId, library, 'Active!2840' }
+        );
+        String getFoldersJson_2840 = '[{"wstype":"folder","workspace_name":"sf_test_optional","workspace_id":"Active!2840","view_type":"document","parent_id":"Active!2840","owner":"TESTUSER","owner_description":"testuser","name":"sf_search_folder","is_external_as_normal":false,"is_external":false,"is_content_saved_search":true,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2843","has_subfolders":false,"has_documents":false,"folder_type":"search","edit_date":"2023-10-28T16:40:29.877Z","default_security":"inherit","database":"ACTIVE","content_saved_search_id":100490070990171717},{"wstype":"folder","workspace_name":"sf_test_optional","workspace_id":"Active!2840","view_type":"document","parent_id":"Active!2840","owner":"TESTUSER","owner_description":"testuser","name":"sf_folder_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2842","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2023-10-28T16:39:41.678Z","default_security":"inherit","database":"ACTIVE"},{"wstype":"folder","workspace_name":"sf_test_optional","workspace_id":"Active!2840","view_type":"document","parent_id":"Active!2840","owner":"TESTUSER","owner_description":"testuser","name":"sf_tab_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2841","has_subfolders":false,"has_documents":false,"folder_type":"tab","edit_date":"2023-10-28T16:39:22.255Z","default_security":"inherit","database":"ACTIVE"}]';
+        List<IManageWFolder> getFoldersData_2840 = (List<IManageWFolder>) JSON.deserialize(
+            getFoldersJson_2840,
+            List<IManageWFolder>.class
+        );
+
+        HttpResponse getFoldersResponse_2840 = respHelper.buildFoldersResponse(200, getFoldersData_2840);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders?total=true&offset=0&limit=200&container_id=Active!2872
+        String getFoldersEndpoint_2872 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders?total=true&offset=0&limit=200&container_id={2}',
+            new List<Object>{ customerId, library, 'Active!2872' }
+        );
+        String getFoldersJson_2872 = '[]';
+        List<IManageWFolder> getFoldersData_2872 = (List<IManageWFolder>) JSON.deserialize(
+            getFoldersJson_2872,
+            List<IManageWFolder>.class
+        );
+
+        HttpResponse getFoldersResponse_2872 = respHelper.buildFoldersResponse(200, getFoldersData_2872);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/search-folders/Active!2843
+        String getSearchFolderByIdEndpoint_2843 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/search-folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2843' }
+        );
+        String folderTemplate_search_json_2843 = '{"wstype":"folder","workspace_name":"sf_test_optional","workspace_id":"Active!2840","view_type":"document_search","subtype":"C","searchprofile":{"docnum":"1-10","databases":"Active"},"profile":{"class_property_name":"klass"},"parent_id":"Active!2840","owner_description":"testuser","owner":"TESTUSER","name":"sf_search_folder","is_external_as_normal":false,"is_content_saved_search":true,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2843","has_subfolders":false,"folder_type":"search","effective_security":"full_access","edit_date":"2023-10-28T16:40:29.877Z","default_security":"inherit","database":"Active","content_saved_search_id":"100490070990171717"}';
+        IManageWFolder folderTemplate_search_data_2843 = (IManageWFolder) JSON.deserialize(
+            folderTemplate_search_json_2843,
+            IManageWFolder.class
+        );
+        HttpResponse getSearchFolderByIdResponse_2843 = respHelper.buildWFolderResponse(200, folderTemplate_search_data_2843);
+
+        Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+            createWorkspaceEndpoint => new List<HttpResponse>{
+                createWorkspaceResponse
+            },
+            getFolderTemplateEndpoint => new List<HttpResponse>{
+                getFolderTemplateResponse
+            },
+            getWorkspaceEndpoint => new List<HttpResponse>{
+                getWorkspaceResponse
+            },
+            getFolderByIdEndpoint_folderTemplate_2841 => new List<HttpResponse>{
+                getFolderByIdResponse_folderTemplate_2841
+            },
+            getFolderByIdEndpoint_folderTemplate_2842 => new List<HttpResponse>{
+                getFolderByIdResponse_folderTemplate_2842
+            },
+            //
+            getNvpEndpoint_2841 => new List<HttpResponse>{ getNvpResponse_2841 },
+            getNvpEndpoint_2842 => new List<HttpResponse>{ getNvpResponse_2842 },
+            getNvpEndpoint_2843 => new List<HttpResponse>{ getNvpResponse_2843 },
+            getFoldersEndpoint_2840 => new List<HttpResponse>{ getFoldersResponse_2840 },
+            getFoldersEndpoint_2872 => new List<HttpResponse>{ getFoldersResponse_2872 },
+            getSearchFolderByIdEndpoint_2843 => new List<HttpResponse>{ getSearchFolderByIdResponse_2843 }
+        };
+        setupMockCallouts(customerId, library, responses);
+        //--
+
+        Test.startTest();
+        Map<String, String> result = iManageWorkspacesHelper.createWorkspace(
+            String.valueOf(customerId), // client alias
+            matterId, // matter alias
+            workspaceName,
+            workspaceTemplate // "libraryId::templateId"
+        );
+        Test.stopTest();
+        System.assert(true, 'test not passed');
+    }
+
+    @isTest
+    static void createWorkspaceSecureFoldersTest() {
+        // prepare data
+        Integer customerId = 1;
+        String library = 'Active';
+        String matterId = '1B71446';
+        String workspaceName = '1-1B71446_Test 1';
+        //-- Folder template
+        String folderTemplate_id = library + '!2844';
+
+        // -- Created ws
+        String workspaceTemplate = library + '::' + folderTemplate_id;
+
+        //-- mock callouts
+        IManageApiResponseHelper respHelper = new IManageApiResponseHelper();
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces
+        String createWorkspaceEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces',
+            new List<Object>{ customerId, library }
+        );
+        String wsJson_create = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-29T12:12:36.29Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254942&&ver=1","is_hipaa":false,"document_number":254942,"custom2_ssid":"100490070984242874","custom2_description":"Salesforce test","custom2":"1B71446","custom1":"1","custom1_ssid":"100490070984242850","custom1_description":"Salesforce test","create_profile_date":"2023-10-29T12:12:36.29Z","owner":"TESTUSER","owner_description":"testuser","name":"1-1B71446_Test 1","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2873","has_subfolders":false,"effective_security":"full_access","edit_date":"2023-10-29T12:12:36.29Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-29T12:12:36.29Z"}';
+        IManageWWorkspace createdWs = (IManageWWorkspace) JSON.deserialize(
+            wsJson_create,
+            IManageWWorkspace.class
+        );
+        HttpResponse createWorkspaceResponse = respHelper.buildWorkspaceResponse(200, createdWs);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!2844
+        String getWorkspaceEndpoint_2844 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{ customerId, library, 'Active!2844' }
+        );
+        String workspace_json_2844 = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-28T16:42:00.002Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254933&&ver=1","is_hipaa":false,"document_number":254933,"create_profile_date":"2023-10-28T16:41:19.33Z","name":"sf_test_security","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2844","has_subfolders":true,"effective_security":"full_access","edit_date":"2023-10-28T16:42:00.002Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-28T16:41:19.33Z"}';
+        IManageWWorkspace workspace_data_2844 = (IManageWWorkspace) JSON.deserialize(
+            workspace_json_2844,
+            IManageWWorkspace.class
+        );
+        HttpResponse getWorkspaceResponse_2844 = respHelper.buildWorkspaceResponse(200, workspace_data_2844);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!2873
+        String getWorkspaceEndpoint_2873 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{ customerId, library, 'Active!2873' }
+        );
+        String workspace_json_2873 = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-29T12:12:36.29Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254942&&ver=1","is_hipaa":false,"document_number":254942,"custom2_description":"Salesforce test","custom2_ssid":"100490070984242874","custom2":"1B71446","custom1_description":"Salesforce test","custom1_ssid":"100490070984242850","custom1":"1","create_profile_date":"2023-10-29T12:12:36.29Z","owner_description":"testuser","owner":"TESTUSER","name":"1-1B71446_Test 1","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2873","has_subfolders":false,"effective_security":"full_access","edit_date":"2023-10-29T12:12:36.29Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-29T12:12:36.29Z"}';
+        IManageWWorkspace workspace_data_2873 = (IManageWWorkspace) JSON.deserialize(
+            workspace_json_2873,
+            IManageWWorkspace.class
+        );
+        HttpResponse getWorkspaceResponse_2873 = respHelper.buildWorkspaceResponse(200, workspace_data_2873);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2845
+        String getFolderByIdEndpoint_folderTemplate_2845 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2845' }
+        );
+        String  folderTemplate_2845_json = '{"wstype":"folder","workspace_id":"Active!2844","workspace_name":"sf_test_security","view_type":"document","profile":{},"parent_id":"Active!2844","owner_info":{"is_external":false,"allow_logon":true},"owner_description":"testuser","owner":"TESTUSER","name":"sf_tab","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2845","has_subfolders":true,"has_documents":false,"folder_type":"tab","effective_security":"full_access","edit_date":"2023-10-28T16:43:10.751Z","description":"public secirity","default_security":"public","database":"ACTIVE"}';
+        IManageWFolder folderTemplate_2845_data = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2845_json,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2845 = respHelper.buildWFolderResponse(200, folderTemplate_2845_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2846
+        String getFolderByIdEndpoint_folderTemplate_2846 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2846' }
+        );
+        String  folderTemplate_2846_json = '{"wstype":"folder","workspace_name":"sf_test_security","workspace_id":"Active!2844","view_type":"email","profile":{},"parent_id":"Active!2845","owner_info":{"is_external":false,"allow_logon":true},"owner_description":"testuser","owner":"TESTUSER","name":"sf_folder_1_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"private","id":"Active!2846","has_subfolders":false,"has_documents":false,"folder_type":"regular","email":"a12fb06d-23e7-838d-163d-a52060506468.Active@mail.cloudimanage.com","effective_security":"full_access","edit_date":"2023-10-28T16:45:00.309Z","description":"private security","default_security":"private","database":"ACTIVE","project_custom3":"droth@gdsi.com"}';
+        IManageWFolder folderTemplate_2846_data = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2846_json,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2846 = respHelper.buildWFolderResponse(200, folderTemplate_2846_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2874
+        String getFolderByIdEndpoint_folderTemplate_2874 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2874' }
+        );
+        String  folderTemplate_2874_json = '{"wstype":"folder","workspace_name":"1-1B71446_Test 1","workspace_id":"Active!2873","view_type":"document","parent_id":"Active!2873","owner":"TESTUSER","owner_description":"testuser","name":"sf_tab","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2874","has_subfolders":false,"has_documents":false,"folder_type":"tab","effective_security":"full_access","edit_date":"2023-10-29T12:12:37.569Z","description":"public secirity","default_security":"public","database":"ACTIVE"}';
+        IManageWFolder folderTemplate_2874_data = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2874_json,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2874 = respHelper.buildWFolderResponse(200, folderTemplate_2874_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2875
+        String getFolderByIdEndpoint_folderTemplate_2875 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2875' }
+        );
+        // # 1
+        String folderTemplate_2875_json_1 = '{"wstype":"folder","workspace_id":"Active!2873","workspace_name":"1-1B71446_Test 1","view_type":"document","parent_id":"Active!2874","owner_description":"testuser","owner":"TESTUSER","name":"sf_folder_1_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"private","id":"Active!2875","has_subfolders":false,"has_documents":false,"folder_type":"regular","effective_security":"full_access","edit_date":"2023-10-29T12:12:38.457Z","description":"private security","default_security":"private","database":"ACTIVE","project_custom3":"droth@gdsi.com"}';
+        IManageWFolder folderTemplate_2875_data_1 = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2875_json_1,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2875_1 = respHelper.buildWFolderResponse(200, folderTemplate_2875_data_1);
+        // #2
+        String folderTemplate_2875_json_2 = '{"wstype":"folder","workspace_name":"1-1B71446_Test 1","workspace_id":"Active!2873","view_type":"email","parent_id":"Active!2874","owner":"TESTUSER","owner_description":"testuser","name":"sf_folder_1_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"private","id":"Active!2875","has_subfolders":false,"has_documents":false,"folder_type":"regular","email":"sf_folder_1_1.2875.Active@mail.cloudimanage.com","effective_security":"full_access","edit_date":"2023-10-29T12:12:38.622Z","description":"private security","default_security":"private","database":"ACTIVE","project_custom3":"droth@gdsi.com"}';
+        IManageWFolder folderTemplate_2875_data_2 = (IManageWFolder) JSON.deserialize(
+            folderTemplate_2875_json_2,
+            IManageWFolder.class
+        );
+        HttpResponse getFolderByIdResponse_folderTemplate_2875_2 = respHelper.buildWFolderResponse(200, folderTemplate_2875_data_2);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2874/search-folders
+        String createSearchFolderEndpoint_2874 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/search-folders',
+            new List<Object>{ customerId, library, 'Active!2874' }
+        );
+        String createSearchFolder_json = '{"wstype":"folder","workspace_name":"1-1B71446_Test 1","workspace_id":"Active!2873","view_type":"document_search","subtype":"C","searchprofile":{"custom25":true,"docnum":">7","databases":"Active"},"parent_id":"Active!2874","owner_description":"testuser","owner":"TESTUSER","name":"sf_search_folder_1_2","is_external_as_normal":false,"is_external":false,"is_content_saved_search":true,"is_container_saved_search":false,"id":"Active!2876","has_subfolders":false,"folder_type":"search","effective_security":"full_access","edit_date":"2023-10-29T12:12:39.772Z","default_security":"view","database":"Active","content_saved_search_id":"100490070990851152"}';
+        IManageWFolder createSearchFolder_data = (IManageWFolder) JSON.deserialize(
+            createSearchFolder_json,
+            IManageWFolder.class
+        );
+        HttpResponse createSearchFolderResponse_2874 = respHelper.buildWFolderResponse(200, createSearchFolder_data);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!2873/tabs
+        String createTabEndpoint_2873 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/tabs',
+            new List<Object>{ customerId, library, 'Active!2873' }
+        );
+        String createTab_json_2873 = '{"wstype":"folder","workspace_name":"1-1B71446_Test 1","workspace_id":"Active!2873","view_type":"document","subtype":"Q","parent_id":"Active!2873","owner_description":"testuser","owner":"TESTUSER","name":"sf_tab","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"id":"Active!2874","has_subfolders":false,"folder_type":"tab","effective_security":"full_access","edit_date":"2023-10-29T12:12:37.348Z","description":"public secirity","default_security":"public","database":"Active"}';
+        IManageWFolder createTab_data_2873 = (IManageWFolder) JSON.deserialize(
+            createTab_json_2873,
+            IManageWFolder.class
+        );
+        HttpResponse createTabResponse_2873 = respHelper.buildTabResponse(200, createTab_data_2873);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2845
+        String getNvpEndpoint_2845 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2845' }
+        );
+        String nvp_json_2845 = '{"IMCC_IsOptional":"false"}';
+        Map<String, String> nvp_data_2845 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2845,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2845 = respHelper.buildNameValuePairResponse(200, nvp_data_2845);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2846/name-value-pairs
+        String getNvpEndpoint_2846 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2846' }
+        );
+        String nvp_json_2846 = '{"IMCC_Email_Format":"droth@gdsi.com","IMCC_IsOptional":"false","icc_isrename":"0"}';
+        Map<String, String> nvp_data_2846 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2846,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2846 = respHelper.buildNameValuePairResponse(200, nvp_data_2846);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2847/name-value-pairs
+        String getNvpEndpoint_2847 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!2847' }
+        );
+        String nvp_json_2847 = '{"IMCC_IsOptional":"false","icc_isrename":"0"}';
+        Map<String, String> nvp_data_2847 = (Map<String, String>) JSON.deserialize(
+            nvp_json_2847,
+            Map<String, String>.class
+        );
+        HttpResponse getNvpResponse_2847 = respHelper.buildNameValuePairResponse(200, nvp_data_2847);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2846/security
+        String patchSecurityEndpoint_2846 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+            new List<Object>{ customerId, library, 'Active!2846' }
+        );
+        String patchSecurity_json_2846 = '[{"type":"user","sid":"386600337554908195","name":"testuser","is_external":false,"id":"TESTUSER","allow_logon":true,"access_level":"full_access","access":3}]';
+        List<IManageWSecurity> patchSecurity_data_2846 = (List<IManageWSecurity>) JSON.deserialize(
+            patchSecurity_json_2846,
+            List<IManageWSecurity>.class
+        );
+        HttpResponse patchSecurityResponse_2846 = respHelper.buildFolderSecurityResponseResponse(200, patchSecurity_data_2846, 'private');
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2847/security
+        String patchSecurityEndpoint_2847 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+            new List<Object>{ customerId, library, 'Active!2847' }
+        );
+        String patchSecurity_json_2847 = '[{"type":"user","sid":"386600337554908195","name":"testuser","is_external":false,"id":"TESTUSER","allow_logon":true,"access_level":"full_access","access":3},{"type":"user","sid":"387999997838802834","name":"Test User2","is_external":false,"id":"TESTUSER2","allow_logon":true,"access_level":"read","access":1}]';
+        List<IManageWSecurity> patchSecurity_data_2847 = (List<IManageWSecurity>) JSON.deserialize(
+            patchSecurity_json_2847,
+            List<IManageWSecurity>.class
+        );
+        HttpResponse patchSecurityResponse_2847 = respHelper.buildFolderSecurityResponseResponse(200, patchSecurity_data_2847, 'view');
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2875/security
+        String patchSecurityEndpoint_2875 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+            new List<Object>{ customerId, library, 'Active!2875' }
+        );
+        String patchSecurity_json_2875 = '[{"type":"user","sid":"386600337554908195","name":"testuser","is_external":false,"id":"TESTUSER","allow_logon":true,"access_level":"full_access","access":3}]';
+        List<IManageWSecurity> patchSecurity_data_2875 = (List<IManageWSecurity>) JSON.deserialize(
+            patchSecurity_json_2875,
+            List<IManageWSecurity>.class
+        );
+        HttpResponse patchSecurityResponse_2875 = respHelper.buildFolderSecurityResponseResponse(200, patchSecurity_data_2875, 'private');
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders/Active!2876/security
+        String patchSecurityEndpoint_2876 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
+            new List<Object>{ customerId, library, 'Active!2876' }
+        );
+        String patchSecurity_json_2876 = '[{"type":"user","sid":"386600337554908195","name":"testuser","is_external":false,"id":"TESTUSER","allow_logon":true,"access_level":"full_access","access":3},{"type":"user","sid":"387999997838802834","name":"Test User2","is_external":false,"id":"TESTUSER2","allow_logon":true,"access_level":"read","access":1}]';
+        List<IManageWSecurity> patchSecurity_data_2876 = (List<IManageWSecurity>) JSON.deserialize(
+            patchSecurity_json_2876,
+            List<IManageWSecurity>.class
+        );
+        HttpResponse patchSecurityResponse_2876 = respHelper.buildFolderSecurityResponseResponse(200, patchSecurity_data_2876, 'view');
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/tabs/Active!2845/security
+        String patchSecurityTabEndpoint_2845 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/security',
+            new List<Object>{ customerId, library, 'Active!2845' }
+        );
+        String patchSecurityTab_json_2845 = '[]';
+        List<IManageWSecurity> patchSecurityTab_data_2845 = (List<IManageWSecurity>) JSON.deserialize(
+            patchSecurityTab_json_2845,
+            List<IManageWSecurity>.class
+        );
+        HttpResponse patchSecurityTabRequest_2845 = respHelper.buildFolderSecurityResponseResponse(200, patchSecurityTab_data_2845, 'public');
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/search-folders/Active!2847
+        String getSearchFolderByIdEndpoint_2847 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/search-folders/{2}',
+            new List<Object>{ customerId, library, 'Active!2847' }
+        );
+        String folderTemplate_search_json_2847 = '{"wstype":"folder","workspace_name":"sf_test_security","workspace_id":"Active!2844","view_type":"document_search","subtype":"C","searchprofile":{"custom25":true,"docnum":">7","databases":"Active"},"profile":{"class_property_name":"klass"},"parent_id":"Active!2845","owner_description":"2873","owner":"TESTUSER","name":"sf_search_folder_1_2","is_external_as_normal":false,"is_external":false,"is_content_saved_search":true,"is_container_saved_search":false,"id":"Active!2847","has_subfolders":false,"folder_type":"search","effective_security":"full_access","edit_date":"2023-10-28T16:46:55.21Z","description":"security view","default_security":"view","database":"Active","content_saved_search_id":"100490070990172283"}';
+        IManageWFolder folderTemplate_search_data_2847 = (IManageWFolder) JSON.deserialize(
+            folderTemplate_search_json_2847,
+            IManageWFolder.class
+        );
+        HttpResponse getSearchFolderByIdResponse_2847 = respHelper.buildWFolderResponse(200, folderTemplate_search_data_2847);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/tabs/Active!2874/folders
+        String createFolderEndpoint_2874 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/folders',
+            new List<Object>{ customerId, library, 'Active!2874' }
+        );
+        String createFolder_json_2874 = '{"wstype":"folder","workspace_name":"1-1B71446_Test 1","workspace_id":"Active!2873","view_type":"document","parent_id":"Active!2874","owner":"TESTUSER","owner_description":"testuser","name":"sf_folder_1_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"private","id":"Active!2875","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2023-10-29T12:12:38.278Z","description":"private security","default_security":"private","database":"ACTIVE","project_custom3":"droth@gdsi.com"}';
+        IManageWFolder createFolder_data_2874 = (IManageWFolder) JSON.deserialize(
+            createFolder_json_2874,
+            IManageWFolder.class
+        );
+        HttpResponse createFolderResponse_2874 = respHelper.buildWFolderResponse(200, createFolder_data_2874);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders?total=true&offset=0&limit=200&container_id=Active!2844
+        String getFoldersEndpoint_2844 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders?total=true&offset=0&limit=200&container_id={2}',
+            new List<Object>{ customerId, library, 'Active!2844' }
+        );
+        String getFoldersJson_2844 = '[{"wstype":"folder","workspace_name":"sf_test_security","workspace_id":"Active!2844","view_type":"document","parent_id":"Active!2845","owner":"TESTUSER","owner_description":"testuser","name":"sf_search_folder_1_2","is_external_as_normal":false,"is_external":false,"is_content_saved_search":true,"is_container_saved_search":false,"inherited_default_security":"view","id":"Active!2847","has_subfolders":false,"has_documents":false,"folder_type":"search","edit_date":"2023-10-28T16:46:55.21Z","description":"security view","default_security":"view","database":"ACTIVE","content_saved_search_id":100490070990172283},{"wstype":"folder","workspace_name":"sf_test_security","workspace_id":"Active!2844","view_type":"email","parent_id":"Active!2845","owner":"TESTUSER","owner_description":"testuser","name":"sf_folder_1_1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"private","id":"Active!2846","has_subfolders":false,"has_documents":false,"folder_type":"regular","email":"a12fb06d-23e7-838d-163d-a52060506468.Active@","edit_date":"2023-10-28T16:45:00.309Z","description":"private security","default_security":"private","database":"ACTIVE","project_custom3":"droth@gdsi.com"},{"wstype":"folder","workspace_name":"sf_test_security","workspace_id":"Active!2844","view_type":"document","parent_id":"Active!2844","owner":"TESTUSER","owner_description":"testuser","name":"sf_tab","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!2845","has_subfolders":true,"has_documents":false,"folder_type":"tab","edit_date":"2023-10-28T16:43:10.751Z","description":"public secirity","default_security":"public","database":"ACTIVE"}]';
+        List<IManageWFolder> getFoldersData_2844 = (List<IManageWFolder>) JSON.deserialize(
+            getFoldersJson_2844,
+            List<IManageWFolder>.class
+        );
+        HttpResponse getFoldersResponse_2844 = respHelper.buildFoldersResponse(200, getFoldersData_2844);
+
+        // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/folders?total=true&offset=0&limit=200&container_id=Active!2873
+        String getFoldersEndpoint_2873 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/folders?total=true&offset=0&limit=200&container_id={2}',
+            new List<Object>{ customerId, library, 'Active!2873' }
+        );
+        String getFoldersJson_2873 = '[]';
+        List<IManageWFolder> getFoldersData_2873 = (List<IManageWFolder>) JSON.deserialize(
+            getFoldersJson_2873,
+            List<IManageWFolder>.class
+        );
+        HttpResponse getFoldersResponse_2873 = respHelper.buildFoldersResponse(200, getFoldersData_2873);
+
+
+        Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+            createWorkspaceEndpoint => new List<HttpResponse>{ createWorkspaceResponse },
+            getWorkspaceEndpoint_2844 => new List<HttpResponse>{ getWorkspaceResponse_2844 },
+            getWorkspaceEndpoint_2873 => new List<HttpResponse>{ getWorkspaceResponse_2873 },
+            getFolderByIdEndpoint_folderTemplate_2845 => new List<HttpResponse>{ getFolderByIdResponse_folderTemplate_2845 },
+            getFolderByIdEndpoint_folderTemplate_2846 => new List<HttpResponse>{ getFolderByIdResponse_folderTemplate_2846 },
+            getFolderByIdEndpoint_folderTemplate_2874 => new List<HttpResponse>{ getFolderByIdResponse_folderTemplate_2874 },
+            getFolderByIdEndpoint_folderTemplate_2875 => new List<HttpResponse>{
+                getFolderByIdResponse_folderTemplate_2875_1,
+                getFolderByIdResponse_folderTemplate_2875_2
+            },
+            createSearchFolderEndpoint_2874 => new List<HttpResponse>{ createSearchFolderResponse_2874 },
+            createTabEndpoint_2873 => new List<HttpResponse>{ createTabResponse_2873 },
+            getNvpEndpoint_2845 => new List<HttpResponse>{ getNvpResponse_2845 },
+            getNvpEndpoint_2846 => new List<HttpResponse>{ getNvpResponse_2846 },
+            getNvpEndpoint_2847 => new List<HttpResponse>{ getNvpResponse_2847 },
+            patchSecurityEndpoint_2846 => new List<HttpResponse>{ patchSecurityResponse_2846 },
+            patchSecurityEndpoint_2847 => new List<HttpResponse>{ patchSecurityResponse_2847 },
+            patchSecurityEndpoint_2875 => new List<HttpResponse>{ patchSecurityResponse_2875 },
+            patchSecurityEndpoint_2876 => new List<HttpResponse>{ patchSecurityResponse_2876 },
+            patchSecurityTabEndpoint_2845 => new List<HttpResponse>{ patchSecurityTabRequest_2845 },
+            getSearchFolderByIdEndpoint_2847 => new List<HttpResponse>{ getSearchFolderByIdResponse_2847 },
+            createFolderEndpoint_2874 => new List<HttpResponse>{ createFolderResponse_2874 },
+            getFoldersEndpoint_2844 => new List<HttpResponse>{ getFoldersResponse_2844 },
+            getFoldersEndpoint_2873 => new List<HttpResponse>{ getFoldersResponse_2873 }
+        };
+        setupMockCallouts(customerId, library, responses);
+        //--
+
+        Test.startTest();
+        Map<String, String> result = iManageWorkspacesHelper.createWorkspace(
+            String.valueOf(customerId), // client alias
+            matterId, // matter alias
+            workspaceName,
+            workspaceTemplate // "libraryId::templateId"
+        );
+        Test.stopTest();
+        System.assert(true, 'test not passed');
+    }
+
     private static iManageSettings__c getIManageSettings(
         String folderTemplate,
         String wsNamePattern,
@@ -635,7 +1172,6 @@ private class iManageWorkspacesHelperTests {
             responses.putAll(mockCallouts);
         }
         HttpCalloutQueueMock.setTestMockResponse(responses, true);
-        System.debug('iManageWorkspacesHelperTests::setupMockCallouts: mocked callouts = ' + String.join(responses.keySet(), ', '));
     }
 
     class IManageApiResponseHelper {
@@ -686,6 +1222,13 @@ private class iManageWorkspacesHelperTests {
             body.data = folders;
             body.total_count = body.data.size();
             return buildResponse(statusCode, body, 'buildFoldersResponse');
+        }
+
+        public HttpResponse buildFolderSecurityResponseResponse(Integer statusCode, List<IManageWSecurity> data, String default_security){
+            iManageWrapper.iManageFolderSecurityResponse body = new iManageWrapper.iManageFolderSecurityResponse();
+            body.data = data;
+            body.default_security = default_security;
+            return buildResponse(statusCode, body, 'buildFolderSecurityResponseResponse');
         }
 
         public HttpResponse buildNameValuePairResponse(Integer statusCode, Map<String, String> data){
