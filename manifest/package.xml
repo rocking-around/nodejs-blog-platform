@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <!--types>
-        <members>Create_iManage_Workspace_Access</members>
-        <name>CustomPermission</name>
-    </types-->
     <types>
         <members>ConfigurationHelper</members>
         <members>ConfigurationHelperTests</members>
@@ -125,10 +121,15 @@
         <members>iManageAuthSetting__mdt-iManageAuthSetting Layout</members>
         <members>IManageMapping__c-IManageMapping Layout</members>
         <name>Layout</name>
+    </types-->
+    <types>
+        <members>Create_iManage_Workspace_Access</members>
+        <name>CustomPermission</name>
     </types>
     <types>
         <members>iManage_Admin</members>
         <members>iManage_User</members>
+        <members>iManage_Workspace_Creation</members>
         <name>PermissionSet</name>
     </types>
     <types>
