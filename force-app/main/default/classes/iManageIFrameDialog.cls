@@ -43,11 +43,11 @@ public class iManageIFrameDialog {
         EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
         '&mode=browse&multiselect=false&types=folder';
       Logger.getInstance()
-        .info('iManageIFrameDialog::GetIFrameFilePicker, result=' + result);
+        .info('iManageIFrameDialog::GetIFrameFolderPicker, result=' + result);
       return result;
     } catch (IManageExceptions.IManageUnauthorizedException ex) {
       Logger.getInstance()
-        .error(ex, 'iManageIFrameDialog::GetIFrameFilePicker');
+        .error(ex, 'iManageIFrameDialog::GetIFrameFolderPicker');
       throw IManageBaseHelper.BuildException(
         IManageBaseHelper.IManageErrors.UNAUTHORIZED
       );
@@ -75,7 +75,7 @@ public class iManageIFrameDialog {
         mc.Client_Id__c +
         '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
         EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
-        '&mode=open';
+        '&mode=open&multiselect=true';
       Logger.getInstance()
         .info('iManageIFrameDialog::GetIFrameFilePicker, result=' + result);
       return result;
@@ -116,13 +116,15 @@ public class iManageIFrameDialog {
     if (link == null || link.ClientId == null || link.MatterId == null)
       return dialogUrl;
 
-    String workspaceId = iManageWorkspacesHelper.SearchWorkspace(mc, apiData, link);
-    
+    String workspaceId = iManageWorkspacesHelper.SearchWorkspace(
+      mc,
+      apiData,
+      link
+    );
+
     if (workspaceId == null || workspaceId == '')
       return dialogUrl;
 
-    return dialogUrl +
-      '&start=' +
-      EncodingUtil.urlEncode(workspaceId, 'UTF-8');
+    return dialogUrl + '&start=' + EncodingUtil.urlEncode(workspaceId, 'UTF-8');
   }
 }

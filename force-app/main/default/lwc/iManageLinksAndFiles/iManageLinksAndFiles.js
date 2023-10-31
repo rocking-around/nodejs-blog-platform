@@ -217,13 +217,15 @@ export default class IManageLinksAndFiles extends LightningElement {
       });
 
       if (result) {
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: "Save Document...",
-            message: `The Document "${result.docName}.${result.docExtension}" saved successfuly`,
-            variant: "success"
-          })
-        );
+        for (let doc of result) {
+          this.dispatchEvent(
+            new ShowToastEvent({
+              title: "Save Document...",
+              message: `The Document "${doc.docName}.${doc.docExtension}" saved successfuly`,
+              variant: "success"
+            })
+          );
+        }
         this.loadData();
       }
     } catch (error) {
@@ -248,8 +250,8 @@ export default class IManageLinksAndFiles extends LightningElement {
       if (result) {
         this.dispatchEvent(
           new ShowToastEvent({
-            title: "Save Link...",
-            message: `Link saved successfuly`,
+            title: "Save Links...",
+            message: `Links saved successfuly`,
             variant: "success"
           })
         );
