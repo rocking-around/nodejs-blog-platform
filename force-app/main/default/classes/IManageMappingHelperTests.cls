@@ -259,18 +259,73 @@ private class IManageMappingHelperTests {
     System.assert(data.size() > 0, 'Data is empty');
   }
 
-  /*@isTest
-  static void saveMappingTestException() {
-    IManageMapping mapping = null;
+  @isTest
+  static void getIManageDataFromSObjectTest() {
+    TestUtils.setupMockActiveLicense();
+    //-- prepare data
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      iManage_Default_Folder_Id__c = 'val5',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
+    );
+    insert settings;
+
+    // Create Opportunity
+    Opportunity opp = new Opportunity();
+    opp.Name = 'Test Opportunity';
+    opp.Closedate = System.today();
+    opp.StageName = 'Prospecting';
+    insert opp;
+    // --
+    Test.startTest();
+    Map<String, Object> result = IManageMappingHelper.getIManageDataFromSObject(opp.Id);
+    Test.stopTest();
+
+    String errorMsg = 'Wrong value: result = {0}, expected = {1}';
+    System.assert(String.valueOf(result.get('clientId')) == opp.Id, String.format(errorMsg, new List<Object> { String.valueOf(result.get('clientId')), opp.Id }));
+    System.assert(String.valueOf(result.get('matterId')) == opp.Id, String.format(errorMsg, new List<Object> { String.valueOf(result.get('matterId')), opp.Id }));
+    System.assert(String.valueOf(result.get('clientName')) == opp.Name, String.format(errorMsg, new List<Object> { String.valueOf(result.get('clientName')), opp.Name }));
+    System.assert(String.valueOf(result.get('matterName')) == opp.Name, String.format(errorMsg, new List<Object> { String.valueOf(result.get('matterName')), opp.Name }));
+  }
+
+  @isTest
+  static void getIManageDataFromSObjectTestException() {
+    TestUtils.setupMockActiveLicense();
+    //-- prepare data
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      iManage_Default_Folder_Id__c = 'val5',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Nonexistent_field',
+      Mapping_MatterNameField__c = 'Nonexistent_field',
+      Mapping_EntityClientIdObjectField__c = 'Nonexistent_field',
+      Mapping_ClientIdField__c = 'Nonexistent_field',
+      Mapping_ClientNameField__c = 'Nonexistent_field'
+    );
+    insert settings;
+    // --
     Test.startTest();
     try {
-      IManageMappingHelper.saveMapping(mapping);
+      Map<String, Object> result = IManageMappingHelper.getIManageDataFromSObject('fake-id');
+      System.assert(false, 'An exception is expected here.');
     } catch (Exception ex) {
-      System.assert(
-        ex instanceof AuraHandledException,
-        'Exception is not a AuraHandledException'
-      );
+      System.assert(true, '');
     }
     Test.stopTest();
-  }*/
+  }
 }

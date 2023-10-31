@@ -308,20 +308,44 @@ public with sharing class IManageMappingHelper {
 
   @AuraEnabled
   public static Map<String, Object> getIManageDataFromSObject(String entityId) {
-    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-    Map<String, Object> result = new Map<String, Object>();
-
-    Object clientId = GetDataFromObject(entityId, mapping.ClientIdField);
-    Object matterId = GetDataFromObject(entityId, mapping.MatterIdField);
-    Object clientName = GetDataFromObject(entityId, mapping.ClientNameField);
-    Object matterName = GetDataFromObject(entityId, mapping.MatterNameField);
-
-    return new Map<String, Object>{
-      'clientId' => clientId,
-      'matterId' => matterId,
-      'clientName' => clientName,
-      'matterName' => matterName
+    String logPrefix = 'IManageMappingHelper::getIManageDataFromSObject';
+    Map<String, Object> params = new Map<String, Object>{
+      'entityId' => entityId
     };
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', start method. Params: ' +
+        JSON.serialize(params)
+      );
+
+    try {
+      IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+      Map<String, Object> result = new Map<String, Object>();
+
+      Object clientId = String.isNotBlank(mapping.ClientIdField) ? GetDataFromObject(entityId, mapping.ClientIdField) : null;
+      Object matterId = String.isNotBlank(mapping.MatterIdField) ? GetDataFromObject(entityId, mapping.MatterIdField) : null;
+      Object clientName = String.isNotBlank(mapping.ClientNameField) ? GetDataFromObject(entityId, mapping.ClientNameField) : null;
+      Object matterName = String.isNotBlank(mapping.MatterNameField) ? GetDataFromObject(entityId, mapping.MatterNameField) : null;
+
+      Map<String, Object> result = new Map<String, Object>{
+        'clientId' => clientId,
+        'matterId' => matterId,
+        'clientName' => clientName,
+        'matterName' => matterName
+      };
+      Logger.getInstance()
+          .info(
+            logPrefix + ', Result: ' + JSON.serialize(result)
+          );
+
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
   }
 
   public class GetFieldResult {
