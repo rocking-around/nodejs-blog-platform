@@ -32,15 +32,6 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.wsSettings = await getIManageWorkspaceSettings();
     this.wsFolderTemplate = this.wsSettings["iManageWs:Folder_Template_Id"];
 
-    const { clientId, matterId, clientName, matterName } =
-      await getIManageDataFromSObject({
-        entityId: this.recordId
-      });
-    this.clientId = clientId;
-    this.matterId = matterId;
-    this.clientName = clientName;
-    this.matterName = matterName;
-
     // check if ws already exists
     // const wsName = this.wsName;
     // this.isWorkspaceExists = await isWorkspaceWithNameExists({
@@ -49,6 +40,16 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.isWorkspaceExists = await isEntityWorkspaceAlreadyCreated({
       entityId: this.recordId
     });
+
+    if (!this.isWorkspaceExists) {
+      const data = await getIManageDataFromSObject({
+        entityId: this.recordId
+      });
+      this.clientId = data.clientId;
+      this.matterId = data.matterId;
+      this.clientName = data.clientName;
+      this.matterName = data.matterName;
+    }
   }
 
   // The feature is temporarily disabled.

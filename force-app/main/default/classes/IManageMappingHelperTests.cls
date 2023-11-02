@@ -328,4 +328,41 @@ private class IManageMappingHelperTests {
     }
     Test.stopTest();
   }
+
+  @isTest
+  static void getMappingDataBySObjectIdTestException() {
+    TestUtils.setupMockActiveLicense();
+    //-- prepare data
+    // Create Opportunity
+    iManageDocumentSettings__c objectNotInMapping = new iManageDocumentSettings__c();
+    insert objectNotInMapping;
+
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      iManage_Default_Folder_Id__c = 'val5',
+      Enable_CSV_Export__c = true,
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Nonexistent_field',
+      Mapping_MatterNameField__c = 'Nonexistent_field',
+      Mapping_EntityClientIdObjectField__c = 'Nonexistent_field',
+      Mapping_ClientIdField__c = 'Nonexistent_field',
+      Mapping_ClientNameField__c = 'Nonexistent_field'
+    );
+    insert settings;
+    // --
+    Test.startTest();
+    try {
+      Map<String, Object> result = IManageMappingHelper.getMappingDataBySObjectId(objectNotInMapping.Id);
+      System.assert(false, 'An exception is expected here.');
+    } catch (IManageExceptions.IManageMappingException ex) {
+      System.assert(true, '');
+    } catch (Exception ex) {
+      System.assert(false, 'Unexpected exception type = ' + ex.getTypeName());
+    }
+    Test.stopTest();
+  }
 }

@@ -138,59 +138,17 @@ public with sharing class IManageMappingHelper {
         'IManageMappingHelper::getMappingData, start method, params["entityId"]:' +
         entityId
       );
+
+    Map<String, Object> mappingData = getMappingDataBySObjectId(entityId);
     IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
-    String entityIdSObjName = GetSObjectType(entityId);
+    result.ClientId = String.valueOf(mappingData.get('clientId'));
+    result.MatterId = String.valueOf(mappingData.get('matterId'));
 
-    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-
-    if (!mapping.EntityType.equals(entityIdSObjName)) {
-      String errorMessage =
-        'There is no mapping for the \'' +
-        entityIdSObjName +
-        '\'';
-      Logger.getInstance()
-        .warn('IManageMappingHelper::getMappingData, ' + errorMessage);
-      throw new IManageExceptions.ManageMappingException(errorMessage);
-    }
-
-    Set<String> recordFields = new Set<String>();
-    if (entityIdSObjName.equals(mapping.EntityClientIdObjectField)) {
-      recordFields.add(mapping.ClientIdField);
-    } else {
-      recordFields.add(mapping.EntityClientIdObjectField);
-    }
-
-    if (entityIdSObjName.equals(mapping.EntityMatterIdObjectField)) {
-      recordFields.add(mapping.MatterIdField);
-    } else {
-      recordFields.add(mapping.EntityMatterIdObjectField);
-    }
-
-    SObject record = Database.query(
-      'SELECT ' +
-      String.join(new List<String>(recordFields), ', ') +
-      ' FROM ' +
-      entityIdSObjName +
-      ' WHERE Id = :entityId'
-    );
-
-    if (mapping.EntityClientIdObjectField == entityIdSObjName) {
-      result.ClientId = GetDataFromObject(entityId, mapping.ClientIdField);
-    } else {
-      result.ClientId = GetDataFromObject(
-        (String) record.get(mapping.EntityClientIdObjectField),
-        mapping.ClientIdField
+    Logger.getInstance()
+      .info(
+        'IManageMappingHelper::getMappingData, Result:' +
+        JSON.serialize(result)
       );
-    }
-
-    if (mapping.EntityMatterIdObjectField == entityIdSObjName) {
-      result.MatterId = GetDataFromObject(entityId, mapping.MatterIdField);
-    } else {
-      result.MatterId = GetDataFromObject(
-        (String) record.get(mapping.EntityMatterIdObjectField),
-        mapping.MatterIdField
-      );
-    }
 
     return result;
   }
@@ -267,6 +225,109 @@ public with sharing class IManageMappingHelper {
     }
   }
 
+  @TestVisible
+  private static Map<String, Object> getMappingDataBySObjectId(
+    String entityId
+  ) {
+    String logPrefix = 'IManageMappingHelper::getMappingDataBySObjectId';
+    Map<String, Object> params = new Map<String, Object>{
+      'entityId' => entityId
+    };
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', start method. Params: ' +
+        JSON.serialize(params)
+      );
+
+    String entityIdSObjName = GetSObjectType(entityId);
+
+    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+
+    if (!mapping.EntityType.equals(entityIdSObjName)) {
+      String errorMessage =
+        'There is no mapping for the \'' +
+        entityIdSObjName +
+        '\'';
+      Logger.getInstance()
+        .warn(logPrefix + ', ' + errorMessage);
+      throw new IManageExceptions.IManageMappingException(errorMessage);
+    }
+
+    // Client fields
+    Set<String> recordFields = new Set<String>();
+    if (entityIdSObjName.equals(mapping.EntityClientIdObjectField)) {
+      recordFields.add(mapping.ClientIdField);
+      if (String.isNotBlank(mapping.ClientNameField)) {
+        recordFields.add(mapping.ClientNameField);
+      }
+    } else {
+      recordFields.add(mapping.EntityClientIdObjectField);
+    }
+
+
+    // Matter fields
+    if (entityIdSObjName.equals(mapping.EntityMatterIdObjectField)) {
+      recordFields.add(mapping.MatterIdField);
+      if (String.isNotBlank(mapping.MatterNameField)) {
+        recordFields.add(mapping.MatterNameField);
+      }
+    } else {
+      recordFields.add(mapping.EntityMatterIdObjectField);
+    }
+
+    String soql = 'SELECT ' +
+    String.join(new List<String>(recordFields), ', ') +
+    ' FROM ' +
+    entityIdSObjName +
+    ' WHERE Id = :entityId';
+
+    System.debug('***** soql = ' + soql);
+
+    SObject record = Database.query(soql);
+
+    // Result fields
+    String clientId = null;
+    String matterId = null;
+    String clientName = null;
+    String matterName = null;
+
+    // Client
+    String clientSObjd = mapping.EntityClientIdObjectField == entityIdSObjName
+      ? entityId
+      : (String) record.get(mapping.EntityClientIdObjectField);
+
+    clientId = GetDataFromObject(clientSObjd, mapping.ClientIdField);
+    if (String.isNotBlank(mapping.ClientNameField)) {
+      clientName = GetDataFromObject(clientSObjd, mapping.ClientNameField);
+    }
+
+    // Matter
+    String matterSObjd = mapping.EntityMatterIdObjectField == entityIdSObjName
+      ? entityId
+      : (String) record.get(mapping.EntityMatterIdObjectField);
+
+    matterId = GetDataFromObject(matterSObjd, mapping.MatterIdField);
+    if (String.isNotBlank(mapping.MatterNameField)) {
+      matterName = GetDataFromObject(matterSObjd, mapping.MatterNameField);
+    }
+
+    Map<String, Object> result = new Map<String, Object> {
+      'clientId' => clientId,
+      'matterId' => matterId,
+      'clientName' => clientName,
+      'matterName' => matterName
+    };
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', start method. Result: ' +
+        JSON.serialize(result)
+      );
+
+    return result;
+  }
+
   @AuraEnabled
   public static void saveMapping(Map<String, Object> mapping) {
     Map<String, Object> params = new Map<String, Object>{
@@ -309,31 +370,19 @@ public with sharing class IManageMappingHelper {
   @AuraEnabled
   public static Map<String, Object> getIManageDataFromSObject(String entityId) {
     String logPrefix = 'IManageMappingHelper::getIManageDataFromSObject';
-    Map<String, Object> params = new Map<String, Object>{
-      'entityId' => entityId
-    };
-
-    Logger.getInstance()
-      .info(
-        logPrefix + ', start method. Params: ' +
-        JSON.serialize(params)
-      );
-
     try {
-      IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-      Map<String, Object> result = new Map<String, Object>();
-
-      Object clientId = String.isNotBlank(mapping.ClientIdField) ? GetDataFromObject(entityId, mapping.ClientIdField) : null;
-      Object matterId = String.isNotBlank(mapping.MatterIdField) ? GetDataFromObject(entityId, mapping.MatterIdField) : null;
-      Object clientName = String.isNotBlank(mapping.ClientNameField) ? GetDataFromObject(entityId, mapping.ClientNameField) : null;
-      Object matterName = String.isNotBlank(mapping.MatterNameField) ? GetDataFromObject(entityId, mapping.MatterNameField) : null;
-
-      Map<String, Object> result = new Map<String, Object>{
-        'clientId' => clientId,
-        'matterId' => matterId,
-        'clientName' => clientName,
-        'matterName' => matterName
+      Map<String, Object> params = new Map<String, Object>{
+        'entityId' => entityId
       };
+
+      Logger.getInstance()
+        .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+        );
+
+      Map<String, Object> result = getMappingDataBySObjectId(entityId);
+
       Logger.getInstance()
           .info(
             logPrefix + ', Result: ' + JSON.serialize(result)
