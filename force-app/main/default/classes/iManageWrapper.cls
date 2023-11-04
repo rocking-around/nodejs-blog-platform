@@ -933,6 +933,81 @@ public class iManageWrapper {
     return response.data;
   }
 
+  public static Map<String, Object> getCustomProperty(
+    String alias,
+    String customTable,
+    String parentAlias,
+    String customerId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWrapper::getCustomProperty';
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}/{3}',
+      new List<Object>{ customerId, libraryId, customTable, alias }
+    );
+    if (String.isNotBlank(parentAlias)) {
+      query += '?parent_alias=' + parentAlias;
+    }
+
+    Logger.getInstance()
+      .info(logPrefix + ', query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info(logPrefix + ', response=' + responseBody);
+
+    Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(responseBody);
+
+    return result;
+  }
+
+  public static Map<String, Object> createCustomProperty(
+    String customTable,
+    String alias,
+    String description,
+    Boolean enabled,
+    Boolean hipaa,
+    String parentAlias,
+    String customerId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWrapper::createCustomProperty';
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}',
+      new List<Object>{ customerId, libraryId, customTable }
+    );
+    Map<String, Object> reqBody = new Map<String, Object> {
+      'id' => alias,
+      'description' => description,
+      'enabled' => enabled,
+      'hipaa' => hipaa
+    };
+    if (String.isNotBlank(parentAlias)) {
+      reqBody.put('parent', new Map<String, Object> {
+          'id' => parentAlias
+        }
+      );
+    }
+
+    String body = JSON.serialize(reqBody);
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', query=' +
+        query + '; body=' + body
+      );
+    String responseBody = IManageRequestHelper.Post(query, body);
+    Logger.getInstance()
+      .info(logPrefix + ', response=' + responseBody);
+
+    if (String.isBlank(responseBody)) {
+      return new Map<String, Object> ();
+    }
+
+    Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(responseBody);
+
+    return result;
+  }
+
   /* Private */
 
   private static Blob GetFormBase64(Blob jsonBlob, Blob data) {

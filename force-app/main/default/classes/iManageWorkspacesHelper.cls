@@ -167,33 +167,177 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
+  public static void createCustomFiledsIfNotExist(
+    String entityId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWorkspacesHelper::createCustomFiledsIfNotExist';
+
+    try {
+      Map<String, Object> params = new Map<String, Object>{
+        'entityId' => entityId,
+        'libraryId' => libraryId
+      };
+
+      Logger.getInstance()
+        .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+        );
+
+      LicenseService.CheckOrganizationLicense();
+      iManageSettings__c mSettings = iManageSettings__c.getOrgDefaults();
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+
+      Map<String, Object> mappingData = IManageMappingHelper.getIManageDataFromSObject(entityId);
+      String custom1Value = String.valueOf(mappingData.get('clientId'));
+      String custom1Desc = String.valueOf(mappingData.get('clientName'));
+      String custom2Value = String.valueOf(mappingData.get('matterId'));
+      String custom2Desc = String.valueOf(mappingData.get('matterName'));
+
+      if (String.isBlank(custom1Value)) {
+        throw new IManageExceptions.IManageApplicationException(
+          'The "' + mSettings.Mapping_ClientIdField__c + '" field is not populated.'
+        );
+      }
+
+      if (String.isBlank(custom1Desc)) {
+        throw new IManageExceptions.IManageApplicationException(
+          'The "' + mSettings.Mapping_ClientNameField__c + '" field is not populated.'
+        );
+      }
+
+      if (String.isBlank(custom2Value)) {
+        throw new IManageExceptions.IManageApplicationException(
+          'The "' + mSettings.Mapping_MatterIdField__c + '" field is not populated.'
+        );
+      }
+
+      if (String.isBlank(custom2Desc)) {
+        throw new IManageExceptions.IManageApplicationException(
+          'The "' + mSettings.Mapping_ClientNameField__c + '" field is not populated.'
+        );
+      }
+      // Custom 1
+     
+      Map<String, Object> cust1GetResponse = iManageWrapper.getCustomProperty(
+        custom1Value,
+        mSettings.ClientField__c,
+        null, // parentAlias
+        apiInfo.customerId,
+        libraryId
+      );
+
+      if (cust1GetResponse.containsKey('error')) {
+        Map<String, Object> cust1GetError = (Map<String, Object>)cust1GetResponse.get('error');
+        if (String.valueOf(cust1GetError.get('code')) == 'NRC_NO_RECORD') {
+          Logger.getInstance()
+            .info(logPrefix + ': custom1 does not exist in iManage. Try to create. Alias = ' + custom1Value);
+
+          Map<String, Object> cust1CreateResponse = iManageWrapper.createCustomProperty(
+            mSettings.ClientField__c,
+            custom1Value,
+            custom1Desc,
+            true, // enabled,
+            false, //Boolean hipaa,
+            null, // parentAlias,
+            apiInfo.customerId,
+            libraryId
+          );
+          if (cust1CreateResponse.containsKey('error')) {
+            throw new IManageExceptions.IManageApplicationException(
+              String.valueOf(cust1CreateResponse.get('code_message'))
+            );
+          } else {
+            Logger.getInstance()
+            .info(logPrefix + ': custom1 created');
+          }
+
+        } else {
+          throw new IManageExceptions.IManageApplicationException(
+            String.valueOf(cust1GetError.get('code_message'))
+          );
+        }
+      }
+
+      // Custom 2
+      Map<String, Object> cust2GetResponse = iManageWrapper.getCustomProperty(
+        custom2Value,
+        mSettings.MatterField__c,
+        custom1Value, // parentAlias
+        apiInfo.customerId,
+        libraryId
+      );
+
+      if (cust2GetResponse.containsKey('error')) {
+        Map<String, Object> cust2GetError = (Map<String, Object>)cust2GetResponse.get('error');
+        if (String.valueOf(cust2GetError.get('code')) == 'NRC_NO_RECORD') {
+          Logger.getInstance()
+            .info(logPrefix + ': custom2 does not exist in iManage. Try to create. Alias = ' + custom2Value);
+
+          Map<String, Object> cust2CreateResponse = iManageWrapper.createCustomProperty(
+            mSettings.MatterField__c,
+            custom2Value,
+            custom2Desc,
+            true, // enabled,
+            false, // hipaa,
+            custom1Value, // parentAlias,
+            apiInfo.customerId,
+            libraryId
+          );
+          if (cust2CreateResponse.containsKey('error')) {
+            throw new IManageExceptions.IManageApplicationException(
+              String.valueOf(cust2CreateResponse.get('code_message'))
+            );
+          } else {
+            Logger.getInstance()
+            .info(logPrefix + ': custom2 created');
+          }
+
+        } else {
+          throw new IManageExceptions.IManageApplicationException(
+            String.valueOf(cust2GetError.get('code_message'))
+          );
+        }
+      }
+
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
   public static Map<String, String> createWorkspace(
     String custom1, // client alias
     String custom2, // matter alias
     String wsName,
     String workspaceTemplate // "libraryId::templateId"
   ) {
-    Map<String, String> result = new Map<String, String> {
-      'id' => null,
-      'name' => null
-    };
-    String[] wsData = workspaceTemplate.split('::', 2);
-    String libraryId = wsData[0];
-    String wsTemplateId = wsData[1];
-
     String logPrefix = 'iManageWorkspacesHelper::createWorkspace';
-    Map<String, Object> params = new Map<String, Object>{
-      'custom1' => custom1,
-      'custom2' => custom2,
-      'wsName' => wsName,
-      'workspaceTemplate' => workspaceTemplate
-    };
-    Logger.getInstance()
-      .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
-
-    LicenseService.CheckOrganizationLicense();
-
     try {
+      Map<String, String> result = new Map<String, String> {
+        'id' => null,
+        'name' => null
+      };
+
+      Map<String, Object> params = new Map<String, Object>{
+        'custom1' => custom1,
+        'custom2' => custom2,
+        'wsName' => wsName,
+        'workspaceTemplate' => workspaceTemplate
+      };
+      Logger.getInstance()
+        .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+
+      String[] wsData = workspaceTemplate.split('::', 2);
+      String libraryId = wsData[0];
+      String wsTemplateId = wsData[1];
+
+      LicenseService.CheckOrganizationLicense();
+
       Map<String, Object> generalSettings = ConfigurationHelper.getGeneralSettings();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
       Logger.getInstance().info(logPrefix + ': Get template workspace');

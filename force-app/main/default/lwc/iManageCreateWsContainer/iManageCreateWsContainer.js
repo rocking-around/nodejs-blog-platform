@@ -3,6 +3,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.getIManageWorkspaceSettings";
 import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
 import isEntityWorkspaceAlreadyCreated from "@salesforce/apex/iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated";
+import createCustomFiledsIfNotExist from "@salesforce/apex/iManageWorkspacesHelper.createCustomFiledsIfNotExist";
 import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
 import updateEntityToWsMapping from "@salesforce/apex/iManageWorkspacesHelper.updateEntityToWsMapping";
 import iManageCreateWsModal from "c/iManageCreateWsModal";
@@ -147,11 +148,16 @@ export default class IManageCreateWsContainer extends LightningElement {
   }
 
   async createWs(folderTemplate, autoCreate) {
+    await createCustomFiledsIfNotExist({
+      entityId: this.recordId,
+      libraryId: folderTemplate.split('::', 1)[0]
+    });
+
     const data = {
       custom1: this.clientId, // client alias
       custom2: this.matterId, // matter alias
       wsName: this.wsName,
-      workspaceTemplate: folderTemplate // "libraryId::te
+      workspaceTemplate: folderTemplate // libraryId::templateId
     };
     console.log("**** create ws data: ", data);
     if (!this.validate(data)) {
