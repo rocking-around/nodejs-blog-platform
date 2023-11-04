@@ -65,25 +65,40 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Boolean isEntityWorkspaceAlreadyCreated(
+  public static Map<String, String> findEntityWorkspaceInCache(
     Id entityId
   ) {
-    String logPrefix = 'iManageWorkspacesHelper::isEntityWorkspaceAlreadyCreated';
-    Map<String, Object> params = new Map<String, Object>{
-      'entityId' => entityId
-    };
-    Logger.getInstance()
-      .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
-
+    String logPrefix = 'iManageWorkspacesHelper::findEntityWorkspaceInCache';
     try {
-      List<IManage_WS_to_Entity_Mapping__c> result = [
-        SELECT Id, EntityId__c, iManage_WS_Id__c
+      Map<String, String> result = new Map<String, String>(); // <-- library, workspaceId
+      Map<String, Object> params = new Map<String, Object>{
+        'entityId' => entityId
+      };
+      Logger.getInstance()
+        .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+
+      Logger.getInstance()
+        .info(logPrefix + ', Find information in the "IManage_WS_to_Entity_Mapping__c"');
+
+      List<IManage_WS_to_Entity_Mapping__c> records = [
+        SELECT Id, EntityId__c, iManage_WS_Id__c, iManage_Library__c
         FROM IManage_WS_to_Entity_Mapping__c
         WHERE EntityId__c = :entityId
       ];
       Logger.getInstance()
-        .info(logPrefix + ', Found: ' + result.size() + ' record(s)');
-      return result.size() > 0;
+        .info(logPrefix + ', Found: ' + records.size() + ' record(s) in the IManage_WS_to_Entity_Mapping__c');
+
+      if (records.size() > 0) {
+        for (IManage_WS_to_Entity_Mapping__c item: records) {
+          result.put(item.iManage_Library__c, item.iManage_WS_Id__c);
+        }
+      }
+
+      Logger.getInstance()
+      .info(logPrefix + ', Result = ' + JSON.serialize(result));
+
+      return result;
+
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
@@ -92,39 +107,88 @@ public class iManageWorkspacesHelper {
     }
   }
 
-  // @AuraEnabled
-  // public static Boolean isWorkspaceWithNameExists(
-  //   String name
-  // ){
-  //   String logPrefix = 'iManageWorkspacesHelper::searchWorkspaceByName';
-  //   Map<String, Object> params = new Map<String, Object>{
-  //     'name' => name
-  //   };
-  //   Logger.getInstance()
-  //     .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
+  @AuraEnabled
+  public static Map<String, String> findEntityWorkspaceInImanageAndPutToCache(
+    Id entityId
+  ) {
+    String logPrefix = 'iManageWorkspacesHelper::findEntityWorkspaceInImanageAndPutToCache';
+    try {
+      Map<String, String> result = new Map<String, String>(); // <-- library, workspaceId
+      Map<String, Object> params = new Map<String, Object>{
+        'entityId' => entityId
+      };
+      Logger.getInstance()
+        .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
-  //   if (String.isBlank(name)) {
-  //     return false;
-  //   }
+      // Search in iManage
+      Logger.getInstance()
+        .info(logPrefix + ', Find information in iManage');
 
-  //   LicenseService.CheckOrganizationLicense();
+      iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
 
-  //   try {
-  //     iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-  //     iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.searchWorkspaceByName(
-  //       apiInfo.customerId,
-  //       apiInfo.library,
-  //       name
-  //     );
+      IManageMappingHelper.IManageIFrameData imMapping = IManageMappingHelper.getMappingData(
+        entityId
+      );
 
-  //     return searchResult != null && searchResult.data != null && searchResult.data.size() > 0;
-  //   } catch (Exception ex) {
-  //     Logger.getInstance().error(ex, logPrefix);
-  //     throw ex;
-  //   } finally {
-  //     Logger.getInstance().Flush();
-  //   }
-  // }
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+
+      Set<String> libraries = new Set<String>();
+      libraries.add(apiInfo.library);
+      if (String.isNotBlank(imSettings?.iManage_Libraries__c)) {
+        libraries.addAll(imSettings.iManage_Libraries__c.split(';'));
+      }
+
+      for (String library : libraries) {
+        iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
+            apiInfo.customerId,
+            library,
+            imSettings.ClientField__c,
+            imMapping.ClientId,
+            imSettings.MatterField__c,
+            imMapping.MatterId
+        );
+        if (searchResult.error == null && searchResult.data != null) {
+          for (IManageWWorkspace ws : searchResult.data) {
+            Map<String, Object> wsMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(ws));
+            // Check whether the results really match the conditions.
+            // Because if you specify the wrong parameters, iManage will return all workspaces.
+            if (wsMap.containsKey(imSettings.ClientField__c)
+              && wsMap.containsKey(imSettings.MatterField__c)
+              && wsMap.get(imSettings.ClientField__c) == imMapping.ClientId
+              && wsMap.get(imSettings.MatterField__c) == imMapping.MatterId
+            ) {
+              result.put(library, String.valueOf(ws.id));
+            }
+          }
+        }
+      }
+
+      Logger.getInstance()
+              .info(logPrefix + ', Result = ' + JSON.serialize(result));
+
+      // save to IManage_WS_to_Entity_Mapping__c
+      try {
+        for (String lib : result.keySet()){
+          updateEntityToWsMapping(
+            result.get(lib), // workspaceId
+            lib,
+            String.valueOf(entityId),
+            false, // autoCreated
+            'IM'// source
+          );
+        }
+      } catch (Exception ex) {
+        Logger.getInstance().error(ex, logPrefix + ', saving to IManage_WS_to_Entity_Mapping__c, data = ' + JSON.serialize(result));
+      }
+
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
 
   @AuraEnabled
   public static IManageWWorkspace findTemplateWorkspaceByName(
@@ -735,7 +799,7 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Id updateEntityToWsMapping(
+  public static void updateEntityToWsMapping(
     String workspaceId,
     String libraryId,
     String entityId,
@@ -749,11 +813,10 @@ public class iManageWorkspacesHelper {
       iManage_Workspace_Created_On__c = workspace.create_date,
       iManage_WS_Id__c = workspace.id,
       iManage_WS_Name__c = workspace.name,
-      Source__c = source
+      Source__c = source,
+      iManage_Library__c = libraryId
     );
     insert mapping;
-
-    return mapping.id;
   }
 
   @TestVisible

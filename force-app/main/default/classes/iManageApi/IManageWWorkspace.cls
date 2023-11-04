@@ -1,8 +1,4 @@
-public with sharing class IManageWWorkspace {
-  public String custom1 { get; set; }
-  public String custom2 { get; set; }
-  public String custom1_description { get; set; }
-  public String custom2_description { get; set; }
+public with sharing class IManageWWorkspace extends IManageWCustomFieldsWithDesc {
   public String database { get; set; }
   public String default_security { get; set; }
   public String description { get; set; }

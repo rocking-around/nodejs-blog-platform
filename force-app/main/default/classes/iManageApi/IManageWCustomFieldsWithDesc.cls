@@ -1,17 +1,17 @@
 public abstract with sharing class IManageWCustomFieldsWithDesc extends IManageWCustomFields {
-    public String custom1Description { get; set; }
-    public String custom2Description { get; set; }
-    public String custom3Description { get; set; }
-    public String custom4Description { get; set; }
-    public String custom5Description { get; set; }
-    public String custom6Description { get; set; }
-    public String custom7Description { get; set; }
-    public String custom8Description { get; set; }
-    public String custom9Description { get; set; }
-    public String custom10Description { get; set; }
-    public String custom11Description { get; set; }
-    public String custom12Description { get; set; }
-    public String custom29Description { get; set; }
-    public String custom30Description { get; set; }
-    public String custom31Description { get; set; }
+    public String custom1_description { get; set; }
+    public String custom2_description { get; set; }
+    public String custom3_description { get; set; }
+    public String custom4_description { get; set; }
+    public String custom5_description { get; set; }
+    public String custom6_description { get; set; }
+    public String custom7_description { get; set; }
+    public String custom8_description { get; set; }
+    public String custom9_description { get; set; }
+    public String custom10_description { get; set; }
+    public String custom11_description { get; set; }
+    public String custom12_description { get; set; }
+    public String custom29_description { get; set; }
+    public String custom30_description { get; set; }
+    public String custom31_description { get; set; }
 }

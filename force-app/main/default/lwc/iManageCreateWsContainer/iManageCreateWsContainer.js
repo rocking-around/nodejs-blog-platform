@@ -2,7 +2,8 @@ import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.getIManageWorkspaceSettings";
 import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
-import isEntityWorkspaceAlreadyCreated from "@salesforce/apex/iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated";
+import findEntityWorkspaceInCache from "@salesforce/apex/iManageWorkspacesHelper.findEntityWorkspaceInCache";
+import findEntityWorkspaceInImanageAndPutToCache from "@salesforce/apex/iManageWorkspacesHelper.findEntityWorkspaceInImanageAndPutToCache";
 import createCustomFiledsIfNotExist from "@salesforce/apex/iManageWorkspacesHelper.createCustomFiledsIfNotExist";
 import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
 import updateEntityToWsMapping from "@salesforce/apex/iManageWorkspacesHelper.updateEntityToWsMapping";
@@ -33,14 +34,12 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.wsSettings = await getIManageWorkspaceSettings();
     this.wsFolderTemplate = this.wsSettings["iManageWs:Folder_Template_Id"];
 
-    // check if ws already exists
-    // const wsName = this.wsName;
-    // this.isWorkspaceExists = await isWorkspaceWithNameExists({
-    //   name: wsName
-    // });
-    this.isWorkspaceExists = await isEntityWorkspaceAlreadyCreated({
-      entityId: this.recordId
-    });
+    // check if ws already exists;
+    try {
+      this.isWorkspaceExists = await this.isWsExistInIManage();
+    } catch (e) {
+      console.error(e);
+    }
 
     if (!this.isWorkspaceExists) {
       const data = await getIManageDataFromSObject({
@@ -51,6 +50,23 @@ export default class IManageCreateWsContainer extends LightningElement {
       this.clientName = data.clientName;
       this.matterName = data.matterName;
     }
+  }
+
+  async isWsExistInIManage() {
+    const dataFromCache = await findEntityWorkspaceInCache({
+      entityId: this.recordId
+    });
+    console.log('*** IManageCreateWsContainer::findEntityWorkspaceInCache: ', dataFromCache);
+    let result = !!Object.keys(dataFromCache).length;
+    if (!result) {
+      const dataFromImanage = await findEntityWorkspaceInImanageAndPutToCache({
+        entityId: this.recordId
+      });
+      console.log('*** IManageCreateWsContainer::findEntityWorkspaceInImanageAndPutToCache: ', dataFromImanage);
+      result = !!Object.keys(dataFromImanage).length;
+    }
+    console.log('*** IManageCreateWsContainer::isWsExistInIManage: ', result);
+    return result;
   }
 
   // The feature is temporarily disabled.

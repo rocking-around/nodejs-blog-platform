@@ -282,8 +282,6 @@ public with sharing class IManageMappingHelper {
     entityIdSObjName +
     ' WHERE Id = :entityId';
 
-    System.debug('***** soql = ' + soql);
-
     SObject record = Database.query(soql);
 
     // Result fields

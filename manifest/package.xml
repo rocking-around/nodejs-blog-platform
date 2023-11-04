@@ -48,6 +48,7 @@
         <members>iManageWrapper</members>
         <members>iManageWrapperTests</members>
         <members>IManageRequestHelper</members>
+        <members>IManageResponseError</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
         <members>PackagesChecker</members>

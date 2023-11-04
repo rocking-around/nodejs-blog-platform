@@ -1054,7 +1054,8 @@ public class iManageWrapper {
   }
 
   public class iManageWorkspaceSearch {
-    public List<iManageWorkspace> data;
+    public List<IManageWWorkspace> data;
+    public IManageResponseError error;
   }
 
   public class iManageWorkspaceOnPremiseSearch {
@@ -1062,7 +1063,8 @@ public class iManageWrapper {
   }
 
   public class iManageWorkspaceOnPremiseSearchResults {
-    public List<iManageWorkspace> results;
+    public List<IManageWWorkspace> results;
+    public IManageResponseError error;
   }
 
   public class iManageLibraries {

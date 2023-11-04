@@ -19,16 +19,18 @@ private class iManageWorkspacesHelperTests {
             iManage_Workspace_Created_On__c = '2023-10-25T22:21:47.494Z',
             iManage_WS_Id__c = wsId,
             iManage_WS_Name__c = wsName,
-            Source__c = source
+            Source__c = source,
+            iManage_Library__c = libraryId
         );
         insert mapping;
 
         Test.startTest();
-        Boolean result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
+        Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
         System.debug('iManageWorkspacesHelperTests::isEntityWorkspaceAlreadyCreatedTest result = ' + result);
         Test.stopTest();
 
-        System.assert(result == true, 'Wrong value =' + result);
+        System.assert(result.containsKey(libraryId), 'Result not contains key = ' + libraryId);
+        System.assert(result.get(libraryId) == entityId, 'Wrong value =' + result.get(libraryId) + ', expected = ' + entityId);
     }
 
     @IsTest
@@ -38,7 +40,7 @@ private class iManageWorkspacesHelperTests {
 
         Test.startTest();
         try{
-            Boolean result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
+            Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
         } catch (StringException ex) {
             System.assertEquals('Invalid id: ' + entityId, ex.getMessage());
         }
@@ -84,10 +86,11 @@ private class iManageWorkspacesHelperTests {
             autoCreated,
             source
         );
-        Boolean result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
+        Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
         Test.stopTest();
 
-        System.assert(result == true, 'Wrong value =' + result);
+        System.assert(result.containsKey(library), 'Result not contains key = ' + library);
+        System.assert(result.get(library) == entityId, 'Wrong value =' + result.get(library) + ', expected = ' + entityId);
     }
 
     @isTest
