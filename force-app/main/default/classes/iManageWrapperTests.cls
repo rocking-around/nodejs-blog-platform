@@ -259,6 +259,27 @@ private class iManageWrapperTests {
     );
   }
 
+  //iManageWorkspaceOnPremiseSearchResults
+  @isTest
+  static void iManageWorkspaceOnPremiseSearch_error_response_test() {
+    String responseBody = '{"error":{"code":"NRC_INVALID_PARAM","code_message":"Parameter is invalid","messages":[{"audit":{"activity":"checkin","activity_code":600,"activity_date":"2017-09-01T22:15:07Z","application_name":"WINWORD","comments":"New Activity","duration":0,"location":"192.168.0.1","user":"ACASE"},"field":"limit","code":"NRC_INVALID_PARAM","code_message":"invalid format"}]}}';
+    
+    Test.startTest();
+    iManageWrapper.iManageWorkspaceOnPremiseSearch onPremResult = (iManageWrapper.iManageWorkspaceOnPremiseSearch) JSON.deserialize(
+        responseBody,
+        iManageWrapper.iManageWorkspaceOnPremiseSearch.class
+      );
+    Test.stopTest();
+    System.assert(
+      onPremResult.error.code == 'NRC_INVALID_PARAM',
+      'Wrong value = ' + onPremResult.error.code + ', expected = ' + 'NRC_INVALID_PARAM'
+    );
+    System.assert(
+      onPremResult.error.code_message == 'Parameter is invalid',
+      'Wrong value = ' + onPremResult.error.code_message + ', expected = ' + 'Parameter is invalid'
+    );
+  }
+
   private static HttpResponse getMockAuthResponse(
     Integer statusCode,
     String auth_status,

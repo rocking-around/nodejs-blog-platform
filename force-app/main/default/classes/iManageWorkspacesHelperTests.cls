@@ -3,7 +3,7 @@
 private class iManageWorkspacesHelperTests {
 
     @IsTest
-    static void isEntityWorkspaceAlreadyCreatedTest() {
+    static void findEntityWorkspaceInCacheTest() {
         // prepare data
         String entityId = TestUtils.getFakeId(Opportunity.SObjectType);
         String wsId = 'ws-01';
@@ -12,7 +12,7 @@ private class iManageWorkspacesHelperTests {
         String libraryId= 'ACTIVE';
         Boolean autoCreated = false;
 
-        System.debug('iManageWorkspacesHelperTests::isEntityWorkspaceAlreadyCreatedTest entityId = ' + entityId);
+        System.debug('iManageWorkspacesHelperTests::findEntityWorkspaceInCache entityId = ' + entityId);
         IManage_WS_to_Entity_Mapping__c mapping = new IManage_WS_to_Entity_Mapping__c(
             Auto_created__c = false,
             EntityId__c = entityId,
@@ -25,26 +25,175 @@ private class iManageWorkspacesHelperTests {
         insert mapping;
 
         Test.startTest();
-        Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
-        System.debug('iManageWorkspacesHelperTests::isEntityWorkspaceAlreadyCreatedTest result = ' + result);
+        Map<String, String> result = iManageWorkspacesHelper.findEntityWorkspaceInCache(entityId);
+        System.debug('iManageWorkspacesHelperTests::findEntityWorkspaceInCache result = ' + result);
         Test.stopTest();
 
         System.assert(result.containsKey(libraryId), 'Result not contains key = ' + libraryId);
-        System.assert(result.get(libraryId) == entityId, 'Wrong value =' + result.get(libraryId) + ', expected = ' + entityId);
+        System.assert(result.get(libraryId) == wsId, 'Wrong value =' + result.get(libraryId) + ', expected = ' + wsId);
     }
 
     @IsTest
-    static void isEntityWorkspaceAlreadyCreatedExceptionTest() {
+    static void findEntityWorkspaceInCacheExceptionTest() {
         // prepare data
         String entityId = 'wrongId';
 
         Test.startTest();
         try{
-            Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
+            Map<String, String> result = iManageWorkspacesHelper.findEntityWorkspaceInCache(entityId);
         } catch (StringException ex) {
             System.assertEquals('Invalid id: ' + entityId, ex.getMessage());
         }
         Test.stopTest();
+    }
+
+    @IsTest
+    static void findEntityWorkspaceInImanageAndPutToCacheTest() {
+        // prepare data
+        Opportunity opp = new Opportunity();
+        opp.Name = 'Test Opportunity';
+        opp.Closedate = System.today();
+        opp.StageName = 'Prospecting';
+        insert opp;
+
+        String matterId = opp.id;
+        String clientId = opp.id;
+        String entityId = opp.id;
+
+        String workspaceId = 'ws-0001';
+
+        Integer customerId = 1;
+        String library = 'ACTIVE';
+
+        iManageSettings__c mc = getIManageSettings(
+            null,
+            null,
+            null
+        );
+        upsert mc;
+
+        iManageWrapper.ApiInfo apiData = getApiInfo(1, library);
+
+        // mock callouts
+        String searchWorkspaceEndpoint = TestUtils.buildCalloutUrl('/work/api/v2/customers/{0}/libraries/{1}/workspaces?{2}={3}&{4}={5}',
+            new List<Object>{
+                customerId,
+                library,
+                mc.ClientField__c,
+                clientId,
+                mc.MatterField__c,
+                matterId
+            }
+        );
+
+        String getWorkspaceEndpoint = TestUtils.buildCalloutUrl('/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{
+                customerId,
+                library,
+                workspaceId
+            }
+        );
+
+        IManageWWorkspace ws = new IManageWWorkspace();
+        ws.id = workspaceId;
+        ws.database = library;
+        ws.custom1 = clientId;
+        ws.custom2 = matterId;
+
+        List<IManageWWorkspace> workspaces = new List<IManageWWorkspace> {
+            ws
+        };
+        IManageApiResponseHelper respHelper = new IManageApiResponseHelper();
+        Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+            searchWorkspaceEndpoint => new List<HttpResponse>{
+                respHelper.buildSearchWorkspaceResponse(200, workspaces)
+            },
+            getWorkspaceEndpoint => new List<HttpResponse>{
+                respHelper.buildGetWorkspaceResponse(200, ws)
+            }
+        };
+        setupMockCallouts(customerId, library, responses);
+
+        Test.startTest();
+        Map<String, String> result = iManageWorkspacesHelper.findEntityWorkspaceInImanageAndPutToCache(entityId);
+        System.debug('iManageWorkspacesHelperTests::findEntityWorkspaceInImanageAndPutToCacheTest result = ' + result);
+
+        Map<String, String> resultFromCache = iManageWorkspacesHelper.findEntityWorkspaceInCache(entityId);
+        System.debug('iManageWorkspacesHelperTests::findEntityWorkspaceInImanageAndPutToCacheTest resultFromCache = ' + result);
+
+        Test.stopTest();
+
+        System.assert(result.containsKey(library), 'Result not contains key = ' + library);
+        System.assert(result.get(library) == workspaceId, 'Wrong value =' + result.get(library) + ', expected = ' + workspaceId);
+        System.assert(resultFromCache.containsKey(library), 'Result from cache not contains key = ' + library);
+        System.assert(resultFromCache.get(library) == workspaceId, 'Wrongvalue from cache =' + resultFromCache.get(library) + ', expected = ' + workspaceId);
+    }
+
+    @IsTest
+    static void createCustomFiledsIfNotExistTest() {
+        String logPrefix = 'createCustomFiledsIfNotExistTest';
+        // prepare data
+        Opportunity opp = new Opportunity();
+        opp.Name = 'Test Opportunity';
+        opp.Closedate = System.today();
+        opp.StageName = 'Prospecting';
+        insert opp;
+
+        String matterId = opp.id;
+        String clientId = opp.id;
+        String entityId = opp.id;
+
+        String workspaceId = 'ws-0001';
+
+        Integer customerId = 1;
+        String library = 'ACTIVE';
+
+        iManageSettings__c mc = getIManageSettings(null, null, null);
+        upsert mc;
+
+        iManageWrapper.ApiInfo apiData = getApiInfo(1, library);
+
+        // mock callouts
+        String getClientCustomProperty = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}/{3}',
+            new List<Object>{ customerId, library, 'custom1', clientId }
+        );
+
+        String getMatterCustomProperty = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}/{3}?parent_alias={4}',
+            new List<Object>{ customerId, library, 'custom2', matterId, clientId }
+        );
+
+        String createClientCustomProperty = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}',
+            new List<Object>{ customerId, library, 'custom1' }
+        );
+
+        String createMatterCustomProperty = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}',
+            new List<Object>{ customerId, library, 'custom2' }
+        );
+
+        IManageApiResponseHelper respHelper = new IManageApiResponseHelper();
+        Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+            getClientCustomProperty => new List<HttpResponse>{
+                respHelper.build404Response()
+            },
+            getMatterCustomProperty => new List<HttpResponse>{
+                respHelper.build404Response()
+            },
+            createClientCustomProperty => new List<HttpResponse>{
+                respHelper.buildEmptyResponse(200)
+            },
+            createMatterCustomProperty => new List<HttpResponse>{
+                respHelper.buildEmptyResponse(200)
+            }
+        };
+        setupMockCallouts(customerId, library, responses);
+        Test.startTest();
+        iManageWorkspacesHelper.createCustomFiledsIfNotExist(entityId, library);
+        Test.stopTest();
+        System.assert(true, '');
     }
 
     @IsTest
@@ -79,25 +228,25 @@ private class iManageWorkspacesHelperTests {
         //--
 
         Test.startTest();
-        Id id = iManageWorkspacesHelper.updateEntityToWsMapping(
+        iManageWorkspacesHelper.updateEntityToWsMapping(
             wsId,
             library,
             entityId,
             autoCreated,
             source
         );
-        Map<String, String> result = iManageWorkspacesHelper.isEntityWorkspaceAlreadyCreated(entityId);
+        Map<String, String> result = iManageWorkspacesHelper.findEntityWorkspaceInCache(entityId);
         Test.stopTest();
 
         System.assert(result.containsKey(library), 'Result not contains key = ' + library);
-        System.assert(result.get(library) == entityId, 'Wrong value =' + result.get(library) + ', expected = ' + entityId);
+        System.assert(result.get(library) == wsId, 'Wrong value =' + result.get(library) + ', expected = ' + wsId);
     }
 
     @isTest
     static void searchWorkspaceTest() {
         // prepare data
         String matterId = TestUtils.getFakeId(Opportunity.SObjectType);
-        String clientId = TestUtils.getFakeId(Account.SObjectType);
+        String clientId = matterId; // TestUtils.getFakeId(Account.SObjectType);
 
         Integer customerId = 1;
         String library = 'TEST_LIB';
@@ -131,11 +280,11 @@ private class iManageWorkspacesHelperTests {
             }
         );
 
-        iManageWrapper.iManageWorkspace ws = new iManageWrapper.iManageWorkspace();
+        IManageWWorkspace ws = new IManageWWorkspace();
         ws.id = workspaceId;
         ws.database = library;
 
-        List<iManageWrapper.iManageWorkspace> workspaces = new List<iManageWrapper.iManageWorkspace> {
+        List<IManageWWorkspace> workspaces = new List<IManageWWorkspace> {
             ws
         };
         IManageApiResponseHelper respHelper = new IManageApiResponseHelper();
@@ -1109,7 +1258,7 @@ private class iManageWorkspacesHelperTests {
             Mapping_EntityMatterIdObjectField__c = 'Opportunity',
             Mapping_MatterIdField__c = 'Id',
             Mapping_MatterNameField__c = 'Name',
-            Mapping_EntityClientIdObjectField__c = 'AccountId',
+            Mapping_EntityClientIdObjectField__c = 'Opportunity',
             Mapping_ClientIdField__c = 'Id',
             Mapping_ClientNameField__c = 'Name',
             iManage_Create_Ws_Enabled__c = true,
@@ -1154,7 +1303,7 @@ private class iManageWorkspacesHelperTests {
             return buildResponse(statusCode, body, 'buildGetWorkspaceResponse');
         }
 
-        public HttpResponse buildSearchWorkspaceResponse(Integer statusCode, List<iManageWrapper.iManageWorkspace> wss){
+        public HttpResponse buildSearchWorkspaceResponse(Integer statusCode, List<IManageWWorkspace> wss){
             iManageWrapper.iManageWorkspaceOnPremiseSearchResults searchResults = new iManageWrapper.iManageWorkspaceOnPremiseSearchResults();
             searchResults.results = wss;
             iManageWrapper.iManageWorkspaceOnPremiseSearch body = new iManageWrapper.iManageWorkspaceOnPremiseSearch();
@@ -1212,6 +1361,21 @@ private class iManageWorkspacesHelperTests {
 
         public HttpResponse buildPatchNameValuePairResponse(Integer statusCode, Object data){
             return buildResponse(statusCode, data, 'buildPatchNameValuePairResponse');
+        }
+
+        public HttpResponse build404Response(){
+            IManageResponseError err = new IManageResponseError();
+            err.code = 'NRC_NO_RECORD';
+            err.code_message = 'No record found';
+            return buildResponse(404, err, 'build404Response');
+        }
+
+        public HttpResponse buildEmptyResponse(Integer statusCode){
+            return buildResponse(statusCode, null, 'buildEmptyResponse');
+        }
+
+        public HttpResponse buildUntypedResponse(Integer statusCode, Object data){
+            return buildResponse(statusCode, data, 'buildUntypedResponse');
         }
 
         private HttpResponse buildResponse(Integer statusCode, Object body, String methodName){
