@@ -32,11 +32,13 @@ export default class IManageDocumentsIFrame extends LightningModal {
             break;
           case "select":
             // eslint-disable-next-line no-case-declarations
-            const objectInfo = message.data.output_data.selected[0];
-            if (objectInfo.wstype === "document") {
+            const documents = message.data.output_data.selected.filter(
+              (objectInfo) => objectInfo.wstype === "document"
+            );
+            if (documents.length > 0) {
               //console.log("Download file: ", objectInfo);
-              const docInfo = await this.handleDocumentSelected(objectInfo);
-              this.close(docInfo);
+              const docInfos = await this.handleDocumentSelected(documents);
+              this.close(docInfos);
             }
             break;
           case "cancel":
@@ -60,67 +62,61 @@ export default class IManageDocumentsIFrame extends LightningModal {
     return super.close(result);
   }
 
-  async saveDocumentFromIManage(doc) {
+  async saveItemsFromIManage(docs, action) {
+    const result = [];
     this.disableClose = true;
-    let data = null;
-    try {
-      this.saving = true;
-      const { id, name, extension } = doc;
-      data = {
-        recordId: this.recordId,
-        docId: id,
-        docName: name,
-        docExtension: extension
-      };
-      const contentDocId = await SaveFileFromIManage(data);
-      await this.saveDocumentMetadata(contentDocId, doc);
-      //   await new Promise((resolve) => {
-      //     setTimeout(resolve, 5000);
-      //   });
-    } catch (error) {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Error loading iManageApi",
-          message: error.message,
-          variant: "error"
-        })
-      );
-    } finally {
-      this.saving = false;
-      this.disableClose = false;
+    this.saving = true;
+
+    for (let doc of docs) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const data = await action(doc);
+        result.push(data);
+      } catch (error) {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Error loading iManageApi",
+            message: error.message,
+            variant: "error"
+          })
+        );
+      }
     }
+
+    this.saving = false;
+    this.disableClose = false;
+
+    return result;
+  }
+
+  async saveDocumentFromIManage(doc) {
+    const { id, name, extension } = doc;
+    const data = {
+      recordId: this.recordId,
+      docId: id,
+      docName: name,
+      docExtension: extension
+    };
+    const contentDocId = await SaveFileFromIManage(data);
+    await this.saveDocumentMetadata(contentDocId, doc);
+    //   await new Promise((resolve) => {
+    //     setTimeout(resolve, 5000);
+    //   });
     return data;
   }
 
   async saveLinkFromIManage(doc) {
-    this.disableClose = true;
-    let data = null;
-    this.saving = true;
-    try {
-      const { id, version } = doc;
-      data = {
-        recordId: this.recordId,
-        docId: id,
-        version: version
-      };
-      const linkId = await SaveLinkFromIManage(data);
-      await this.saveDocumentMetadata(linkId, doc);
-      //   await new Promise((resolve) => {
-      //     setTimeout(resolve, 5000);
-      //   });
-    } catch (error) {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Error loading iManageApi",
-          message: error.message,
-          variant: "error"
-        })
-      );
-    } finally {
-      this.saving = false;
-      this.disableClose = false;
-    }
-    this.disableClose = false;
+    const { id, version } = doc;
+    const data = {
+      recordId: this.recordId,
+      docId: id,
+      version: version
+    };
+    const linkId = await SaveLinkFromIManage(data);
+    await this.saveDocumentMetadata(linkId, doc);
+    //   await new Promise((resolve) => {
+    //     setTimeout(resolve, 5000);
+    //   });
     return data;
   }
 
@@ -144,14 +140,18 @@ export default class IManageDocumentsIFrame extends LightningModal {
     });
   }
 
-  async handleDocumentSelected(doc) {
+  async handleDocumentSelected(docs) {
+    let action;
     switch (this.action) {
       case "save-document":
-        return this.saveDocumentFromIManage(doc);
+        action = async (doc) => this.saveDocumentFromIManage(doc);
+        break;
       case "save-link":
-        return this.saveLinkFromIManage(doc);
+        action = async (doc) => this.saveLinkFromIManage(doc);
+        break;
       default:
         throw new Error(`Unknown action = "${this.action}"`);
     }
+    return this.saveItemsFromIManage(docs, action);
   }
 }
