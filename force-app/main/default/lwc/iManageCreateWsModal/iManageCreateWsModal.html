@@ -12,6 +12,13 @@
                         <span>Workspace '{newWsName}' will be created</span>
                     </div>
                 </template>
+                <template if:true={hasErrors}>
+                    <ul class="slds-list_dotted">
+                        <template for:each={wsErrors} for:item="wsError">
+                            <li class="slds-text-color_error" key={wsError.id}>{wsError.msg}</li>
+                        </template>
+                    </ul>
+                </template>
                 <div class="line">
                     <template if:true={folderTemplateOptions}>
                         <lightning-combobox

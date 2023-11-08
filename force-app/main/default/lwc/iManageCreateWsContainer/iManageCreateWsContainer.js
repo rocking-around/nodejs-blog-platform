@@ -40,16 +40,6 @@ export default class IManageCreateWsContainer extends LightningElement {
     } catch (e) {
       console.error(e);
     }
-
-    if (!this.isWorkspaceExists) {
-      const data = await getIManageDataFromSObject({
-        entityId: this.recordId
-      });
-      this.clientId = data.clientId;
-      this.matterId = data.matterId;
-      this.clientName = data.clientName;
-      this.matterName = data.matterName;
-    }
   }
 
   async isWsExistInIManage() {
@@ -86,6 +76,14 @@ export default class IManageCreateWsContainer extends LightningElement {
   // }
 
   async handleCreateWsClick() {
+    const data = await getIManageDataFromSObject({
+      entityId: this.recordId
+    });
+    this.clientId = data.clientId;
+    this.matterId = data.matterId;
+    this.clientName = data.clientName;
+    this.matterName = data.matterName;
+
     const result = await iManageCreateWsModal.open({
       size: "large",
       recordId: this.recordId,
@@ -158,7 +156,9 @@ export default class IManageCreateWsContainer extends LightningElement {
     };
     //const ts = new Date().toISOString().split(".")[0].replace(/[^\d]/gi, "");
     for (const [placeholder, value] of Object.entries(wsNamePlaceholders)) {
-      wsName = wsName.replaceAll(placeholder, value);
+      if (value) {
+        wsName = wsName.replaceAll(placeholder, value);
+      }
     }
     return wsName;
   }

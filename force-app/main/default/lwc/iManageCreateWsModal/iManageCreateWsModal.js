@@ -16,9 +16,11 @@ export default class IManageCreateWsModal extends LightningModal {
   saving = false;
   folderTemplateOptions = undefined;
   folderTemplate = undefined;
+  wsErrors = undefined;
 
   async connectedCallback() {
     await this.loadData();
+    this.validateWsName(this.newWsName);
   }
 
   async loadData() {
@@ -94,12 +96,34 @@ export default class IManageCreateWsModal extends LightningModal {
     }
   }
 
+  validateWsName() {
+    const wsNamePlaceholders = ["{CLIENTCODE}", "{MATTERCODE}", "{CLIENTNAME}", "{MATTERNAME}"];
+    if (!this.newWsName) {
+      this.errors.push(`Workspace name is empty`);
+      return;
+    }
+    for (let i = 0; i < wsNamePlaceholders.length; i++) {
+      const placeholder = wsNamePlaceholders[i];
+      if (this.newWsName.includes(placeholder)) {
+        this.wsErrors = this.wsErrors || [];
+        this.wsErrors.push({
+          id: i,
+          msg: `${placeholder} is empty`
+        });
+      }
+    }
+  }
+
   get isCreateBtnDisabled() {
-    return false;
+    return this.hasErrors || !this.folderTemplate;
   }
 
   get showSpinner() {
     return this.loading || this.saving;
+  }
+
+  get hasErrors() {
+    return (this.wsErrors || []).length > 0;
   }
 }
 
