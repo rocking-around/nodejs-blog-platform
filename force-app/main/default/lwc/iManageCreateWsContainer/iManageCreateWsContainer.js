@@ -85,7 +85,7 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.matterName = data.matterName;
 
     const result = await iManageCreateWsModal.open({
-      size: "large",
+      size: "medium",
       recordId: this.recordId,
       wsSettings: this.wsSettings,
       newWsName: this.wsName,
