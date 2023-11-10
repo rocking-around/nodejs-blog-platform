@@ -171,10 +171,13 @@ private class iManageIFrameDialogTests {
       mc.Client_Id__c +
       '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
       EncodingUtil.urlEncode(dialogToken, 'UTF-8') +
-      '&mode=open';
+      '&mode=open&multiselect=true';
     System.assert(
       result == expectedResult,
-      'The IFrame FilePicker has wrong value'
+      'The IFrame FilePicker has wrong value = ' +
+      result +
+      ', expected = ' +
+      expectedResult
     );
   }
 
@@ -267,7 +270,10 @@ private class iManageIFrameDialogTests {
       '&mode=browse&multiselect=false&types=folder';
     System.assert(
       result == expectedResult,
-      'The IFrame FolderPicker has wrong value'
+      'The IFrame FolderPicker has wrong value = ' +
+      result +
+      ', expected = ' +
+      expectedResult
     );
   }
 

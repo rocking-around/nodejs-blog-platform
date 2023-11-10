@@ -8,11 +8,13 @@
         ></lightning-spinner>
       </template>
 
-      <lightning-checkbox-group name="Libraries for search"
-                              label="Libraries for search"
-                              options={librariesAvailableOptions}
-                              value={librariesEdit}
-                              onchange={handleChange}></lightning-checkbox-group>
+      <lightning-checkbox-group
+        name="Libraries for search"
+        label="Libraries for search"
+        options={librariesAvailableOptions}
+        value={librariesEdit}
+        onchange={handleChange}
+      ></lightning-checkbox-group>
     </div>
     <div slot="actions">
       <template if:true={isChanged}>

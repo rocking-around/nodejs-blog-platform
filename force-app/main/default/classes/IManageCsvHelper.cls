@@ -137,11 +137,9 @@ public with sharing class IManageCsvHelper {
       ' WHERE Id IN :ids';
 
     //System.debug('IManageCsvHelper.getEntitiesByIds. SOQL:' + query);
-    
+
     Logger.getInstance()
-      .info(
-        'IManageCsvHelper::getEntitiesByIds. SOQL: ' + query
-      );
+      .info('IManageCsvHelper::getEntitiesByIds. SOQL: ' + query);
     List<SObject> entities = Database.query(query);
     for (SObject entity : entities) {
       CsvRow row = new CsvRow();
@@ -185,10 +183,11 @@ public with sharing class IManageCsvHelper {
     String entityfieldName,
     DateTime dateFrom,
     DateTime dateTo
-  ) {    
+  ) {
     Logger.getInstance()
       .info(
-        'IManageCsvHelper::getChangedEntities. params: ' + entityType +
+        'IManageCsvHelper::getChangedEntities. params: ' +
+        entityType +
         ', ' +
         entityObjectField +
         ', ' +
@@ -227,15 +226,14 @@ public with sharing class IManageCsvHelper {
       }
 
       query += ' LIMIT ' + batchSize;
-  
+
       Logger.getInstance()
         .info('IManageCsvHelper::getChangedEntities. SOQL: ' + query);
       List<SObject> results = Database.query(query);
       Set<Id> resultIds = (new Map<Id, SObject>(results)).keySet();
       return resultIds;
     } catch (Exception e) {
-      Logger.getInstance()
-        .error(e, 'IManageCsvHelper::getChangedEntities');
+      Logger.getInstance().error(e, 'IManageCsvHelper::getChangedEntities');
       throw new AuraHandledException(e.getMessage());
     } finally {
       Logger.getInstance().Flush();
@@ -245,9 +243,12 @@ public with sharing class IManageCsvHelper {
   @TestVisible
   private static string getFieldRelationshipName(String obj, String field) {
     Logger.getInstance()
-      .info('IManageCsvHelper::getFieldRelationshipName. params: ' + obj +
-      ', ' +
-      field);
+      .info(
+        'IManageCsvHelper::getFieldRelationshipName. params: ' +
+        obj +
+        ', ' +
+        field
+      );
     Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
     Schema.SObjectType schema = schemaMap.get(obj);
     Map<String, Schema.SObjectField> fieldMap = schema.getDescribe()
@@ -266,9 +267,12 @@ public with sharing class IManageCsvHelper {
   @TestVisible
   private static string getFieldReferenceName(String obj, String field) {
     Logger.getInstance()
-      .info('IManageCsvHelper::getFieldReferenceName. params: ' + obj +
-      ', ' +
-      field);
+      .info(
+        'IManageCsvHelper::getFieldReferenceName. params: ' +
+        obj +
+        ', ' +
+        field
+      );
     String result = null;
     Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
     Schema.SObjectType schema = schemaMap.get(obj);

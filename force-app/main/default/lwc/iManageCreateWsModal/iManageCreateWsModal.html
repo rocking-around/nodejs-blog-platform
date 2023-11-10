@@ -1,0 +1,48 @@
+<template>
+    <lightning-modal-header label="Create Workspace"></lightning-modal-header>
+    <lightning-modal-body>
+        <div class="container">
+            <template if:true={showSpinner}>
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={loading}>
+                <template if:true={newWsName}>
+                    <div class="line info">
+                        <span>Workspace '{newWsName}' will be created</span>
+                    </div>
+                </template>
+                <template if:true={hasErrors}>
+                    <ul class="slds-list_dotted">
+                        <template for:each={wsErrors} for:item="wsError">
+                            <li class="slds-text-color_error" key={wsError.id}>{wsError.msg}</li>
+                        </template>
+                    </ul>
+                </template>
+                <div class="line">
+                    <template if:true={folderTemplateOptions}>
+                        <lightning-combobox
+                            name="folder_template"
+                            label="Folder Template"
+                            value={folderTemplate}
+                            placeholder="Select Folder Template"
+                            options={folderTemplateOptions}
+                            onchange={onFolderTemplateChanged}
+                        >
+                        </lightning-combobox>
+                    </template>
+                </div>
+            </template>
+        </div>
+
+    </lightning-modal-body>
+    <lightning-modal-footer>
+        <lightning-button label="Create"
+            onclick={createClick}
+            disabled={isCreateBtnDisabled}
+            class="imanage-create-button">
+        </lightning-button>
+        <lightning-button label="Cancel" onclick={cancelClick}>
+        </lightning-button>
+    </lightning-modal-footer>
+</template>

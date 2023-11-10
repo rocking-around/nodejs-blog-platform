@@ -226,6 +226,16 @@
 
           <template if:true={areGeneralSettingsHasValuesAndSaved}>
             <lightning-tab
+              class="tab-i-manage-ws"
+              label="iManage Workspace"
+              value="i-manage-ws"
+            >
+              <c-i-manage-workspace-settings></c-i-manage-workspace-settings>
+            </lightning-tab>
+          </template>
+
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <lightning-tab
               class="tab-i-manage-folder"
               label="iManage Folder"
               value="i-manage-folder"

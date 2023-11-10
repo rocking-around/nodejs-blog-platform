@@ -55,7 +55,7 @@ export default class IManageLibraries extends LightningElement {
       this.showSpinner = true;
       this.saving = true;
       await saveIManageLibraries({
-        libraries: this.librariesEdit?.join(";") ?? ''
+        libraries: this.librariesEdit?.join(";") ?? ""
       });
 
       this.dispatchEvent(
@@ -104,8 +104,10 @@ export default class IManageLibraries extends LightningElement {
   }
 
   get librariesAvailableOptions() {
-    if(this.availableLibraries == undefined || this.availableLibraries == "")
+    if (this.availableLibraries === undefined || this.availableLibraries === "")
       return [];
-    return this.availableLibraries.split(';').map(x => ({ label: x, value: x }));
+    return this.availableLibraries
+      .split(";")
+      .map((x) => ({ label: x, value: x }));
   }
 }
