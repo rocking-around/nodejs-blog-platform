@@ -16,6 +16,12 @@ sfdx force:org:create --setdefaultusername --definitionfile config/project-scrat
 sfdx force:source:push
 ```
 
+### Create user (Optional)
+
+```
+sfdx force:user:create -f config/project-user-def.json
+```
+
 ### Run tests
 
 ```
@@ -57,7 +63,7 @@ sfdx force:package:version:promote --noprompt --package <The ID (starts with 04t
 
 #### <a id="list_of_pckg_versions" name="list_of_pckg_versions"></a>List of package versions
 
-`sfdx force:package:version:list -p "Docrio iManage Integration" --targetdevhubusername eugene.bilobik@gdsi-litify.com --verbose`
+`sfdx force:package:version:list -p "iManage Integration" --targetdevhubusername eugene.bilobik@gdsi-litify.com --verbose --json`
 
 #### List all packages in the Dev Hub org.
 

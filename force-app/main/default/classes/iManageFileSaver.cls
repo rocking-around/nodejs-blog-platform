@@ -34,7 +34,11 @@ global class iManageFileSaver {
         );
 
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      String workspaceId = iManageWorkspacesHelper.SearchWorkspace(mc, apiInfo, link);
+      String workspaceId = iManageWorkspacesHelper.SearchWorkspace(
+        mc,
+        apiInfo,
+        link
+      );
       Logger.getInstance()
         .info(
           'iManageFileSaver::SaveFile, start method. workspaceId = ' +

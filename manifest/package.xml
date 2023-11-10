@@ -7,6 +7,17 @@
         <members>DescribePackageCustomLabelsTest</members>
         <members>EchoHttpMock</members>
         <members>HttpCalloutQueueMock</members>
+        <members>IManageFolderWrap</members>
+        <members>IManageUtils</members>
+        <members>IManageWFolder</members>
+        <members>IManageWFolderProfile</members>
+        <members>IManageWSearchFolderProfile</members>
+        <members>IManageWorkspaceWrap</members>
+        <members>IManageWrapBase</members>
+        <members>IManageWSecurity</members>
+        <members>IManageWWorkspace</members>
+        <members>IManageWCustomFields</members>
+        <members>IManageWCustomFieldsWithDesc</members>
         <members>IManageBaseHelper</members>
         <members>IManageBaseResponse</members>
         <members>IManageCsvEndpoint</members>
@@ -33,9 +44,11 @@
         <members>iManageUsersNotification</members>
         <members>iManageFolderPicker</members>
         <members>iManageFolderPickerIFrame</members>
+        <members>IManageWorkspaceSettings</members>
         <members>iManageWrapper</members>
         <members>iManageWrapperTests</members>
         <members>IManageRequestHelper</members>
+        <members>IManageResponseError</members>
         <members>LicenseService</members>
         <members>LicenseServiceTests</members>
         <members>PackagesChecker</members>
@@ -47,6 +60,8 @@
         <members>Logger</members>
         <members>LoggerBase</members>
         <members>iManageWorkspacesHelper</members>
+        <members>iManageWorkspacesHelperTests</members>
+        <members>IManageDataModelTests</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -59,6 +74,8 @@
         <members>iManageMappingEditor</members>
         <members>iManageMappingConfiguration</members>
         <name>LightningComponentBundle</name>
+        <name>iManageCreateWsContainer</name>
+        <name>iManageCreateWsModal</name>
     </types>
     <types>
         <members>AppCSS</members>
@@ -74,6 +91,7 @@
         <members>iManageSettings__c</members>
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
+        <members>IManage_WS_to_Entity_Mapping__c</members>
         <members>iManageAuthSetting__mdt</members>
         <members>Log__c</members>
         <name>CustomObject</name>
@@ -104,10 +122,15 @@
         <members>iManageAuthSetting__mdt-iManageAuthSetting Layout</members>
         <members>IManageMapping__c-IManageMapping Layout</members>
         <name>Layout</name>
+    </types-->
+    <types>
+        <members>Create_iManage_Workspace_Access</members>
+        <name>CustomPermission</name>
     </types>
     <types>
         <members>iManage_Admin</members>
         <members>iManage_User</members>
+        <members>iManage_Workspace_Creation</members>
         <name>PermissionSet</name>
     </types>
     <types>

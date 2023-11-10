@@ -1,0 +1,33 @@
+public abstract with sharing class IManageWCustomFields {
+    public String custom1 { get; set; }
+    public String custom2 { get; set; }
+    public String custom3 { get; set; }
+    public String custom4 { get; set; }
+    public String custom5 { get; set; }
+    public String custom6 { get; set; }
+    public String custom7 { get; set; }
+    public String custom8 { get; set; }
+    public String custom9 { get; set; }
+    public String custom10 { get; set; }
+    public String custom11 { get; set; }
+    public String custom12 { get; set; }
+    public String custom13 { get; set; }
+    public String custom14 { get; set; }
+    public String custom15 { get; set; }
+    public String custom16 { get; set; }
+    public Double custom17 { get; set; }
+    public Double custom18 { get; set; }
+    public Double custom19 { get; set; }
+    public Double custom20 { get; set; }
+    public Datetime custom21 { get; set; }
+    public Datetime custom22 { get; set; }
+    public Datetime custom23 { get; set; }
+    public Datetime custom24 { get; set; }
+    public Boolean custom25 { get; set; }
+    public Boolean custom26 { get; set; }
+    public Boolean custom27 { get; set; }
+    public Boolean custom28 { get; set; }
+    public String custom29 { get; set; }
+    public String custom30 { get; set; }
+    public String custom31 { get; set; }
+}

@@ -1,0 +1,18 @@
+.line {
+  margin-bottom: 10px;
+}
+
+.ws-name-pattern-label {
+  /* position: relative; */
+  display: flex;
+}
+
+/* .ws-name-input {
+    width: 100%;
+} */
+
+.ws-name-hint {
+  align-self: center;
+  /* margin-top: 17px;
+    width: 12px; */
+}

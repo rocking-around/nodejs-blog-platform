@@ -404,9 +404,7 @@ public with sharing class ConfigurationHelper {
       settings.iManage_Libraries__c = libraries;
 
       upsert settings;
-      System.debug(
-        'SaveIManageLibraries. Saved: ' + JSON.serialize(settings)
-      );
+      System.debug('SaveIManageLibraries. Saved: ' + JSON.serialize(settings));
     } catch (AuraHandledException ex) {
       Logger.getInstance()
         .error(ex, 'ConfigurationHelper::SaveIManageLibraries');
@@ -428,18 +426,19 @@ public with sharing class ConfigurationHelper {
 
     try {
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
-      List<iManageWrapper.iManageLibrary> results = iManageWrapper.GetLibraries(apiInfo.customerId);
+      List<iManageWrapper.iManageLibrary> results = iManageWrapper.GetLibraries(
+        apiInfo.customerId
+      );
       String result = '';
       for (iManageWrapper.iManageLibrary lib : results) {
-        if(result == '')
+        if (result == '')
           result = lib.id;
-        else 
+        else
           result += ';' + lib.id;
       }
       Logger.getInstance()
         .info(
-          'ConfigurationHelper::GetIManageAvailableLibraries, Result: ' +
-          result
+          'ConfigurationHelper::GetIManageAvailableLibraries, Result: ' + result
         );
       return result;
     } catch (Exception ex) {
@@ -546,5 +545,127 @@ public with sharing class ConfigurationHelper {
     Logger.getInstance()
       .info('ConfigurationHelper::IsFolderPathCorrect, Result: ' + result);
     return result;
+  }
+
+  @AuraEnabled
+  public static Map<String, String> loadFolderTemplates() {
+    Logger.getInstance().info('ConfigurationHelper::loadFolderTemplates');
+    LicenseService.CheckOrganizationLicense();
+    try {
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      Set<String>libraries = new Set<String>();
+      if (String.isNotBlank(mc?.iManage_Libraries__c)) {
+        libraries.addAll(mc?.iManage_Libraries__c.split(';'));
+      }
+      if (String.isNotBlank(apiInfo?.library)) {
+        libraries.add(apiInfo?.library);
+      }
+
+      Map<String, String> templates = new Map<String, String>();
+
+      for (String libraryId : libraries) {
+        Integer offset = 0;
+        Integer batchSize = 2000;
+        iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
+          apiInfo.customerId,
+          libraryId,
+          null,
+          offset,
+          batchSize
+        );
+
+        if (resp.data?.results != null) {
+          for (IManageWWorkspace templ : resp.data.results) {
+            String key = libraryId + '::' + templ.id;
+            templates.put(key, libraryId + ' : ' + templ.name);
+          }
+        }
+      }
+
+      return templates;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::loadFolderTemplates');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static Map<String, Object> getIManageWorkspaceSettings() {
+    Logger.getInstance()
+      .info('ConfigurationHelper::getIManageWorkspaceSettings, start method');
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+      Map<String, Object> result = new Map<String, Object>{
+        'iManageWs:Name_Pattern' => settings.iManage_Ws_Name_Pattern__c,
+        'iManageWs:Create_Ws_Enabled' => settings.iManage_Create_Ws_Enabled__c,
+        'iManageWs:Auto_Create' => settings.iManage_Ws_Auto_Create__c,
+        'iManageWs:Folder_Template_Id' => settings.iManage_Ws_Folder_Template_Id__c
+      };
+
+      Logger.getInstance()
+        .info(
+          'ConfigurationHelper::getIManageWorkspaceSettings, result: ' +
+          JSON.serialize(result)
+        );
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::getIManageWorkspaceSettings');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static void saveIManageWorkspaceSettings(Map<String, Object> data) {
+    Map<String, Object> params = new Map<String, Object>{ 'data' => data };
+    Logger.getInstance()
+      .info(
+        'ConfigurationHelper::saveIManageWorkspaceSettings, start method. Params: ' +
+        JSON.serialize(data)
+      );
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+      for (String key : data.keySet()) {
+        switch on key {
+          when 'iManageWs:Name_Pattern' {
+            settings.iManage_Ws_Name_Pattern__c = (String) data.get(key);
+          }
+          when 'iManageWs:Folder_Template_Id' {
+            settings.iManage_Ws_Folder_Template_Id__c = (String) data.get(key);
+          }
+          when 'iManageWs:Create_Ws_Enabled' {
+            settings.iManage_Create_Ws_Enabled__c = (Boolean) data.get(key);
+          }
+          when 'iManageWs:Auto_Create' {
+            settings.iManage_Ws_Auto_Create__c = (Boolean) data.get(key);
+          }
+        }
+      }
+
+      upsert settings;
+      Logger.getInstance()
+        .info(
+          'ConfigurationHelper::saveIManageWorkspaceSettings. Saved: ' +
+          JSON.serialize(settings)
+        );
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::saveIManageWorkspaceSettings');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
   }
 }

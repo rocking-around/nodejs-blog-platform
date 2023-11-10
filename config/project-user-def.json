@@ -1,0 +1,13 @@
+{
+  "Username": "imanage-tester1@example.com",
+  "LastName": "Test",
+  "Email": "imanage-tester1@example.com",
+  "Alias": "tester1",
+  "TimeZoneSidKey": "America/New_York",
+  "LocaleSidKey": "en_US",
+  "EmailEncodingKey": "UTF-8",
+  "LanguageLocaleKey": "en_US",
+  "profileName": "Standard Platform User",
+  "permsets": ["iManage_User", "iManage_Workspace_Creation"],
+  "generatePassword": true
+}
