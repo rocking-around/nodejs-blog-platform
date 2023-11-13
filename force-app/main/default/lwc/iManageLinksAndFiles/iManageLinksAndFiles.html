@@ -25,6 +25,13 @@
             disabled={loading}
           ></lightning-button>
         </template>
+        <template if:true={allowSaveIManageFolderAsLink}>
+          <lightning-button
+            label="New Folder Link from iManage"
+            onclick={loadNewFolderLinkFromIManage}
+            disabled={loading}
+          ></lightning-button>
+        </template>
       </div>
       <div class="paging paging-top">
         <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->

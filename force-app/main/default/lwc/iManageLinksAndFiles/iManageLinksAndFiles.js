@@ -7,7 +7,9 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import iManageApi from "@salesforce/resourceUrl/iManageApi";
 
 import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
+import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
 import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
+import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
@@ -40,6 +42,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   allowSaveIManageDocAsCopy = false;
   allowSaveIManageDocAsLink = false;
+  allowSaveIManageFolderAsLink = true;
 
   @track gridData = [];
 
@@ -262,6 +265,36 @@ export default class IManageLinksAndFiles extends LightningElement {
     }
   }
 
+  async loadNewFolderLinkFromIManage() {
+    try {
+      const url = await GetIFrameFolderPicker();
+
+      const result = await iManageFolderPickerIFrame.open({
+        size: "large",
+        title: "Save Folder Link",
+        url: url,
+        action: "save-link",
+        // eslint-disable-next-line no-undef
+        imanageApi: imanage,
+        savedCallback: () => this.loadData(),
+        selectedCallback: (folder) => this.saveIManageFolderLinkToSalesforce(folder)
+      });
+
+      if (result) {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Save Folder Link...",
+            message: `Folder link saved successfuly`,
+            variant: "success"
+          })
+        );
+        this.loadData();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    }
+  }
+
   loadPreviousPage() {
     this.writeDebug("IManageLinksAndFiles.loadPreviousPage: START");
   }
@@ -312,6 +345,16 @@ export default class IManageLinksAndFiles extends LightningElement {
       showSpinner: true,
       successMessage: "The Link saved successfully"
     });
+  }
+
+  async saveIManageFolderLinkToSalesforce(folder) {
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Save Folder Link...",
+        message: (`Folder link saved successfuly` + ` ${folder.id}`),
+        variant: "success"
+      })
+    );
   }
 
   async deleteFromSalesforce(row) {

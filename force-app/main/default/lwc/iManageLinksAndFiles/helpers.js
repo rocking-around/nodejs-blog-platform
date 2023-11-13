@@ -29,7 +29,8 @@ export const COLUMNS_DEFINITION = [
     fieldName: "metadataDocumentClass",
     label: "iManage Class",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    initialWidth: 105
   },
   {
     fieldName: "metadataDocumentNumber",
@@ -41,7 +42,8 @@ export const COLUMNS_DEFINITION = [
     fieldName: "metadataVersion",
     label: "Version",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    initialWidth: 70
   },
   {
     fieldName: "metadataDocumentAuthor",
@@ -54,7 +56,16 @@ export const COLUMNS_DEFINITION = [
     fieldName: "isInIManage",
     label: "Link",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    initialWidth: 55
+  },
+  {
+    type: "boolean",
+    fieldName: "isIManageFolder",
+    label: "Folder",
+    wrapText: true,
+    hideDefaultActions: true,
+    initialWidth: 55
   }
 ];
 
@@ -72,7 +83,8 @@ export const mapLinksToGridModel = (links) => {
     metadataVersion: l.metadata?.Document_Version__c,
     metadataDocumentNumber: l.metadata?.DocNumber__c,
     metadataDocumentClass: l.metadata?.Document_Class__c,
-    metadataDocumentAuthor: l.metadata?.Document_Author__c
+    metadataDocumentAuthor: l.metadata?.Document_Author__c,
+    isIManageFolder: false
   }));
 };
 
@@ -90,7 +102,8 @@ export const mapFilesToGridModel = (files = []) => {
     metadataVersion: metadata?.Document_Version__c,
     metadataDocumentNumber: metadata?.DocNumber__c,
     metadataDocumentClass: metadata?.Document_Class__c,
-    metadataDocumentAuthor: metadata?.Document_Author__c
+    metadataDocumentAuthor: metadata?.Document_Author__c,
+    isIManageFolder: false
   }));
 };
 
