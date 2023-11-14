@@ -1,9 +1,12 @@
 import getLinks from "@salesforce/apex/IManageLinksAndFilesHelper.getLinks";
+import getFolderLinks from "@salesforce/apex/IManageLinksAndFilesHelper.getFolderLinks";
 import getFiles from "@salesforce/apex/IManageLinksAndFilesHelper.getFiles";
 import getMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.getIManageDocumentsMetadata";
 import getLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getLinksCount";
+import getFolderLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFolderLinksCount";
 import getFilesCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFilesCount";
-import { mapLinksToGridModel, mapFilesToGridModel } from "./helpers";
+import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
+import { mapLinksToGridModel, mapFolderLinksToGridModel, mapFilesToGridModel, buildFilderLinkUrl } from "./helpers";
 
 const DEFAULT_PAGING_SOURCE = {
   getData: new Promise((resolve) => {
@@ -39,6 +42,22 @@ class PageResult {
   get currentPage() {
     return this._currentPage;
   }
+}
+
+const getFolderLinksExt = (data) => {
+  return new Promise((resolve) => {
+    Promise.all([
+      getFolderLinks(data),
+      GetIFrameFolderPicker()
+    ])
+    .then(([folderLinks, imUrl]) => {
+      const result = folderLinks.map(x => {
+        const url = buildFilderLinkUrl(x, imUrl);
+        return {...x, iframeUrl: url};
+      });
+      resolve(result);
+    });
+  });
 }
 
 export default class IManageLinksAndFilesPaging {
@@ -89,6 +108,13 @@ export default class IManageLinksAndFilesPaging {
       getData: getLinks,
       getCount: getLinksCount,
       map: mapLinksToGridModel,
+      metadataRef: (x) => x.Id
+    });
+    this.addSource({
+      //getData: getFolderLinks,
+      getData: getFolderLinksExt,
+      getCount: getFolderLinksCount,
+      map: mapFolderLinksToGridModel,
       metadataRef: (x) => x.Id
     });
   }

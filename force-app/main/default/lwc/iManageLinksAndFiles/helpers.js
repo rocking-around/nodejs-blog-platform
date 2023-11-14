@@ -1,4 +1,5 @@
 import FILE_LINK_FIELD from "@salesforce/schema/IManage_File_Link__c.File_Link__c";
+import FOLDER_LINK_IMANAGR_ID_FIELD from "@salesforce/schema/IManage_Folder_Link__c.iManage_Id__c";
 
 export const ROW_ACTIONS = [
   { label: "Delete", name: "delete" },
@@ -16,7 +17,8 @@ export const COLUMNS_DEFINITION = [
       target: "_blank",
       label: { fieldName: "fileUrlLabel" },
       preview: { fieldName: "preview" },
-      id: { fieldName: "id" }
+      id: { fieldName: "id" },
+      iFrameUrl: { fieldName: "iFrameUrl" }
     }
   },
   {
@@ -84,7 +86,28 @@ export const mapLinksToGridModel = (links) => {
     metadataDocumentNumber: l.metadata?.DocNumber__c,
     metadataDocumentClass: l.metadata?.Document_Class__c,
     metadataDocumentAuthor: l.metadata?.Document_Author__c,
-    isIManageFolder: false
+    isIManageFolder: false,
+    iFrameUrl: null
+  }));
+};
+
+export const mapFolderLinksToGridModel = (links) => {
+  return links.map((l) => ({
+    id: l.Id,
+    fileName: l.Name,
+    lastModifiedDate: l.LastModifiedDate,
+    isInIManage: true, // ALWAYS TRUE
+    isNotInIManage: false, // OPPOSIT TO isInIManage
+    fileUrl: l.Name,
+    fileUrlLabel: l.Name,
+    preview: false, // always false,
+    metadataName: l.Name,
+    metadataVersion: null,
+    metadataDocumentNumber: null,
+    metadataDocumentClass: null,
+    metadataDocumentAuthor: null,
+    isIManageFolder: true,
+    iFrameUrl: l.iframeUrl
   }));
 };
 
@@ -103,7 +126,8 @@ export const mapFilesToGridModel = (files = []) => {
     metadataDocumentNumber: metadata?.DocNumber__c,
     metadataDocumentClass: metadata?.Document_Class__c,
     metadataDocumentAuthor: metadata?.Document_Author__c,
-    isIManageFolder: false
+    isIManageFolder: false,
+    iFrameUrl: null
   }));
 };
 
@@ -111,4 +135,11 @@ export function writeDebug() {
   if (this.isDebug) {
     console.log.apply(null, arguments);
   }
+}
+
+export const buildFilderLinkUrl = (folderLink, imFolderUrl) => {
+  const imId = folderLink[FOLDER_LINK_IMANAGR_ID_FIELD.fieldApiName];
+  const url = new URL(imFolderUrl);
+  url.searchParams.set('start', imId);
+  return url.toString();
 }

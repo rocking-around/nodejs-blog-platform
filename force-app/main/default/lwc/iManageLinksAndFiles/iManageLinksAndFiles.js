@@ -12,11 +12,13 @@ import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameF
 import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
+import deleteFolderLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFolderLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
 import isEnabledForRecord from "@salesforce/apex/IManageLinksAndFilesHelper.isEnabledForRecord";
 import deleteIManageDocumentMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.deleteIManageDocumentMetadata";
 import changeIManageDocumentMetadataEntity from "@salesforce/apex/IManageLinksAndFilesHelper.changeIManageDocumentMetadataEntity";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
+import saveFolderLinkFromIManage from "@salesforce/apex/IManageLinksAndFilesHelper.saveFolderLinkFromIManage";
 
 const PAGE_SIZE = 10;
 
@@ -97,6 +99,7 @@ export default class IManageLinksAndFiles extends LightningElement {
       (a) =>
         a.name !== "save_to_sf" ||
         (!!row.isInIManage && this.allowSaveIManageDocAsCopy)
+        || !row.isIManageFolder
     );
     callback(rowActions);
   }
@@ -348,18 +351,29 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   async saveIManageFolderLinkToSalesforce(folder) {
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Save Folder Link...",
-        message: (`Folder link saved successfuly` + ` ${folder.id}`),
-        variant: "success"
-      })
-    );
+    const data = {
+      recordId: this.recordId,
+      folderData: folder
+    };
+    const action = new Promise((resolve, reject) => {
+      saveFolderLinkFromIManage(data)
+        .then((newLinkId) => resolve(newLinkId))
+        .catch((err) => reject(err));
+    });
+    await this.save(action, {
+      reloadOnSeccess: true,
+      showSpinner: true,
+      successMessage: "Folder link saved successfuly"
+    });
   }
 
   async deleteFromSalesforce(row) {
-    const { id, isInIManage: isLink } = row;
-    const action = isLink ? deleteLink : deleteFile;
+    const { id, isInIManage: isLink, isIManageFolder: isFolder } = row;
+    const action = isLink
+      ? isFolder
+        ? deleteFolderLink
+        : deleteLink
+      : deleteFile;
     const deleteWithMetadata = new Promise((resolve, reject) => {
       action({ id })
         .then(() => deleteIManageDocumentMetadata({ entityId: id }))
