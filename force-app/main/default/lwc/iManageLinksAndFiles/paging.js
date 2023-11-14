@@ -5,8 +5,7 @@ import getMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.getIManageD
 import getLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getLinksCount";
 import getFolderLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFolderLinksCount";
 import getFilesCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFilesCount";
-import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
-import { mapLinksToGridModel, mapFolderLinksToGridModel, mapFilesToGridModel, buildFilderLinkUrl } from "./helpers";
+import { mapLinksToGridModel, mapFolderLinksToGridModel, mapFilesToGridModel } from "./helpers";
 
 const DEFAULT_PAGING_SOURCE = {
   getData: new Promise((resolve) => {
@@ -42,22 +41,6 @@ class PageResult {
   get currentPage() {
     return this._currentPage;
   }
-}
-
-const getFolderLinksExt = (data) => {
-  return new Promise((resolve) => {
-    Promise.all([
-      getFolderLinks(data),
-      GetIFrameFolderPicker()
-    ])
-    .then(([folderLinks, imUrl]) => {
-      const result = folderLinks.map(x => {
-        const url = buildFilderLinkUrl(x, imUrl);
-        return {...x, iframeUrl: url};
-      });
-      resolve(result);
-    });
-  });
 }
 
 export default class IManageLinksAndFilesPaging {
@@ -111,8 +94,7 @@ export default class IManageLinksAndFilesPaging {
       metadataRef: (x) => x.Id
     });
     this.addSource({
-      //getData: getFolderLinks,
-      getData: getFolderLinksExt,
+      getData: getFolderLinks,
       getCount: getFolderLinksCount,
       map: mapFolderLinksToGridModel,
       metadataRef: (x) => x.Id

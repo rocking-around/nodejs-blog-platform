@@ -1,8 +1,10 @@
 <template>
-  <template lwc:if={typeAttributes.iFrameUrl}>
+  <template lwc:if={typeAttributes.openInIframe}>
     <c-open-i-manage-iframe-in-dialog-button
-      url={typeAttributes.iFrameUrl}
+      wstype={typeAttributes.wstype}
+      im-id={typeAttributes.imId}
       label={typeAttributes.label}
+      dialog-title={typeAttributes.label}
     ></c-open-i-manage-iframe-in-dialog-button>
   </template>
   <template lwc:else>

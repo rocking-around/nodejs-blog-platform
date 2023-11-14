@@ -1,5 +1,5 @@
 import FILE_LINK_FIELD from "@salesforce/schema/IManage_File_Link__c.File_Link__c";
-import FOLDER_LINK_IMANAGR_ID_FIELD from "@salesforce/schema/IManage_Folder_Link__c.iManage_Id__c";
+import FOLDER_LINK_IMANAGE_ID_FIELD from "@salesforce/schema/IManage_Folder_Link__c.iManage_Id__c";
 
 export const ROW_ACTIONS = [
   { label: "Delete", name: "delete" },
@@ -18,7 +18,9 @@ export const COLUMNS_DEFINITION = [
       label: { fieldName: "fileUrlLabel" },
       preview: { fieldName: "preview" },
       id: { fieldName: "id" },
-      iFrameUrl: { fieldName: "iFrameUrl" }
+      openInIframe: { fieldName: "openInIframe" },
+      wstype: { fieldName: "wstype" },
+      imId: { fieldName: "imId" }
     }
   },
   {
@@ -87,7 +89,9 @@ export const mapLinksToGridModel = (links) => {
     metadataDocumentClass: l.metadata?.Document_Class__c,
     metadataDocumentAuthor: l.metadata?.Document_Author__c,
     isIManageFolder: false,
-    iFrameUrl: null
+    openInIframe: false,
+    wstype: null,
+    imId: false
   }));
 };
 
@@ -107,7 +111,9 @@ export const mapFolderLinksToGridModel = (links) => {
     metadataDocumentClass: null,
     metadataDocumentAuthor: null,
     isIManageFolder: true,
-    iFrameUrl: l.iframeUrl
+    openInIframe: true,
+    wstype: 'folder',
+    imId: l[FOLDER_LINK_IMANAGE_ID_FIELD.fieldApiName]
   }));
 };
 
@@ -127,7 +133,9 @@ export const mapFilesToGridModel = (files = []) => {
     metadataDocumentClass: metadata?.Document_Class__c,
     metadataDocumentAuthor: metadata?.Document_Author__c,
     isIManageFolder: false,
-    iFrameUrl: null
+    openInIframe: false,
+    wstype: null,
+    imId: false
   }));
 };
 
@@ -135,11 +143,4 @@ export function writeDebug() {
   if (this.isDebug) {
     console.log.apply(null, arguments);
   }
-}
-
-export const buildFilderLinkUrl = (folderLink, imFolderUrl) => {
-  const imId = folderLink[FOLDER_LINK_IMANAGR_ID_FIELD.fieldApiName];
-  const url = new URL(imFolderUrl);
-  url.searchParams.set('start', imId);
-  return url.toString();
 }

@@ -96,10 +96,12 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   getRowActions(row, callback) {
     const rowActions = ROW_ACTIONS.filter(
-      (a) =>
-        a.name !== "save_to_sf" ||
-        (!!row.isInIManage && this.allowSaveIManageDocAsCopy)
-        || !row.isIManageFolder
+      (a) => {
+        if (a.name === "save_to_sf") {
+          return !!row.isInIManage && this.allowSaveIManageDocAsCopy && !row.isIManageFolder
+        }
+        return true;
+      }
     );
     callback(rowActions);
   }
@@ -284,13 +286,6 @@ export default class IManageLinksAndFiles extends LightningElement {
       });
 
       if (result) {
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: "Save Folder Link...",
-            message: `Folder link saved successfuly`,
-            variant: "success"
-          })
-        );
         this.loadData();
       }
     } catch (error) {
