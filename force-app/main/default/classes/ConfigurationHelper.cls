@@ -120,7 +120,8 @@ public with sharing class ConfigurationHelper {
           Matter__c,
           Client__c,
           Save_Document__c,
-          Save_Link__c
+          Save_Link__c,
+          Save_Folder_Link__c
         FROM iManageDocumentSettings__c
       ];
 
@@ -140,7 +141,8 @@ public with sharing class ConfigurationHelper {
             Matter__c = false,
             Client__c = false,
             Save_Document__c = false,
-            Save_Link__c = false
+            Save_Link__c = false,
+            Save_Folder_Link__c = false
           );
 
       Map<String, Object> result = new Map<String, Object>{
@@ -151,7 +153,8 @@ public with sharing class ConfigurationHelper {
         'iManageDocuments:Matter' => settings.Matter__c,
         'iManageDocuments:Client' => settings.Client__c,
         'iManageDocuments:Save_Document' => settings.Save_Document__c,
-        'iManageDocuments:Save_Link' => settings.Save_Link__c
+        'iManageDocuments:Save_Link' => settings.Save_Link__c,
+        'iManageDocuments:Save_Folder_Link' => settings.Save_Folder_Link__c
       };
 
       Logger.getInstance()
@@ -193,7 +196,8 @@ public with sharing class ConfigurationHelper {
           Matter__c,
           Client__c,
           Save_Document__c,
-          Save_Link__c
+          Save_Link__c,
+          Save_Folder_Link__c
         FROM iManageDocumentSettings__c
       ];
 
@@ -213,7 +217,8 @@ public with sharing class ConfigurationHelper {
             Matter__c = false,
             Client__c = false,
             Save_Document__c = false,
-            Save_Link__c = false
+            Save_Link__c = false,
+            Save_Folder_Link__c = false
           );
 
       for (String key : data.keySet()) {
@@ -241,6 +246,9 @@ public with sharing class ConfigurationHelper {
           }
           when 'iManageDocuments:Save_Link' {
             settings.Save_Link__c = (Boolean) data.get(key);
+          }
+          when 'iManageDocuments:Save_Folder_Link' {
+            settings.Save_Folder_Link__c = (Boolean) data.get(key);
           }
         }
       }

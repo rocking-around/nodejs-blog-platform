@@ -80,6 +80,7 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.allowSaveIManageDocAsCopy =
       docSettings["iManageDocuments:Save_Document"];
     this.allowSaveIManageDocAsLink = docSettings["iManageDocuments:Save_Link"];
+    this.allowSaveIManageFolderAsLink = docSettings["iManageDocuments:Save_Folder_Link"];
 
     this.gridColumns = [
       ...this.gridColumns,
