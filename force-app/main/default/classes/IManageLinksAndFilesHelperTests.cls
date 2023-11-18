@@ -464,6 +464,51 @@ private class IManageLinksAndFilesHelperTests {
     );
   }
 
+  @IsTest
+  static void getFolderLinksTest() {
+    TestUtils.setupMockActiveLicense();
+
+    // insert folder link
+    String entityId = TestUtils.getFakeId(Opportunity.SObjectType);
+    String imFolderId = 'ACTIVE!3038';
+    String imLibrary = 'ACTIVE';
+    String name = 'Test';
+    IManage_Folder_Link__c sobj = new IManage_Folder_Link__c(
+        EntityId__c = entityId,
+        iManage_Id__c = imFolderId,
+        iManage_Library__c = imLibrary,
+        Name = name
+      );
+    insert sobj;
+
+    Test.startTest();
+    List<IManage_Folder_Link__c> result = IManageLinksAndFilesHelper.getFolderLinks(
+      entityId,
+      10,
+      0
+    );
+    IManage_Folder_Link__c result0 = result.get(0);
+    Integer count = IManageLinksAndFilesHelper.getFolderLinksCount(entityId);
+    Test.stopTest();
+    System.assert(count > 0, 'Wrong Folder links count');
+    System.assert(result0.EntityId__c == entityId, 'Wrong EntityId__c value');
+    System.assert(result0.iManage_Id__c == imFolderId, 'Wrong iManage_Id__c value');
+    System.assert(result0.iManage_Library__c == imLibrary, 'Wrong iManage_Library__c value');
+    System.assert(result0.Name == name, 'Wrong Name value');
+  }
+
+  // deleteFolderLink
+  @IsTest
+  static void deleteFolderLinkTest() {
+    
+  }
+
+  // saveFolderLinkFromIManage
+  @IsTest
+  static void saveFolderLinkFromIManageTest() {
+    
+  }
+
   private static SObject createSObjectFromMap(
     String sobjectName,
     Map<String, Object> fields

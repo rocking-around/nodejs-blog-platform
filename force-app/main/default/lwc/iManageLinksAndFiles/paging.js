@@ -43,7 +43,7 @@ class PageResult {
   }
 }
 
-export default class IManageLinksAndFilesPaging {
+class BasePaging {
   _pageSize;
   _page = 0;
   _recordId = undefined;
@@ -80,26 +80,7 @@ export default class IManageLinksAndFilesPaging {
     });
   }
 
-  initPaging() {
-    this.addSource({
-      getData: getFiles,
-      getCount: getFilesCount,
-      map: mapFilesToGridModel,
-      metadataRef: (x) => x.ContentDocumentId
-    });
-    this.addSource({
-      getData: getLinks,
-      getCount: getLinksCount,
-      map: mapLinksToGridModel,
-      metadataRef: (x) => x.Id
-    });
-    this.addSource({
-      getData: getFolderLinks,
-      getCount: getFolderLinksCount,
-      map: mapFolderLinksToGridModel,
-      metadataRef: (x) => x.Id
-    });
-  }
+  initPaging() {}
 
   loadPage(page) {
     return new Promise((resolve, reject) => {
@@ -162,5 +143,33 @@ export default class IManageLinksAndFilesPaging {
     }
 
     return 0;
+  }
+}
+
+export class IManageLinksAndFilesPaging extends BasePaging {
+  initPaging() {
+    this.addSource({
+      getData: getFiles,
+      getCount: getFilesCount,
+      map: mapFilesToGridModel,
+      metadataRef: (x) => x.ContentDocumentId
+    });
+    this.addSource({
+      getData: getLinks,
+      getCount: getLinksCount,
+      map: mapLinksToGridModel,
+      metadataRef: (x) => x.Id
+    });
+  }
+}
+
+export class IManageFoldersPaging extends BasePaging {
+  initPaging() {
+    this.addSource({
+      getData: getFolderLinks,
+      getCount: getFolderLinksCount,
+      map: mapFolderLinksToGridModel,
+      metadataRef: (x) => x.Id
+    });
   }
 }

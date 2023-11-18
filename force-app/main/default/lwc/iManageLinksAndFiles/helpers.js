@@ -6,7 +6,7 @@ export const ROW_ACTIONS = [
   { label: "Save to Salesforce", name: "save_to_sf" }
 ];
 
-export const COLUMNS_DEFINITION = [
+export const DOCS_COLUMNS_DEFINITION = [
   {
     type: "linkOrPreview",
     fieldName: "fileUrl",
@@ -17,10 +17,7 @@ export const COLUMNS_DEFINITION = [
       target: "_blank",
       label: { fieldName: "fileUrlLabel" },
       preview: { fieldName: "preview" },
-      id: { fieldName: "id" },
-      openInIframe: { fieldName: "openInIframe" },
-      wstype: { fieldName: "wstype" },
-      imId: { fieldName: "imId" }
+      id: { fieldName: "id" }
     }
   },
   {
@@ -62,11 +59,36 @@ export const COLUMNS_DEFINITION = [
     wrapText: true,
     hideDefaultActions: true,
     initialWidth: 55
+  }
+];
+
+export const FOLDERS_COLUMNS_DEFINITION = [
+  {
+    type: "linkOrPreview",
+    fieldName: "fileUrl",
+    label: "Salesforce Name",
+    wrapText: true,
+    hideDefaultActions: true,
+    typeAttributes: {
+      target: "_blank",
+      label: { fieldName: "fileUrlLabel" },
+      preview: { fieldName: "preview" },
+      id: { fieldName: "id" },
+      openInIframe: { fieldName: "openInIframe" },
+      wstype: { fieldName: "wstype" },
+      imId: { fieldName: "imId" }
+    }
+  },
+  {
+    fieldName: "metadataName",
+    label: "iManage Name",
+    wrapText: true,
+    hideDefaultActions: true
   },
   {
     type: "boolean",
-    fieldName: "isIManageFolder",
-    label: "Folder",
+    fieldName: "isInIManage",
+    label: "Link",
     wrapText: true,
     hideDefaultActions: true,
     initialWidth: 55
@@ -87,11 +109,7 @@ export const mapLinksToGridModel = (links) => {
     metadataVersion: l.metadata?.Document_Version__c,
     metadataDocumentNumber: l.metadata?.DocNumber__c,
     metadataDocumentClass: l.metadata?.Document_Class__c,
-    metadataDocumentAuthor: l.metadata?.Document_Author__c,
-    isIManageFolder: false,
-    openInIframe: false,
-    wstype: null,
-    imId: false
+    metadataDocumentAuthor: l.metadata?.Document_Author__c
   }));
 };
 
@@ -131,11 +149,7 @@ export const mapFilesToGridModel = (files = []) => {
     metadataVersion: metadata?.Document_Version__c,
     metadataDocumentNumber: metadata?.DocNumber__c,
     metadataDocumentClass: metadata?.Document_Class__c,
-    metadataDocumentAuthor: metadata?.Document_Author__c,
-    isIManageFolder: false,
-    openInIframe: false,
-    wstype: null,
-    imId: false
+    metadataDocumentAuthor: metadata?.Document_Author__c
   }));
 };
 
