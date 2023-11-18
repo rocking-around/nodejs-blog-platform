@@ -209,7 +209,7 @@ private class IManageLinksAndFilesHelperTests {
     Boolean isCalendarEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
       Id.valueOf('00U4H000011y36GUAQ')
     );
-    // '00T4H00008mUsp7UAC', - ТАСК
+    // '00T4H00008mUsp7UAC', - ТАSК
     Boolean isTaskEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
       Id.valueOf('00T4H00008mUsp7UAC')
     );
@@ -465,7 +465,7 @@ private class IManageLinksAndFilesHelperTests {
   }
 
   @IsTest
-  static void getFolderLinksTest() {
+  static void folderLinksCRUDTest() {
     TestUtils.setupMockActiveLicense();
 
     // insert folder link
@@ -489,24 +489,82 @@ private class IManageLinksAndFilesHelperTests {
     );
     IManage_Folder_Link__c result0 = result.get(0);
     Integer count = IManageLinksAndFilesHelper.getFolderLinksCount(entityId);
+
+    IManageLinksAndFilesHelper.deleteFolderLink(sobj.Id);
+
+    List<IManage_Folder_Link__c> result2 = IManageLinksAndFilesHelper.getFolderLinks(
+      entityId,
+      10,
+      0
+    );
     Test.stopTest();
+
     System.assert(count > 0, 'Wrong Folder links count');
     System.assert(result0.EntityId__c == entityId, 'Wrong EntityId__c value');
     System.assert(result0.iManage_Id__c == imFolderId, 'Wrong iManage_Id__c value');
     System.assert(result0.iManage_Library__c == imLibrary, 'Wrong iManage_Library__c value');
     System.assert(result0.Name == name, 'Wrong Name value');
+    // del result
+    System.assert(result2.size() == 0, 'Wrong Folder links count after delete operation');
   }
 
-  // deleteFolderLink
-  @IsTest
-  static void deleteFolderLinkTest() {
-    
-  }
-
-  // saveFolderLinkFromIManage
   @IsTest
   static void saveFolderLinkFromIManageTest() {
-    
+    String entityId = TestUtils.getFakeId(Opportunity.SObjectType);
+    String imFolderId = 'test_f_1';
+    String imLib = 'ACTIVE';
+    String imFolderName = 'test_f_Name';
+
+    Map<String, Object> folderData = new Map<String, String> {
+      'id' => imFolderId,
+      'database' => imLib,
+      'name' => imFolderName
+    };
+
+    Test.startTest();
+    Id linkId = IManageLinksAndFilesHelper.saveFolderLinkFromIManage(
+      entityId,
+      folderData
+    );
+
+    IManage_Folder_Link__c result = [
+      SELECT Id, LastModifiedDate, Name, EntityId__c, iManage_Id__c, iManage_Library__c
+      FROM IManage_Folder_Link__c
+      WHERE Id = :linkId
+    ];
+    Test.stopTest();
+
+    System.assert(result.Id == linkId, 'Wrong Id value');
+    System.assert(result.EntityId__c == entityId, 'Wrong EntityId__c value');
+    System.assert(result.iManage_Id__c == imFolderId, 'Wrong iManage_Id__c value');
+    System.assert(result.iManage_Library__c == imLib, 'Wrong iManage_Library__c value');
+    System.assert(result.Name == imFolderName, 'Wrong Name value');
+  }
+
+  @IsTest
+  static void deleteIManageDocumentMetadataTest() {
+    TestUtils.setupMockActiveLicense();
+    String entityId = TestUtils.getFakeId(Opportunity.SObjectType);
+    iManageDocumentMetadata__c md = new iManageDocumentMetadata__c(
+      EntityId__c = entityId,
+      Name = 'test name',
+      Document_Version__c = 'v1',
+      DocNumber__c = '1',
+      Document_Author__c = 'author',
+      Document_Class__c = 'd_class'
+    );
+    insert md;
+
+    Test.startTest();
+    Integer countAfterIns = Database.countQuery('select count() from iManageDocumentMetadata__c');
+
+    IManageLinksAndFilesHelper.deleteIManageDocumentMetadata(entityId);
+
+    Integer countAfterDel = Database.countQuery('select count() from iManageDocumentMetadata__c');
+    Test.stopTest();
+
+    System.assert(countAfterIns > 0, 'Wrong count after Insert operation');
+    System.assert(countAfterDel == 0, 'Wrong count after Delete operation');
   }
 
   private static SObject createSObjectFromMap(

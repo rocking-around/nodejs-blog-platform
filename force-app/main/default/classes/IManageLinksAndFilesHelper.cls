@@ -578,7 +578,7 @@ public with sharing class IManageLinksAndFilesHelper {
       update existingMetadata;
       Logger.getInstance()
         .info(
-          'iManageFileWorker::clearIManageDocumentMetadata, Updated  ' +
+          'iManageFileWorker::changeIManageDocumentMetadataEntity, Updated  ' +
           existingMetadata?.size() +
           ' item(s)'
         );
