@@ -38,7 +38,7 @@ export default class OpenIManageIframeInDialogButton extends LightningElement {
     buildFilderLinkUrl(imId, imFolderUrl) {
         const url = new URL(imFolderUrl);
         url.searchParams.set('start', imId);
-        url.searchParams.set('mode', 'open');
+        url.searchParams.set('mode', 'emm');
         return url.toString();
     }
 }
