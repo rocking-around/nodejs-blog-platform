@@ -808,6 +808,46 @@ public class iManageWrapper {
     return response.data;
   }
 
+  public static IManageWWorkspace patchWorkspaceApiCall(
+    String workspaceId,
+    Map<String, Object> patchData,
+    String customerId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWrapper::patchWorkspaceApiCall';
+
+    //PATCH https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces/{workspaceId}
+
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+      new List<Object>{ customerId, libraryId, workspaceId }
+    );
+    Map<String, Object> reqBody = IManageUtils.removeNullItemsFromMap(patchData, null);
+
+    String body = JSON.serialize(reqBody, true);
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', query=' +
+        query +
+        '; body=' +
+        body
+      );
+    String responseBody = IManageRequestHelper.Patch(query, body);
+    Logger.getInstance()
+      .info(
+        logPrefix + ', response=' +
+        responseBody
+      );
+    system.debug(responseBody);
+    iManageWorkspaceResponse response = (iManageWorkspaceResponse) JSON.deserialize(
+      responseBody,
+      iManageWorkspaceResponse.class
+    );
+
+    return response.data;
+  }
+
   public static Object patchFolder(
     String folderId,
     String customerId,

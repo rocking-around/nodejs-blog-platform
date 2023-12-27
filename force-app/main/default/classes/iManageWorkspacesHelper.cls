@@ -455,6 +455,15 @@ public class iManageWorkspacesHelper {
       );
       Logger.getInstance().info('Workspace created.');
 
+      Logger.getInstance().info('Patch workspace name-value-pair');
+      iManageWrapper.patchNameValuePair(
+        'workspaces',
+        sourceWorkspace.Id,
+        apiInfo.customerId,
+        libraryId,
+        new Map<String, Object>{ 'templateId' => templateWorkspace.Id }
+      );
+
       result.put('id', sourceWorkspace.id);
       result.put('name', sourceWorkspace.name);
       result.put('database', sourceWorkspace.database);
@@ -479,6 +488,168 @@ public class iManageWorkspacesHelper {
       );
 
       return result;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static Map<String, String> updateWorkspace(
+    String workspaceId,
+    String library,
+    String wsName,
+    String client,
+    String matter
+  ) {
+    LicenseService.CheckOrganizationLicense();
+    String logPrefix = 'iManageWorkspacesHelper::updateWorkspace';
+    //TODO: Log parameters
+    try {
+      iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      String customerId = apiInfo.customerId;
+
+      IManageWWorkspace sourceWorkspace = iManageWrapper.getWorkspace(workspaceId, library);
+
+      if (sourceWorkspace == null) {
+        throw new IManageExceptions.IManageApplicationException(
+          String.format(
+            'Workspace not found. Id = {0}, Library = {1}',
+            new List<Object>{ workspaceId,  library}
+          )
+        );
+      }
+
+      // TODO: Where to get wsTemplateId?
+      // Map<String, String> kvPair = iManageWrapper.getNameValuePair(
+      // 'workspaces',
+      // workspaceId,
+      // customerId,
+      // library);
+      // kv.get('templateId') - ???
+      IManageWorkspaceWrap templateWorkspaceWrap = getWorkspaceTemplateWrap(
+        wsTemplateId,
+        libraryId
+      );
+
+      if (templateWorkspaceWrap == null) {
+        throw new IManageExceptions.IManageApplicationException(
+          'Workspace template not found. WS Template Id = ' + wsTemplateId
+        );
+      }
+
+      // clone templateWorkspaceWrap.wrapItem
+      IManageWWorkspace templateWorkspace = ((IManageWWorkspace) templateWorkspaceWrap.wrapItem)
+        .cloneThis();
+
+      //update workspace
+      Map<String, Object> wsMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(sourceWorkspace));
+
+      Map<String, Object> patchData = new Map<String, Object>();
+      if (patchData.size() == 0) {
+        return;
+      }
+
+      if (!String.isNotBlank(wsName) && (sourceWorkspace.name != wsName)) {
+        patchData.add('name', wsName);
+      }
+
+      if (!String.isNotBlank(client) && (wsMap.get(imSettings.ClientField__c) != client)) {
+        patchData.add(imSettings.ClientField__c, client); // custom1
+      }
+
+      if (!String.isNotBlank(matter) && (wsMap.get(imSettings.MatterField__c) != matter)) {
+        patchData.add(imSettings.MatterField__c, matter); // custom2
+      }
+ 
+      if (patchData.size() > 0)
+      {
+        Logger.getInstance().Info(logPrefix + '. Patch destination workspace (workspaceId = ' + workspaceId + ')...');
+        sourceWorkspace = iManageWrapper.patchWorkspaceApiCall(
+          sourceWorkspace.Id,
+          patchData,
+          customerId,
+          library
+        );
+      }
+
+      // await RetryHelper(async () =>
+      //   await clientApi.PatchNameValuePair("workspaces", sourceWorkspace.Id, _main.AccessToken, new
+      //   {
+      //       TemplateId = templateWorkspace.Id
+      //   }), "Patch workspace name-value-pair", throwException: true);
+      Logger.getInstance().info('Patch workspace name-value-pair');
+      iManageWrapper.patchNameValuePair(
+        'workspaces',
+        sourceWorkspace.Id,
+        customerId,
+        library,
+        new Map<String, Object>{ 'templateId' => templateWorkspace.id }
+      );
+
+      var dbWorkspaceAcls = await _dbClient.GetWorkspaceSecurityRows(matterRow.UID);
+      if (sourceWorkspace.DefaultSecurity != "inherit" || dbWorkspaceAcls.Any())
+      {
+          var workspaceSecurity = await RetryHelper(async () =>
+                      await clientApi.GetWorkspaceACL(_main.AccessToken, sourceWorkspace.Id), $"Get ws: {clientMatterCode} security",
+                      throwException: true);
+
+          var wsSecurityList = workspaceSecurity.Data.ToList();
+          var hasChanges = false;
+          foreach (var wsAcl in dbWorkspaceAcls)
+          {
+              var sourceWsAcl = wsSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
+              if (sourceWsAcl == null)
+              {
+                  wsSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access, Type = wsAcl.IsGroup ? "group" : "user" });
+                  hasChanges = true;
+              }
+          }
+
+          if (hasChanges)
+          {
+              _log.Info("Update workspace security by db");
+              var include = wsSecurityList.Select(d => new { id = d.ID, access_level = d.AccessLevel, type = d.Type }).ToList();
+              await RetryHelper(async () =>
+              {
+                  return await clientApi.PatchSecurityWorkspace(_main.AccessToken, sourceWorkspace.Id, new
+                  {
+                      default_security = templateWorkspace.DefaultSecurity == "inherit" ? "public" : templateWorkspace.DefaultSecurity,
+                      include
+                  });
+              }, $"Update ws: {clientMatterCode} security", throwException: true);
+          }
+      }
+
+      //***************** */
+      result.put('id', sourceWorkspace.id);
+      result.put('name', sourceWorkspace.name);
+      result.put('database', sourceWorkspace.database);
+
+      Logger.getInstance().info('Compare folders and update by template.');
+
+      IManageWorkspaceWrap sourceWorkspaceWrap = getWorkspaceContentWrap(
+        sourceWorkspace.Id,
+        library,
+        true,
+        false
+      );
+      // System.debug('***** sourceWorkspaceWrap = ' + JSON.serialize(sourceWorkspaceWrap));
+
+      compareFoldersAndUpdateByTemplate(
+        sourceWorkspaceWrap,
+        templateFolders,
+        customerId,
+        library,
+        custom1,
+        custom2
+      );
+
+      return result;
+
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
