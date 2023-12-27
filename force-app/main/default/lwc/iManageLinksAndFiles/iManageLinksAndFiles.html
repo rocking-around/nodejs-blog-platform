@@ -10,69 +10,127 @@
       <template if:true={showIManageDocsIframe}>
         <c-i-manage-documents-i-frame> </c-i-manage-documents-i-frame>
       </template>
-      <div class="buttons">
-        <template if:true={allowSaveIManageDocAsCopy}>
-          <lightning-button
-            label="New Document from iManage"
-            onclick={loadNewDocumentFromIManage}
-            disabled={disableNewFileFromImanageButton}
-          ></lightning-button>
-        </template>
-        <template if:true={allowSaveIManageDocAsLink}>
-          <lightning-button
-            label="New Link from iManage"
-            onclick={loadNewLinkFromIManage}
-            disabled={loading}
-          ></lightning-button>
-        </template>
-      </div>
-      <div class="paging paging-top">
-        <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
-        <template if:true={nextButtonVisible}>
-          <lightning-button-icon
-            icon-name="utility:chevronright"
-            alternative-text="Next"
-            title="Next"
-            onclick={loadNextPage}
-            disabled={nextButtonDisabled}
-          ></lightning-button-icon>
-        </template>
-        <span>Total records: {recordsCount}</span>
-        <lightning-button-icon
-          icon-name="utility:settings"
-          alternative-text="Settings"
-          title="Settings"
-          onclick={showModalBox}
-        >
-        </lightning-button-icon>
-      </div>
-      <div class="grid">
-        <c-i-manage-links-and-files-datatable
-          key-field="id"
-          class="imanage-links-and-docs-dt"
-          data={gridData}
-          hide-checkbox-column
-          show-row-number-column
-          columns={gridColumns}
-          onrowaction={onRowClick}
-        >
-        </c-i-manage-links-and-files-datatable>
-        <template if:true={isGridDataEmpty}>
-          <div class="empty-grid">No data to display</div>
-        </template>
-      </div>
 
-      <div class="paging paging-bottom">
-        <template if:true={nextButtonVisible}>
-          <lightning-button-icon
-            icon-name="utility:chevronright"
-            alternative-text="Next"
-            title="Next"
-            onclick={loadNextPage}
-            disabled={nextButtonDisabled}
-          ></lightning-button-icon>
+      <lightning-tabset>
+        <template if:true={isDocumentsTabVisible}>
+          <lightning-tab label="Documents"  onactive={handleDocumentsTabActive}>
+            <div class="buttons">
+              <template if:true={allowSaveIManageDocAsCopy}>
+                <lightning-button
+                  label="New Document from iManage"
+                  onclick={loadNewDocumentFromIManage}
+                  disabled={disableNewFileFromImanageButton}
+                ></lightning-button>
+              </template>
+              <template if:true={allowSaveIManageDocAsLink}>
+                <lightning-button
+                  label="New Link from iManage"
+                  onclick={loadNewLinkFromIManage}
+                  disabled={loading}
+                ></lightning-button>
+              </template>
+            </div>
+            <div class="paging paging-top">
+              <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
+              <template if:true={docsNextButtonVisible}>
+                <lightning-button-icon
+                  icon-name="utility:chevronright"
+                  alternative-text="Next"
+                  title="Next"
+                  onclick={docsLoadNextPage}
+                  disabled={docsNextButtonDisabled}
+                ></lightning-button-icon>
+              </template>
+              <span>Total records: {docsRecordsCount}</span>
+              <lightning-button-icon
+                icon-name="utility:settings"
+                alternative-text="Settings"
+                title="Settings"
+                onclick={showModalBox}
+              >
+              </lightning-button-icon>
+            </div>
+            <div class="grid">
+              <c-i-manage-links-and-files-datatable
+                key-field="id"
+                class="imanage-links-and-docs-dt"
+                data={docsGridData}
+                hide-checkbox-column
+                show-row-number-column
+                columns={docsGridColumns}
+                onrowaction={onDocsRowClick}
+              >
+              </c-i-manage-links-and-files-datatable>
+              <template if:true={isDocsGridDataEmpty}>
+                <div class="empty-grid">No data to display</div>
+              </template>
+            </div>
+            <div class="paging paging-bottom">
+              <template if:true={docsNextButtonVisible}>
+                <lightning-button-icon
+                  icon-name="utility:chevronright"
+                  alternative-text="Next"
+                  title="Next"
+                  onclick={docsLoadNextPage}
+                  disabled={docsNextButtonDisabled}
+                ></lightning-button-icon>
+              </template>
+            </div>
+          </lightning-tab>
         </template>
-      </div>
+        <template if:true={isFolderTabVisible}>
+          <lightning-tab label="Folders" onactive={handleFoldersTabActive}>
+            <div class="buttons">
+              <template if:true={allowSaveIManageFolderAsLink}>
+                <lightning-button
+                  label="Link Folder from iManage"
+                  onclick={loadNewFolderLinkFromIManage}
+                  disabled={loading}
+                ></lightning-button>
+              </template>
+            </div>
+            <div class="paging paging-top">
+              <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
+              <template if:true={foldersNextButtonVisible}>
+                <lightning-button-icon
+                  icon-name="utility:chevronright"
+                  alternative-text="Next"
+                  title="Next"
+                  onclick={foldersLoadNextPage}
+                  disabled={foldersNextButtonDisabled}
+                ></lightning-button-icon>
+              </template>
+              <span>Total records: {foldersRecordsCount}</span>
+            </div>
+            <div class="grid">
+              <c-i-manage-links-and-files-datatable
+                key-field="id"
+                class="imanage-links-and-docs-dt"
+                data={foldersGridData}
+                hide-checkbox-column
+                show-row-number-column
+                columns={foldersGridColumns}
+                onrowaction={onFoldersRowClick}
+              >
+              </c-i-manage-links-and-files-datatable>
+              <template if:true={isFoldersGridDataEmpty}>
+                <div class="empty-grid">No data to display</div>
+              </template>
+            </div>
+            <div class="paging paging-bottom">
+              <template if:true={foldersNextButtonVisible}>
+                <lightning-button-icon
+                  icon-name="utility:chevronright"
+                  alternative-text="Next"
+                  title="Next"
+                  onclick={foldersLoadNextPage}
+                  disabled={foldersNextButtonDisabled}
+                ></lightning-button-icon>
+              </template>
+            </div>
+        </lightning-tab>
+        </template>
+      </lightning-tabset>
     </div>
   </lightning-card>
 
@@ -118,8 +176,8 @@
           <lightning-checkbox-group
             name="Manage columns"
             label="Manage columns"
-            options={listColumns}
-            value={viewColumns}
+            options={docsListColumns}
+            value={docsViewColumns}
             onchange={handleManageColumnChange}
           ></lightning-checkbox-group>
         </div>

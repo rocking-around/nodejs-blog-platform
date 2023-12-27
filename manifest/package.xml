@@ -73,9 +73,10 @@
         <members>iManageLinksAndFilesDatatable</members>
         <members>iManageMappingEditor</members>
         <members>iManageMappingConfiguration</members>
+        <members>iManageCreateWsContainer</members>
+        <members>iManageCreateWsModal</members>
+        <members>openIManageIframeInDialogButton</members>
         <name>LightningComponentBundle</name>
-        <name>iManageCreateWsContainer</name>
-        <name>iManageCreateWsModal</name>
     </types>
     <types>
         <members>AppCSS</members>
@@ -88,6 +89,7 @@
     </types>
     <types>
         <members>IManage_File_Link__c</members>
+        <members>IManage_Folder_Link__c</members>
         <members>iManageSettings__c</members>
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
@@ -122,7 +124,7 @@
         <members>iManageAuthSetting__mdt-iManageAuthSetting Layout</members>
         <members>IManageMapping__c-IManageMapping Layout</members>
         <name>Layout</name>
-    </types-->
+    </types>
     <types>
         <members>Create_iManage_Workspace_Access</members>
         <name>CustomPermission</name>
