@@ -6,7 +6,7 @@ export default class IManageLinksAndFilesDatatable extends LightningDatatable {
     linkOrPreview: {
       template: linkOrPreview,
       standardCellLayout: true,
-      typeAttributes: ["id", "label", "preview"]
+      typeAttributes: ["id", "label", "preview", "wstype", "imId", "openInIframe"]
     }
   };
 }

@@ -1,20 +1,24 @@
 import { LightningElement, api, track } from "lwc";
-import { COLUMNS_DEFINITION, ROW_ACTIONS, writeDebug } from "./helpers";
-import IManageLinksAndFilesPaging from "./paging";
+import { DOCS_COLUMNS_DEFINITION, FOLDERS_COLUMNS_DEFINITION, ROW_ACTIONS, writeDebug } from "./helpers";
+import { IManageLinksAndFilesPaging, IManageFoldersPaging } from "./paging";
 
 import { loadScript /*, loadStyle */ } from "lightning/platformResourceLoader";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import iManageApi from "@salesforce/resourceUrl/iManageApi";
 
 import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
+import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
 import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
+import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
+import deleteFolderLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFolderLink";
 import deleteFile from "@salesforce/apex/IManageLinksAndFilesHelper.deleteFile";
 import isEnabledForRecord from "@salesforce/apex/IManageLinksAndFilesHelper.isEnabledForRecord";
 import deleteIManageDocumentMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.deleteIManageDocumentMetadata";
 import changeIManageDocumentMetadataEntity from "@salesforce/apex/IManageLinksAndFilesHelper.changeIManageDocumentMetadataEntity";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
+import saveFolderLinkFromIManage from "@salesforce/apex/IManageLinksAndFilesHelper.saveFolderLinkFromIManage";
 
 const PAGE_SIZE = 10;
 
@@ -25,30 +29,40 @@ export default class IManageLinksAndFiles extends LightningElement {
   isDebug = true;
   isEnabled = undefined;
   isShowModal = false;
-  gridColumns = COLUMNS_DEFINITION;
-  viewColumns = COLUMNS_DEFINITION.map((column) => column.fieldName);
-  listColumns = COLUMNS_DEFINITION.map((column) => ({
+  docsGridColumns = DOCS_COLUMNS_DEFINITION;
+  docsViewColumns = DOCS_COLUMNS_DEFINITION.map((column) => column.fieldName);
+  docsListColumns = DOCS_COLUMNS_DEFINITION.map((column) => ({
+    value: column.fieldName,
+    label: column.label
+  }));
+  foldersGridColumns = FOLDERS_COLUMNS_DEFINITION;
+  foldersViewColumns = FOLDERS_COLUMNS_DEFINITION.map((column) => column.fieldName);
+  foldersListColumns = FOLDERS_COLUMNS_DEFINITION.map((column) => ({
     value: column.fieldName,
     label: column.label
   }));
 
-  recordsCount = undefined;
-  hasNextPage = undefined;
+  docsRecordsCount = undefined;
+  foldersRecordsCount = undefined;
+  docsHasNextPage = undefined;
+  foldersHasNextPage = undefined;
 
   showIManageDocsIframe = false;
   iManageApiInitialized = false;
 
   allowSaveIManageDocAsCopy = false;
   allowSaveIManageDocAsLink = false;
+  allowSaveIManageFolderAsLink = false;
 
-  @track gridData = [];
+  @track docsGridData = [];
+  @track foldersGridData = [];
 
   _recordId;
   @api set recordId(value) {
     this._recordId = value;
     this.writeDebug(`IManageLinksAndFiles. Set recordId: ${this._recordId}`);
     this.checkSettings(
-      () => this.loadData(),
+      () => {},// this.loadData(),
       () => this.showNotConfiguredMessage()
     );
   }
@@ -61,11 +75,11 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.writeDebug = writeDebug.bind(this);
 
     if (localStorage.getItem("imanage_documents_columns")) {
-      this.viewColumns = localStorage.getItem("imanage_documents_columns");
-      if (this.viewColumns.length > 0)
-        this.gridColumns = COLUMNS_DEFINITION.filter(
+      this.docsViewColumns = localStorage.getItem("imanage_documents_columns");
+      if (this.docsViewColumns.length > 0)
+        this.docsGridColumns = DOCS_COLUMNS_DEFINITION.filter(
           (item) =>
-            item.type === "action" || this.viewColumns.includes(item.fieldName)
+            item.type === "action" || this.docsViewColumns.includes(item.fieldName)
         );
     }
   }
@@ -75,9 +89,21 @@ export default class IManageLinksAndFiles extends LightningElement {
     this.allowSaveIManageDocAsCopy =
       docSettings["iManageDocuments:Save_Document"];
     this.allowSaveIManageDocAsLink = docSettings["iManageDocuments:Save_Link"];
+    this.allowSaveIManageFolderAsLink = docSettings["iManageDocuments:Save_Folder_Link"];
 
-    this.gridColumns = [
-      ...this.gridColumns,
+    this.docsGridColumns = [
+      ...this.docsGridColumns,
+      ...[
+        {
+          type: "action",
+          typeAttributes: {
+            rowActions: (row, cb) => this.getRowActions(row, cb)
+          }
+        }
+      ]
+    ];
+    this.foldersGridColumns = [
+      ...this.foldersGridColumns,
       ...[
         {
           type: "action",
@@ -91,9 +117,12 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   getRowActions(row, callback) {
     const rowActions = ROW_ACTIONS.filter(
-      (a) =>
-        a.name !== "save_to_sf" ||
-        (!!row.isInIManage && this.allowSaveIManageDocAsCopy)
+      (a) => {
+        if (a.name === "save_to_sf") {
+          return !!row.isInIManage && this.allowSaveIManageDocAsCopy && !row.isIManageFolder
+        }
+        return true;
+      }
     );
     callback(rowActions);
   }
@@ -156,19 +185,19 @@ export default class IManageLinksAndFiles extends LightningElement {
     );
   }
 
-  loadData() {
-    this.paging = new IManageLinksAndFilesPaging(this.recordId, PAGE_SIZE);
+  loadDocsData() {
+    this.docsPaging = new IManageLinksAndFilesPaging(this.recordId, PAGE_SIZE);
 
     this.loading = true;
-    Promise.all([this.paging.getTotalRecords(), this.paging.loadPage(0)])
+    Promise.all([this.docsPaging.getTotalRecords(), this.docsPaging.loadPage(0)])
       .then(([totalRecords, { data, hasNext }]) => {
-        this.recordsCount = totalRecords;
+        this.docsRecordsCount = totalRecords;
 
-        this.gridData = [...data];
-        this.hasNextPage = hasNext;
+        this.docsGridData = [...data];
+        this.docsHasNextPage = hasNext;
         this.writeDebug(
-          "IManageLinksAndFiles.gridData:",
-          JSON.parse(JSON.stringify(this.gridData))
+          "IManageLinksAndFiles.docsGridData:",
+          JSON.parse(JSON.stringify(this.docsGridData))
         );
       })
       .catch((err) => this.handleErrors(err))
@@ -177,18 +206,47 @@ export default class IManageLinksAndFiles extends LightningElement {
       });
   }
 
-  get nextButtonDisabled() {
-    return !this.hasNextPage || this.loading;
+  loadFoldersData() {
+    this.foldersPaging = new IManageFoldersPaging(this.recordId, PAGE_SIZE);
+
+    this.loading = true;
+    Promise.all([this.foldersPaging.getTotalRecords(), this.foldersPaging.loadPage(0)])
+      .then(([totalRecords, { data, hasNext }]) => {
+        this.foldersRecordsCount = totalRecords;
+
+        this.foldersGridData = [...data];
+        this.foldersHasNextPage = hasNext;
+        this.writeDebug(
+          "IManageLinksAndFiles.foldersGridData:",
+          JSON.parse(JSON.stringify(this.foldersGridData))
+        );
+      })
+      .catch((err) => this.handleErrors(err))
+      .finally(() => {
+        this.loading = false;
+      });
   }
 
-  get nextButtonVisible() {
-    return this.hasNextPage;
+  get docsNextButtonDisabled() {
+    return !this.docsHasNextPage || this.loading;
   }
 
-  onRowClick(e) {
+  get foldersNextButtonDisabled() {
+    return !this.foldersHasNextPage || this.loading;
+  }
+
+  get docsNextButtonVisible() {
+    return this.docsHasNextPage;
+  }
+
+  get foldersNextButtonVisible() {
+    return this.foldersHasNextPage;
+  }
+
+  onDocsRowClick(e) {
     const { action, row } = e.detail;
     this.writeDebug(
-      "IManageLinksAndFiles.onRowClick",
+      "IManageLinksAndFiles.onDocsRowClick",
       JSON.parse(JSON.stringify(row)),
       JSON.parse(JSON.stringify(action))
     );
@@ -198,7 +256,20 @@ export default class IManageLinksAndFiles extends LightningElement {
       this.saveIManageLinkToSalesforce(id);
     }
     if (action.name === "delete") {
-      this.deleteFromSalesforce(row);
+      this.deleteDocFromSalesforce(row);
+    }
+  }
+
+  onFoldersRowClick(e) {
+    const { action, row } = e.detail;
+    this.writeDebug(
+      "IManageLinksAndFiles.onFoldersRowClick",
+      JSON.parse(JSON.stringify(row)),
+      JSON.parse(JSON.stringify(action))
+    );
+
+    if (action.name === "delete") {
+      this.deleteFolderFromSalesforce(row);
     }
   }
 
@@ -226,7 +297,7 @@ export default class IManageLinksAndFiles extends LightningElement {
             })
           );
         }
-        this.loadData();
+        this.loadDocsData();
       }
     } catch (error) {
       this.handleErrors(error);
@@ -255,27 +326,68 @@ export default class IManageLinksAndFiles extends LightningElement {
             variant: "success"
           })
         );
-        this.loadData();
+        this.loadDocsData();
       }
     } catch (error) {
       this.handleErrors(error);
     }
   }
 
-  loadPreviousPage() {
-    this.writeDebug("IManageLinksAndFiles.loadPreviousPage: START");
+  async loadNewFolderLinkFromIManage() {
+    try {
+      const url = await GetIFrameFolderPicker();
+
+      const result = await iManageFolderPickerIFrame.open({
+        size: "large",
+        title: "Save Folder Link",
+        url: url,
+        action: "save-link",
+        // eslint-disable-next-line no-undef
+        imanageApi: imanage,
+        savedCallback: () => this.loadFoldersData(),
+        selectedCallback: (folder) => this.saveIManageFolderLinkToSalesforce(folder)
+      });
+
+      if (result) {
+        this.loadFoldersData();
+      }
+    } catch (error) {
+      this.handleErrors(error);
+    }
   }
 
-  loadNextPage() {
+  // loadPreviousPage() {
+  //   this.writeDebug("IManageLinksAndFiles.loadPreviousPage: START");
+  // }
+
+  docsLoadNextPage() {
     this.loading = true;
-    this.paging
+    this.docsPaging
       .loadNext()
       .then(({ data, hasNext }) => {
-        this.gridData = [...this.gridData, ...data];
-        this.hasNextPage = hasNext;
+        this.docsGridData = [...this.docsGridData, ...data];
+        this.docsHasNextPage = hasNext;
         this.writeDebug(
-          "IManageLinksAndFiles.gridData:",
-          JSON.parse(JSON.stringify(this.gridData))
+          "IManageLinksAndFiles.docsGridData:",
+          JSON.parse(JSON.stringify(this.docsGridData))
+        );
+      })
+      .catch((err) => this.handleErrors(err))
+      .finally(() => {
+        this.loading = false;
+      });
+  }
+
+  foldersLoadNextPage() {
+    this.loading = true;
+    this.foldersPaging
+      .loadNext()
+      .then(({ data, hasNext }) => {
+        this.foldersGridData = [...this.foldersGridData, ...data];
+        this.foldersHasNextPage = hasNext;
+        this.writeDebug(
+          "IManageLinksAndFiles.foldersGridData:",
+          JSON.parse(JSON.stringify(this.foldersGridData))
         );
       })
       .catch((err) => this.handleErrors(err))
@@ -307,16 +419,35 @@ export default class IManageLinksAndFiles extends LightningElement {
         .then(() => resolve())
         .catch((err) => reject(err));
     });
-    await this.save(action, {
+    await this.save(action, () => this.loadDocsData(), {
       reloadOnSeccess: true,
       showSpinner: true,
       successMessage: "The Link saved successfully"
     });
   }
 
-  async deleteFromSalesforce(row) {
+  async saveIManageFolderLinkToSalesforce(folder) {
+    const data = {
+      recordId: this.recordId,
+      folderData: folder
+    };
+    const action = new Promise((resolve, reject) => {
+      saveFolderLinkFromIManage(data)
+        .then((newLinkId) => resolve(newLinkId))
+        .catch((err) => reject(err));
+    });
+    await this.save(action, () => this.loadFoldersData(), {
+      reloadOnSeccess: true,
+      showSpinner: true,
+      successMessage: "Folder link saved successfuly"
+    });
+  }
+
+  async deleteDocFromSalesforce(row) {
     const { id, isInIManage: isLink } = row;
-    const action = isLink ? deleteLink : deleteFile;
+    const action = isLink
+      ? deleteLink
+      : deleteFile;
     const deleteWithMetadata = new Promise((resolve, reject) => {
       action({ id })
         .then(() => deleteIManageDocumentMetadata({ entityId: id }))
@@ -326,7 +457,18 @@ export default class IManageLinksAndFiles extends LightningElement {
     const successMessage = `The ${
       isLink ? "Link" : "File"
     } deleted successfully`;
-    await this.save(deleteWithMetadata, {
+    await this.save(deleteWithMetadata, () => this.loadDocsData(), {
+      reloadOnSeccess: true,
+      showSpinner: true,
+      successMessage: successMessage
+    });
+  }
+
+  async deleteFolderFromSalesforce(row) {
+    const { id } = row;
+
+    const successMessage = `The Folder link deleted successfully`;
+    await this.save(deleteFolderLink({ id }), () => this.loadFoldersData(), {
       reloadOnSeccess: true,
       showSpinner: true,
       successMessage: successMessage
@@ -337,15 +479,19 @@ export default class IManageLinksAndFiles extends LightningElement {
     return this.loading || !this.iManageApiInitialized;
   }
 
-  get isGridDataEmpty() {
-    return (this.gridData || []).length === 0;
+  get isDocsGridDataEmpty() {
+    return (this.docsGridData || []).length === 0;
+  }
+
+  get isFoldersGridDataEmpty() {
+    return (this.foldersGridData || []).length === 0;
   }
 
   get showSpinner() {
     return this.loading || this.saving;
   }
 
-  async save(action, params) {
+  async save(action, loadDataAction, params) {
     const { reloadOnSeccess, showSpinner, successMessage } = params;
     try {
       if (showSpinner) {
@@ -362,7 +508,7 @@ export default class IManageLinksAndFiles extends LightningElement {
       );
 
       if (reloadOnSeccess) {
-        this.loadData();
+        loadDataAction();
       }
     } catch (error) {
       this.handleErrors(error);
@@ -382,11 +528,27 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   handleManageColumnChange(e) {
-    this.viewColumns = e.detail.value;
-    localStorage.setItem("imanage_documents_columns", this.viewColumns);
-    this.gridColumns = COLUMNS_DEFINITION.filter(
+    this.docsViewColumns = e.detail.value;
+    localStorage.setItem("imanage_documents_columns", this.docsViewColumns);
+    this.docsGridColumns = DOCS_COLUMNS_DEFINITION.filter(
       (item) =>
-        item.type === "action" || this.viewColumns.includes(item.fieldName)
+        item.type === "action" || this.docsViewColumns.includes(item.fieldName)
     );
+  }
+
+  get isDocumentsTabVisible() {
+    return this.allowSaveIManageDocAsCopy || this.allowSaveIManageDocAsLink;
+  }
+
+  get isFolderTabVisible() {
+    return this.allowSaveIManageFolderAsLink;
+  }
+
+  handleFoldersTabActive() {
+    this.loadFoldersData();
+  }
+
+  handleDocumentsTabActive() {
+    this.loadDocsData();
   }
 }

@@ -1,15 +1,25 @@
 <template>
-  <template if:true={typeAttributes.preview}>
-    <c-file-preview
-      record-id={typeAttributes.id}
+  <template lwc:if={typeAttributes.openInIframe}>
+    <c-open-i-manage-iframe-in-dialog-button
+      wstype={typeAttributes.wstype}
+      im-id={typeAttributes.imId}
       label={typeAttributes.label}
-    ></c-file-preview>
+      dialog-title={typeAttributes.label}
+    ></c-open-i-manage-iframe-in-dialog-button>
   </template>
-  <template if:false={typeAttributes.preview}>
-    <lightning-formatted-url
-      value={value}
-      label={typeAttributes.label}
-      target="_blank"
-    ></lightning-formatted-url>
+  <template lwc:else>
+    <template if:true={typeAttributes.preview}>
+      <c-file-preview
+        record-id={typeAttributes.id}
+        label={typeAttributes.label}
+      ></c-file-preview>
+    </template>
+    <template if:false={typeAttributes.preview}>
+      <lightning-formatted-url
+        value={value}
+        label={typeAttributes.label}
+        target="_blank"
+      ></lightning-formatted-url>
+    </template>
   </template>
 </template>
