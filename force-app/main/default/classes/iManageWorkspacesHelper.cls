@@ -497,7 +497,7 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Map<String, String> updateWorkspace(
+  public static void updateWorkspace(
     String workspaceId,
     String library,
     String wsName,
@@ -523,17 +523,29 @@ public class iManageWorkspacesHelper {
         );
       }
 
-      // TODO: Where to get wsTemplateId?
-      // Map<String, String> kvPair = iManageWrapper.getNameValuePair(
-      // 'workspaces',
-      // workspaceId,
-      // customerId,
-      // library);
-      // kv.get('templateId') - ???
+      Map<String, String> kvPair = iManageWrapper.getNameValuePair(
+        'workspaces',
+        sourceWorkspace.Id,
+        customerId,
+        library
+      );
+
+      String wsTemplateId = kvPair.get('templateId');
       IManageWorkspaceWrap templateWorkspaceWrap = getWorkspaceTemplateWrap(
         wsTemplateId,
-        libraryId
+        library
       );
+
+      // get list and reverse it
+      List<IManageFolderWrap> templateFolders = new List<IManageFolderWrap>();
+      List<IManageFolderWrap> tmpTemplateFolders = templateWorkspaceWrap.getFlatListAllFolders();
+
+      // System.debug('***** tmpTemplateFolders = ' + JSON.serialize(tmpTemplateFolders));
+
+      for (Integer i = tmpTemplateFolders.size() - 1; i >= 0; i--) {
+        templateFolders.add(tmpTemplateFolders[i]);
+      }
+      Logger.getInstance().info('Found ' + templateFolders.size() + ' template folders');
 
       if (templateWorkspaceWrap == null) {
         throw new IManageExceptions.IManageApplicationException(
@@ -554,17 +566,17 @@ public class iManageWorkspacesHelper {
       }
 
       if (!String.isNotBlank(wsName) && (sourceWorkspace.name != wsName)) {
-        patchData.add('name', wsName);
+        patchData.put('name', wsName);
       }
 
       if (!String.isNotBlank(client) && (wsMap.get(imSettings.ClientField__c) != client)) {
-        patchData.add(imSettings.ClientField__c, client); // custom1
+        patchData.put(imSettings.ClientField__c, client); // custom1
       }
 
       if (!String.isNotBlank(matter) && (wsMap.get(imSettings.MatterField__c) != matter)) {
-        patchData.add(imSettings.MatterField__c, matter); // custom2
+        patchData.put(imSettings.MatterField__c, matter); // custom2
       }
- 
+
       if (patchData.size() > 0)
       {
         Logger.getInstance().Info(logPrefix + '. Patch destination workspace (workspaceId = ' + workspaceId + ')...');
@@ -576,11 +588,6 @@ public class iManageWorkspacesHelper {
         );
       }
 
-      // await RetryHelper(async () =>
-      //   await clientApi.PatchNameValuePair("workspaces", sourceWorkspace.Id, _main.AccessToken, new
-      //   {
-      //       TemplateId = templateWorkspace.Id
-      //   }), "Patch workspace name-value-pair", throwException: true);
       Logger.getInstance().info('Patch workspace name-value-pair');
       iManageWrapper.patchNameValuePair(
         'workspaces',
@@ -590,45 +597,44 @@ public class iManageWorkspacesHelper {
         new Map<String, Object>{ 'templateId' => templateWorkspace.id }
       );
 
-      var dbWorkspaceAcls = await _dbClient.GetWorkspaceSecurityRows(matterRow.UID);
-      if (sourceWorkspace.DefaultSecurity != "inherit" || dbWorkspaceAcls.Any())
+      if (sourceWorkspace.default_security != 'inherit')
       {
-          var workspaceSecurity = await RetryHelper(async () =>
-                      await clientApi.GetWorkspaceACL(_main.AccessToken, sourceWorkspace.Id), $"Get ws: {clientMatterCode} security",
-                      throwException: true);
+        Logger.getInstance().info('Get WS template security');
+        iManageWrapper.iManageSecurityResponse wsTemplateSecurityResp = iManageWrapper.getWorkspaceACL(
+          wsTemplateId,
+          customerId,
+          library
+        );
 
-          var wsSecurityList = workspaceSecurity.Data.ToList();
-          var hasChanges = false;
-          foreach (var wsAcl in dbWorkspaceAcls)
-          {
-              var sourceWsAcl = wsSecurityList.FirstOrDefault(a => a.ID == wsAcl.UserOrGroup);
-              if (sourceWsAcl == null)
-              {
-                  wsSecurityList.Add(new WSecurity { ID = wsAcl.UserOrGroup, AccessLevel = wsAcl.Access, Type = wsAcl.IsGroup ? "group" : "user" });
-                  hasChanges = true;
-              }
-          }
+        Logger.getInstance().info('Get WS security');
+        iManageWrapper.iManageSecurityResponse wsSecurityResp = iManageWrapper.getWorkspaceACL(
+          sourceWorkspace.id,
+          customerId,
+          library
+        );
 
-          if (hasChanges)
-          {
-              _log.Info("Update workspace security by db");
-              var include = wsSecurityList.Select(d => new { id = d.ID, access_level = d.AccessLevel, type = d.Type }).ToList();
-              await RetryHelper(async () =>
-              {
-                  return await clientApi.PatchSecurityWorkspace(_main.AccessToken, sourceWorkspace.Id, new
-                  {
-                      default_security = templateWorkspace.DefaultSecurity == "inherit" ? "public" : templateWorkspace.DefaultSecurity,
-                      include
-                  });
-              }, $"Update ws: {clientMatterCode} security", throwException: true);
-          }
+        Object patchSecurityWorkspaceData = mergeSecurityData(
+          wsTemplateSecurityResp,
+          wsSecurityResp,
+          true,
+          true,
+          true,
+          true
+        );
+
+        if (patchSecurityWorkspaceData != null) {
+          Logger.getInstance().info('Update workspace security');
+
+          iManageWrapper.patchSecurityWorkspace(
+            sourceWorkspace.Id,
+            customerId,
+            library,
+            patchSecurityWorkspaceData
+          );
+        }
       }
 
       //***************** */
-      result.put('id', sourceWorkspace.id);
-      result.put('name', sourceWorkspace.name);
-      result.put('database', sourceWorkspace.database);
-
       Logger.getInstance().info('Compare folders and update by template.');
 
       IManageWorkspaceWrap sourceWorkspaceWrap = getWorkspaceContentWrap(
@@ -644,11 +650,9 @@ public class iManageWorkspacesHelper {
         templateFolders,
         customerId,
         library,
-        custom1,
-        custom2
+        client,
+        matter
       );
-
-      return result;
 
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
@@ -1476,6 +1480,134 @@ public class iManageWorkspacesHelper {
     Logger.getInstance().info(logPrefix + ': templateFolder.profile after = ' + JSON.serialize(templateFolder.profile));
 
     return templateFolder;
+  }
+
+  private static Boolean compareAcls(Boolean withAccess, IManageWSecurity newSecurity, IManageWSecurity existsSecurity) {
+    Boolean groupEquals = newSecurity.isGroup() && existsSecurity.isGroup() && newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
+    Boolean userEquals = !newSecurity.isGroup() && !existsSecurity.isGroup() && newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
+    if (!withAccess)
+      return groupEquals || userEquals;
+    else
+    {
+      Boolean accessNotEquals = newSecurity.access_level != existsSecurity.access_level;
+      return (groupEquals && accessNotEquals) || (userEquals && accessNotEquals);
+    }
+  }
+
+  @TestVisible
+  private static Object mergeSecurityData(
+    iManageWrapper.iManageSecurityResponse existsSecurity,
+    iManageWrapper.iManageSecurityResponse newSecurity,
+    Boolean applyIncludedAcls,
+    Boolean applyModifiedAcls,
+    Boolean applyRemovedAcls,
+    Boolean applyNewDefaultSecurity)
+  {
+    if (applyNewDefaultSecurity && newSecurity.default_security == 'inherit'){
+      return null;
+    }
+
+    List<IManageWSecurity> existsSecurityData = existsSecurity.data;
+    List<IManageWSecurity> newSecurityData = newSecurity.Data;
+
+    if (existsSecurityData.size() == 0 && newSecurityData.size() == 0) {
+      return null;
+    }
+
+    List<IManageWSecurity> includeAcls = new List<IManageWSecurity>();
+    if (applyIncludedAcls) {
+      for (IManageWSecurity x : newSecurityData) {
+        Boolean isInExist = false;
+        for (IManageWSecurity y : existsSecurityData) {
+          if (compareAcls(false, x, y)) {
+            isInExist = true;
+            break;
+          }
+        }
+        if (!isInExist) {
+          includeAcls.add(x);
+        }
+      }
+    }
+
+    List<IManageWSecurity> removeAcls = new List<IManageWSecurity>();
+    if (applyModifiedAcls) {
+      for (IManageWSecurity x : existsSecurityData) {
+        Boolean isInNew = false;
+        for (IManageWSecurity y : newSecurityData) {
+          if (compareAcls(false, x, y)) {
+            isInNew = true;
+            break;
+          }
+        }
+        if (!isInNew) {
+          includeAcls.add(x);
+        }
+      }
+    }
+
+    List<IManageWSecurity> modifiedAcls = new List<IManageWSecurity>();
+    if (applyRemovedAcls) {
+      for (IManageWSecurity x : newSecurityData) {
+        Boolean isInExist = false;
+        for (IManageWSecurity y : existsSecurityData) {
+          if (compareAcls(true, x, y)) {
+            isInExist = true;
+            break;
+          }
+        }
+        if (isInExist) {
+          includeAcls.add(x);
+        }
+      }
+    }
+
+    String defaultSecurity = applyNewDefaultSecurity && existsSecurity.default_security != newSecurity.default_security
+      ? newSecurity.default_security
+      : existsSecurity.default_security;
+
+    if (includeAcls.size() > 0 || removeAcls.size() > 0 || modifiedAcls.size() > 0 || string.isNotBlank(defaultSecurity))
+    {
+      List<Map<String, Object>> include = new List<Map<String, Object>>();
+      for (IManageWSecurity d : includeAcls) {
+        include.add(
+          new Map<String, Object>{
+            'id' => d.id,
+            'access_level' => d.access_level,
+            'type' => d.type,
+            'isModified' => false
+          }
+        );
+      }
+      for (IManageWSecurity d : modifiedAcls) {
+        include.add(
+          new Map<String, Object>{
+            'id' => d.id,
+            'access_level' => d.access_level,
+            'type' => d.type,
+            'isModified' => true
+          }
+        );
+      }
+
+      List<Map<String, Object>> remove = new List<Map<String, Object>>();
+      for (IManageWSecurity d : removeAcls) {
+        remove.add(
+          new Map<String, Object>{
+            'id' => d.id,
+            'type' => d.type
+          }
+        );
+      }
+      Map<String, Object> securityData = new Map<String, Object> {
+        'include' => include,
+        'remove' => remove,
+        'default_security' => defaultSecurity
+      };
+
+      return securityData;
+    }
+    return null;
   }
 
   @TestVisible

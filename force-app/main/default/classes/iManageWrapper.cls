@@ -777,9 +777,9 @@ public class iManageWrapper {
     Logger.getInstance()
       .info('iManageWrapper::getFolderACL, response=' + responseBody);
 
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+    iManageSecurityResponse response = (iManageSecurityResponse) JSON.deserialize(
       responseBody,
-      iManageFolderSecurityResponse.class
+      iManageSecurityResponse.class
     );
 
     return response.data;
@@ -800,12 +800,36 @@ public class iManageWrapper {
     Logger.getInstance()
       .info('iManageWrapper::getTabACL, response=' + responseBody);
 
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+    iManageSecurityResponse response = (iManageSecurityResponse) JSON.deserialize(
       responseBody,
-      iManageFolderSecurityResponse.class
+      iManageSecurityResponse.class
     );
 
     return response.data;
+  }
+
+  public static iManageSecurityResponse getWorkspaceACL(
+    string workspaceId,
+    String customerId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWrapper::getFolderACL';
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/security',
+      new List<Object>{ customerId, libraryId, workspaceId }
+    );
+    Logger.getInstance()
+      .info(logPrefix + ', query=' + query);
+    String responseBody = IManageRequestHelper.Get(query);
+    Logger.getInstance()
+      .info(logPrefix + ', response=' + responseBody);
+
+    iManageSecurityResponse response = (iManageSecurityResponse) JSON.deserialize(
+      responseBody,
+      iManageSecurityResponse.class
+    );
+
+    return response;
   }
 
   public static IManageWWorkspace patchWorkspaceApiCall(
@@ -883,7 +907,7 @@ public class iManageWrapper {
     Map<String, Object> data
   ) {
     String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}',
+      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}/name-value-pairs',
       new List<Object>{ customerId, libraryId, objectName, objectId }
     );
 
@@ -901,7 +925,9 @@ public class iManageWrapper {
         'iManageWrapper::patchNameValuePair, response=' + responseBody
       );
 
-    Object response = JSON.deserializeUntyped(responseBody);
+    Object response = String.isNotBlank(responseBody)
+      ? JSON.deserializeUntyped(responseBody)
+      : null;
     return response;
   }
 
@@ -911,32 +937,7 @@ public class iManageWrapper {
     String libraryId,
     Object data
   ) {
-    String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/folders/{2}/security',
-      new List<Object>{ customerId, libraryId, id }
-    );
-    String body = JSON.serialize(data, true);
-
-    Logger.getInstance()
-      .info(
-        'iManageWrapper::patchSecurityFolder, query=' +
-        query +
-        '; body=' +
-        body
-      );
-    String responseBody = IManageRequestHelper.Post(query, body);
-    Logger.getInstance()
-      .info(
-        'iManageWrapper::patchSecurityFolder, response=' + responseBody
-      );
-    System.debug(responseBody);
-
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
-      responseBody,
-      iManageFolderSecurityResponse.class
-    );
-
-    return response.data;
+    return patchSecurity(id, 'folders', customerId, libraryId, data);
   }
 
   public static List<IManageWSecurity> patchSecurityTab(
@@ -945,15 +946,35 @@ public class iManageWrapper {
     String libraryId,
     Object data
   ) {
+    return patchSecurity(id, 'tabs', customerId, libraryId, data);
+  }
+
+  public static List<IManageWSecurity> patchSecurityWorkspace(
+    String id,
+    String customerId,
+    String libraryId,
+    Object data
+  ) {
+    return patchSecurity(id, 'workspaces', customerId, libraryId, data);
+  }
+
+  private static List<IManageWSecurity> patchSecurity(
+    String id,
+    String resourceName,
+    String customerId,
+    String libraryId,
+    Object data
+  ) {
+    String logPrefix = 'iManageWrapper::patchSecurity, resource = ' + resourceName;
     String query = String.format(
-      '/work/api/v2/customers/{0}/libraries/{1}/tabs/{2}/security',
-      new List<Object>{ customerId, libraryId, id }
+      '/work/api/v2/customers/{0}/libraries/{1}/{2}/{3}/security',
+      new List<Object>{ customerId, libraryId, resourceName, id }
     );
     String body = JSON.serialize(data, true);
 
     Logger.getInstance()
       .info(
-        'iManageWrapper::patchSecurityTab, query=' +
+        logPrefix + ', query=' +
         query +
         '; body=' +
         body
@@ -961,13 +982,13 @@ public class iManageWrapper {
     String responseBody = IManageRequestHelper.Post(query, body);
     Logger.getInstance()
       .info(
-        'iManageWrapper::patchSecurityTab, response=' + responseBody
+        logPrefix + ', response=' + responseBody
       );
     System.debug(responseBody);
 
-    iManageFolderSecurityResponse response = (iManageFolderSecurityResponse) JSON.deserialize(
+    iManageSecurityResponse response = (iManageSecurityResponse) JSON.deserialize(
       responseBody,
-      iManageFolderSecurityResponse.class
+      iManageSecurityResponse.class
     );
 
     return response.data;
@@ -1217,7 +1238,7 @@ public class iManageWrapper {
     public IManageWFolder data;
   }
 
-  public class iManageFolderSecurityResponse {
+  public class iManageSecurityResponse {
     public List<IManageWSecurity> data;
     public String default_security;
   }

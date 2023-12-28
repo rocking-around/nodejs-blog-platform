@@ -1347,7 +1347,7 @@ private class iManageWorkspacesHelperTests {
         }
 
         public HttpResponse buildFolderSecurityResponseResponse(Integer statusCode, List<IManageWSecurity> data, String default_security){
-            iManageWrapper.iManageFolderSecurityResponse body = new iManageWrapper.iManageFolderSecurityResponse();
+            iManageWrapper.iManageSecurityResponse body = new iManageWrapper.iManageSecurityResponse();
             body.data = data;
             body.default_security = default_security;
             return buildResponse(statusCode, body, 'buildFolderSecurityResponseResponse');
