@@ -34,6 +34,7 @@ public with sharing class IManageMappingHelper {
       mapping.EntityClientIdObjectField = settings.Mapping_EntityClientIdObjectField__c;
       mapping.ClientIdField = settings.Mapping_ClientIdField__c;
       mapping.ClientNameField = settings.Mapping_ClientNameField__c;
+      mapping.WsTemplateField = settings.Mapping_WSTemplateField__c;
 
       Logger.getInstance()
         .info(
@@ -354,6 +355,7 @@ public with sharing class IManageMappingHelper {
       s.Mapping_EntityClientIdObjectField__c = (String) mapping.get(
         'EntityClientIdObjectField'
       );
+      s.Mapping_WSTemplateField__c = (String) mapping.get('WsTemplateField');
       upsert s;
       Logger.getInstance()
         .info('IManageMappingHelper::saveMapping, Saved: ' + JSON.serialize(s));
