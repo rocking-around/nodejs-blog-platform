@@ -277,6 +277,12 @@ public with sharing class IManageMappingHelper {
       recordFields.add(mapping.EntityMatterIdObjectField);
     }
 
+    // Workspace Template
+    Boolean wsTemplateFieldNotEmpty = String.isNotBlank(mapping.WsTemplateField);
+    if (wsTemplateFieldNotEmpty) {
+      recordFields.add(mapping.WsTemplateField);
+    }
+
     String soql = 'SELECT ' +
     String.join(new List<String>(recordFields), ', ') +
     ' FROM ' +
@@ -290,6 +296,7 @@ public with sharing class IManageMappingHelper {
     String matterId = null;
     String clientName = null;
     String matterName = null;
+    String wsTemplate = null;
 
     // Client
     String clientSObjd = mapping.EntityClientIdObjectField == entityIdSObjName
@@ -311,11 +318,17 @@ public with sharing class IManageMappingHelper {
       matterName = GetDataFromObject(matterSObjd, mapping.MatterNameField);
     }
 
+    // Workspace Template
+    if (wsTemplateFieldNotEmpty) {
+      wsTemplate = String.valueOf(record.get(mapping.WsTemplateField));
+    }
+
     Map<String, Object> result = new Map<String, Object> {
       'clientId' => clientId,
       'matterId' => matterId,
       'clientName' => clientName,
-      'matterName' => matterName
+      'matterName' => matterName,
+      'wsTemplate' => wsTemplate
     };
 
     Logger.getInstance()
