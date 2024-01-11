@@ -184,15 +184,4 @@ private class IManageCsvHelperTests {
     System.assert(nullValue == null, 'Wrong relationship name');
     System.assertEquals(value, 'Account', 'Wrong relationship name');
   }
-
-  @isTest
-  static void getFieldReferenceNameTest() {
-    TestUtils.setupMockActiveLicense();
-
-    String value = IManageCsvHelper.getFieldReferenceName(
-      'Opportunity',
-      'AccountId'
-    );
-    System.assertEquals(value, 'Account', 'Wrong reference name');
-  }
 }

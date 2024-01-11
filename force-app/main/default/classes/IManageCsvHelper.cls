@@ -21,7 +21,7 @@ public with sharing class IManageCsvHelper {
     LicenseService.CheckOrganizationLicense();
     try {
       IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-      Set<Id> ids = getChangedEntities(mapping, dateFrom, dateTo);
+      Set<Id> ids = IManageMappingHelper.getChangedEntities(mapping, dateFrom, dateTo, batchSize);
       List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
 
       Logger.getInstance()
@@ -35,33 +35,6 @@ public with sharing class IManageCsvHelper {
     } finally {
       Logger.getInstance().Flush();
     }
-  }
-
-  private static Set<Id> getChangedEntities(
-    IManageMapping mapping,
-    DateTime dateFrom,
-    DateTime dateTo
-  ) {
-    Set<Id> entitiesWithChangedMatters = getChangedEntities(
-      mapping.EntityType,
-      mapping.EntityMatterIdObjectField,
-      mapping.MatterIdField,
-      dateFrom,
-      dateTo
-    );
-
-    Set<Id> entitiesWithChangedClients = getChangedEntities(
-      mapping.EntityType,
-      mapping.EntityClientIdObjectField,
-      mapping.ClientIdField,
-      dateFrom,
-      dateTo
-    );
-
-    Set<Id> allEntities = new Set<Id>(entitiesWithChangedMatters);
-    allEntities.addAll(entitiesWithChangedClients);
-
-    return allEntities;
   }
 
   @TestVisible
@@ -177,70 +150,6 @@ public with sharing class IManageCsvHelper {
   }
 
   @TestVisible
-  private static Set<Id> getChangedEntities(
-    String entityType,
-    String entityObjectField,
-    String entityfieldName,
-    DateTime dateFrom,
-    DateTime dateTo
-  ) {
-    Logger.getInstance()
-      .info(
-        'IManageCsvHelper::getChangedEntities. params: ' +
-        entityType +
-        ', ' +
-        entityObjectField +
-        ', ' +
-        entityfieldName +
-        ', ' +
-        String.valueOf(dateFrom) +
-        ', ' +
-        String.valueOf(dateTo)
-      );
-
-    try {
-      String entityObjType = String.escapeSingleQuotes(entityType);
-      String entityObjField = String.escapeSingleQuotes(entityObjectField);
-      String fieldName = String.escapeSingleQuotes(entityfieldName);
-      String query = 'SELECT Id FROM ' + entityObjType;
-      String whereConditions = '';
-      String orderBy = 'LastModifiedDate DESC';
-
-      if (entityObjType != entityObjField) {
-        String ref = getFieldReferenceName(entityObjType, entityObjField);
-        whereConditions +=
-          entityObjField +
-          ' IN ( SELECT Id FROM ' +
-          ref +
-          ' WHERE LastModifiedDate >= :dateFrom AND LastModifiedDate <= :dateTo ) ';
-      } else {
-        whereConditions += ' LastModifiedDate >= :dateFrom  AND LastModifiedDate <= :dateTo ';
-      }
-
-      if (String.isNotBlank(whereConditions)) {
-        query += ' WHERE ' + whereConditions;
-      }
-
-      if (String.isNotBlank(orderBy)) {
-        query += ' ORDER BY ' + orderBy;
-      }
-
-      query += ' LIMIT ' + batchSize;
-
-      Logger.getInstance()
-        .info('IManageCsvHelper::getChangedEntities. SOQL: ' + query);
-      List<SObject> results = Database.query(query);
-      Set<Id> resultIds = (new Map<Id, SObject>(results)).keySet();
-      return resultIds;
-    } catch (Exception e) {
-      Logger.getInstance().error(e, 'IManageCsvHelper::getChangedEntities');
-      throw new AuraHandledException(e.getMessage());
-    } finally {
-      Logger.getInstance().Flush();
-    }
-  }
-
-  @TestVisible
   private static string getFieldRelationshipName(String obj, String field) {
     Logger.getInstance()
       .info(
@@ -261,37 +170,6 @@ public with sharing class IManageCsvHelper {
 
     Logger.getInstance()
       .info('IManageCsvHelper::getFieldRelationshipName. result: ' + result);
-    return result;
-  }
-
-  @TestVisible
-  private static string getFieldReferenceName(String obj, String field) {
-    Logger.getInstance()
-      .info(
-        'IManageCsvHelper::getFieldReferenceName. params: ' +
-        obj +
-        ', ' +
-        field
-      );
-    String result = null;
-    Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
-    Schema.SObjectType schema = schemaMap.get(obj);
-    Map<String, Schema.SObjectField> fieldMap = schema.getDescribe()
-      .fields.getMap();
-
-    Schema.DescribeFieldResult fieldDescr = fieldMap.get(field)
-      .getDescribe(FieldDescribeOptions.FULL_DESCRIBE);
-
-    List<Schema.SObjectType> refsTo = fieldDescr.getReferenceTo();
-    if (refsTo != null) {
-      /*if (refsTo.size() > 1) {
-        //TODO: Exception?
-      }*/
-      result = refsTo.get(0).getDescribe().getName();
-    }
-
-    Logger.getInstance()
-      .info('IManageCsvHelper::getFieldReferenceName. result: ' + result);
     return result;
   }
 
