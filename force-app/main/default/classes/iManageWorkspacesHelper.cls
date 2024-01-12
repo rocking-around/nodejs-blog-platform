@@ -506,8 +506,22 @@ public class iManageWorkspacesHelper {
   ) {
     LicenseService.CheckOrganizationLicense();
     String logPrefix = 'iManageWorkspacesHelper::updateWorkspace';
-    //TODO: Log parameters
     try {
+      // Log parameters
+      Map<String, Object> params = new Map<String, Object>{
+          'workspaceId' => workspaceId,
+          'library' => library,
+          'wsName' => wsName,
+          'client' => client,
+          'matter' => matter
+      };
+
+      Logger.getInstance()
+      .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+      );
+
       iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
       String customerId = apiInfo.customerId;
@@ -561,21 +575,24 @@ public class iManageWorkspacesHelper {
       Map<String, Object> wsMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(sourceWorkspace));
 
       Map<String, Object> patchData = new Map<String, Object>();
-      if (patchData.size() == 0) {
+      if (wsMap.size() == 0) {
+        Logger.getInstance().error(logPrefix + ', sourceWorkspace variable has no data');
         return;
       }
 
-      if (!String.isNotBlank(wsName) && (sourceWorkspace.name != wsName)) {
+      if (String.isNotBlank(wsName) && (sourceWorkspace.name != wsName)) {
         patchData.put('name', wsName);
       }
 
-      if (!String.isNotBlank(client) && (wsMap.get(imSettings.ClientField__c) != client)) {
+      if (String.isNotBlank(client) && (wsMap.get(imSettings.ClientField__c) != client)) {
         patchData.put(imSettings.ClientField__c, client); // custom1
       }
 
-      if (!String.isNotBlank(matter) && (wsMap.get(imSettings.MatterField__c) != matter)) {
+      if (String.isNotBlank(matter) && (wsMap.get(imSettings.MatterField__c) != matter)) {
         patchData.put(imSettings.MatterField__c, matter); // custom2
       }
+
+      Logger.getInstance().info(logPrefix + ', patchData = ' + patchData);
 
       if (patchData.size() > 0)
       {
