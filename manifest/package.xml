@@ -6,6 +6,8 @@
         <members>DescribePackageCustomLabels</members>
         <members>DescribePackageCustomLabelsTest</members>
         <members>EchoHttpMock</members>
+        <members>EntityIManageWorkspaceUpdater</members>
+        <members>EntityIManageWorkspaceUpdaterTests</members>
         <members>HttpCalloutQueueMock</members>
         <members>IManageFolderWrap</members>
         <members>IManageUtils</members>

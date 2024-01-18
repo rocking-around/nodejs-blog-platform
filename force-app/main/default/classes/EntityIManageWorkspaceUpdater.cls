@@ -1,9 +1,17 @@
-global class EntityIManageWorkspaceUpdater {
+global with sharing class EntityIManageWorkspaceUpdater {
+    @InvocableMethod(callout=true)
+    global static void updateIManageWorkspaces() {
+        String logPrefix = 'EntityIManageWorkspaceUpdater::updateIManageWorkspaces';
+        Logger.getInstance().info(logPrefix + '. Start');
+        EntityIManageWorkspaceUpdater.processChangedEntities();
+        Logger.getInstance().info(logPrefix + '. Finish');
+    }
+
     @future(callout=true)
     global static void processChangedEntities()
     {
         Integer batchSize = 1000;
-        String logPrefix = 'EntityIManageWorkspaceUpdater::update';
+        String logPrefix = 'EntityIManageWorkspaceUpdater::processChangedEntities';
         LicenseService.CheckOrganizationLicense();
 
         try {
@@ -155,6 +163,9 @@ global class EntityIManageWorkspaceUpdater {
 
             // Has changes?
             IManageWWorkspace ws = iManageWrapper.getWorkspace(workspaceId, library);
+            if (ws == null) {
+                return null;
+            }
 
             Logger.getInstance()
               .info(logPrefix + '. Found workspace: ' + ws);
@@ -193,7 +204,7 @@ global class EntityIManageWorkspaceUpdater {
         }
         catch (Exception ex) {
             Logger.getInstance()
-                .error(ex, logPrefix + 'ERROR');
+                .error(ex, logPrefix + ' ERROR');
             return null;
         }
     }
