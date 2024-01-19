@@ -88,6 +88,7 @@
     </types>
     <types>
         <members>Send_users_count</members>
+        <members>Update_iManage_Workspaces</members>
         <name>Flow</name>
     </types>
     <types>
