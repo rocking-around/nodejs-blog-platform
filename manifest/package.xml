@@ -64,6 +64,7 @@
         <members>iManageWorkspacesHelper</members>
         <members>iManageWorkspacesHelperTests</members>
         <members>IManageDataModelTests</members>
+        <members>TestIManageApiResponseHelper</members>
         <name>ApexClass</name>
     </types>
     <types>
