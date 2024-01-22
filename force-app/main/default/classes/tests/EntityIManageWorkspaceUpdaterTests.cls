@@ -152,6 +152,10 @@ private class EntityIManageWorkspaceUpdaterTests {
         // run
         Test.startTest();
         EntityIManageWorkspaceUpdater.updateIManageWorkspaces();
+
+        EntityIManageWorkspaceUpdater.updateIManageWorkspaceByEntityIds(
+            new Set<Id>{Id.valueOf(opp.Id)}
+        );
         Test.stopTest();
     }
 

@@ -8,6 +8,42 @@ global with sharing class EntityIManageWorkspaceUpdater {
     }
 
     @future(callout=true)
+    global static void updateIManageWorkspaceByEntityIds(Set<Id> ids) {
+        String logPrefix = 'EntityIManageWorkspaceUpdater::updateIManageWorkspaceByEntityId';
+        LicenseService.CheckOrganizationLicense();
+        try {
+            // 0. read settings
+            IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+            if (String.isBlank(mapping.MatterIdField) || String.isBlank(mapping.ClientIdField)) {
+                Logger.getInstance()
+                    .info(logPrefix + '. Settings: MatterIdField or ClientIdField are empty.');
+                Logger.getInstance().info(logPrefix + '. Finish');
+                return;
+            }
+
+            // 1. Get sObjects if they match the configuration
+            Set<Id> entityIds = IManageMappingHelper.getEntitiesByMatterOrClientIds(mapping, ids);
+
+            Logger.getInstance()
+              .info(logPrefix + '. getChangedEntities: ' + entityIds);
+
+            if (entityIds.size() == 0) {
+                return;
+            }
+
+            // 2. try to update workspaces
+            updateIManageWorkspaces(entityIds);
+
+            Logger.getInstance().info(logPrefix + '. Finish');
+        } catch (Exception ex) {
+            Logger.getInstance()
+              .error(ex, logPrefix + 'ERROR');
+        } finally {
+            Logger.getInstance().Flush();
+        }
+    }
+
+    @future(callout=true)
     global static void processChangedEntities()
     {
         Integer batchSize = 1000;
@@ -29,74 +65,22 @@ global with sharing class EntityIManageWorkspaceUpdater {
                 return;
             }
 
-            Map<String, Object> wsSettings = ConfigurationHelper.getIManageWorkspaceSettings();
-            String wsNamePattern = String.valueOf(wsSettings.get('iManageWs:Name_Pattern'));
-
             // 1. Get modified entities
             Set<Id> entityIds = IManageMappingHelper.getChangedEntities(mapping, dateFrom, dateTo, batchSize);
 
             Logger.getInstance()
               .info(logPrefix + '. getChangedEntities: ' + entityIds);
 
-            // 2. Filter enties with workspaces
-            List<IManage_WS_to_Entity_Mapping__c> wsToEntities = [
-                SELECT Id, EntityId__c, iManage_WS_Id__c, iManage_Library__c
-                FROM IManage_WS_to_Entity_Mapping__c
-                WHERE EntityId__c IN :entityIds
-            ];
-
-            Logger.getInstance()
-              .info(logPrefix + '. items with workspaces: ' + wsToEntities);
-
-            if (wsToEntities.size() > 0)  {
-                // 3. detect if an update is needed
-
-                for (IManage_WS_to_Entity_Mapping__c wsToEntity : wsToEntities) {
-                    try {
-                        Map<String, String> wsParams = getWorkspaceParameters(wsToEntity, wsNamePattern);
-
-                        Logger.getInstance()
-                            .info(logPrefix + '. New workspace parameters: ' + wsParams);
-
-                        if (wsParams != null)  {
-                            // Create Client and Matter if not exists
-                            Logger.getInstance()
-                                .info(logPrefix + '. Creating Client and Matter if not exists');
-                            iManageWorkspacesHelper.createCustomFiledsIfNotExist(
-                                wsToEntity.EntityId__c,
-                                wsParams.get('library')
-                            );
-                            Logger.getInstance()
-                                .info(logPrefix + '. Client and Matter created');
-
-                            // call iManage api
-                            Logger.getInstance()
-                                .info(logPrefix + '. Updating workspace');
-                            iManageWorkspacesHelper.updateWorkspace(
-                                wsParams.get('workspaceId'),
-                                wsParams.get('library'),
-                                wsParams.get('wsName'),
-                                wsParams.get('client'),
-                                wsParams.get('matter')
-                            );
-                            Logger.getInstance()
-                                .info(logPrefix + '. Workspace updated');
-                        }
-                    } catch (Exception ex) {
-                        String errMsg = String.format(
-                            '{0}. ERROR. iManage workspace was not updated (workspace ID = {1}, sObject ID = {2})',
-                            new List<Object>{ logPrefix,  wsToEntity.iManage_WS_Id__c, wsToEntity.EntityId__c}
-                        );
-                        Logger.getInstance().error(ex, errMsg);
-                    }
-                }
-            }
+            // 2. try to update workspaces
+            updateIManageWorkspaces(entityIds);
 
             Logger.getInstance().info(logPrefix + '. Finish');
-          } catch (Exception ex) {
-            Logger.getInstance()
-              .error(ex, logPrefix + 'ERROR');
-          }
+        } catch (Exception ex) {
+        Logger.getInstance()
+            .error(ex, logPrefix + 'ERROR');
+        } finally {
+        Logger.getInstance().Flush();
+        }
     }
 
     @TestVisible
@@ -220,6 +204,70 @@ global with sharing class EntityIManageWorkspaceUpdater {
             .replace('{MATTERCODE}', emptyIfNull(imMatterId))
             .replace('{CLIENTNAME}', emptyIfNull(imClientName))
             .replace('{MATTERNAME}', emptyIfNull(imMatterName));
+    }
+
+    @TestVisible
+    private static void updateIManageWorkspaces(Set<Id> entityIds) {
+        String logPrefix = 'EntityIManageWorkspaceUpdater::updateIManageWorkspaces';
+        // 2. Filter enties with workspaces
+        List<IManage_WS_to_Entity_Mapping__c> wsToEntities = [
+            SELECT Id, EntityId__c, iManage_WS_Id__c, iManage_Library__c
+            FROM IManage_WS_to_Entity_Mapping__c
+            WHERE EntityId__c IN :entityIds
+        ];
+
+        Logger.getInstance()
+          .info(logPrefix + '. items with workspaces: ' + wsToEntities);
+
+        if (wsToEntities.size() > 0) {
+            Map<String, Object> wsSettings = ConfigurationHelper.getIManageWorkspaceSettings();
+            String wsNamePattern = String.valueOf(wsSettings.get('iManageWs:Name_Pattern'));
+
+            // 3. detect if an update is needed
+
+            for (IManage_WS_to_Entity_Mapping__c wsToEntity : wsToEntities) {
+                try {
+                    Map<String, String> wsParams = getWorkspaceParameters(wsToEntity, wsNamePattern);
+
+                    Logger.getInstance()
+                        .info(logPrefix + '. New workspace parameters: ' + wsParams);
+
+                    if (wsParams != null)  {
+                        // Create Client and Matter if not exists
+                        Logger.getInstance()
+                            .info(logPrefix + '. Creating Client and Matter if not exists');
+                        iManageWorkspacesHelper.createCustomFiledsIfNotExist(
+                            wsToEntity.EntityId__c,
+                            wsParams.get('library')
+                        );
+                        Logger.getInstance()
+                            .info(logPrefix + '. Client and Matter created');
+
+                        // call iManage api
+                        Logger.getInstance()
+                            .info(logPrefix + '. Updating workspace');
+                        iManageWorkspacesHelper.updateWorkspace(
+                            wsParams.get('workspaceId'),
+                            wsParams.get('library'),
+                            wsParams.get('wsName'),
+                            wsParams.get('client'),
+                            wsParams.get('matter')
+                        );
+                        Logger.getInstance()
+                            .info(logPrefix + '. Workspace updated');
+                    }
+                } catch (Exception ex) {
+                    String errMsg = String.format(
+                        '{0}. ERROR. iManage workspace was not updated (workspace ID = {1}, sObject ID = {2})',
+                        new List<Object>{ logPrefix,  wsToEntity.iManage_WS_Id__c, wsToEntity.EntityId__c}
+                    );
+                    Logger.getInstance().error(ex, errMsg);
+                }
+            }
+        } else {
+            Logger.getInstance()
+                .info(logPrefix + '. There are no any record in the "IManage_WS_to_Entity_Mapping__c" with EntityId__c IN :' + entityIds);
+        }
     }
 
     private static String emptyIfNull(String s) {

@@ -440,6 +440,30 @@ public with sharing class IManageMappingHelper {
     return allEntities;
   }
 
+  public static Set<Id> getEntitiesByMatterOrClientIds(
+    IManageMapping mapping,
+    Set<Id> ids
+  ) {
+    Set<Id> entitiesWithChangedMatters = getEntityByMatterOrClientIds(
+      mapping.EntityType,
+      mapping.EntityMatterIdObjectField,
+      mapping.MatterIdField,
+      ids
+    );
+
+    Set<Id> entitiesWithChangedClients = getEntityByMatterOrClientIds(
+      mapping.EntityType,
+      mapping.EntityClientIdObjectField,
+      mapping.ClientIdField,
+      ids
+    );
+
+    Set<Id> allEntities = new Set<Id>(entitiesWithChangedMatters);
+    allEntities.addAll(entitiesWithChangedClients);
+
+    return allEntities;
+  }
+
   @TestVisible
   private static Set<Id> getChangedEntities(
     String entityType,
@@ -502,6 +526,60 @@ public with sharing class IManageMappingHelper {
     } catch (Exception e) {
       Logger.getInstance().error(e, 'IManageMappingHelper::getChangedEntities');
       throw new AuraHandledException(e.getMessage());
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @TestVisible
+  private static Set<Id> getEntityByMatterOrClientIds(
+    String entityType,
+    String entityObjectField,
+    String entityfieldName,
+    Set<Id> ids
+  ) {
+    String logPrefix = 'IManageMappingHelper::getEntityByMatterOrClientId';
+    try {
+      Map<String, Object> params = new Map<String, Object>{
+          'entityType' => entityType,
+          'entityObjectField' => entityObjectField,
+          'entityfieldName' => entityfieldName,
+          'ids' => ids
+      };
+
+      Logger.getInstance()
+      .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+      );
+
+      String entityObjType = String.escapeSingleQuotes(entityType);
+      String entityObjField = String.escapeSingleQuotes(entityObjectField);
+      String fieldName = String.escapeSingleQuotes(entityfieldName);
+      String query = 'SELECT Id FROM ' + entityObjType;
+      String whereConditions = '';
+
+      if (entityObjType != entityObjField) {
+        String ref = getFieldReferenceName(entityObjType, entityObjField);
+        whereConditions +=
+          entityObjField +
+          ' IN :ids ';
+      } else {
+        whereConditions += ' Id in :ids ';
+      }
+
+      if (String.isNotBlank(whereConditions)) {
+        query += ' WHERE ' + whereConditions;
+      }
+
+      Logger.getInstance()
+        .info(logPrefix + '. SOQL: ' + query);
+      List<SObject> results = Database.query(query);
+      Set<Id> resultIds = (new Map<Id, SObject>(results)).keySet();
+      return resultIds;
+    } catch (Exception e) {
+      Logger.getInstance().error(e, logPrefix);
+      return new Set<Id>();
     } finally {
       Logger.getInstance().Flush();
     }
