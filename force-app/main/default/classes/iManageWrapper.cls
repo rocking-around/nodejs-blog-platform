@@ -522,11 +522,11 @@ public class iManageWrapper {
       }
 
       Logger.getInstance()
-      .info('iManageWrapper::searchTemplateWorkspaceByName, query=' + query);
+      .info('iManageWrapper::searchTemplateWorkspace, query=' + query);
       String responseBody = IManageRequestHelper.Get(query);
       Logger.getInstance()
         .info(
-          'iManageWrapper::searchTemplateWorkspaceByName, response=' +
+          'iManageWrapper::searchTemplateWorkspace, response=' +
           responseBody
         );
 

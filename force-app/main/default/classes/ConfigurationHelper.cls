@@ -557,9 +557,10 @@ public with sharing class ConfigurationHelper {
 
   @AuraEnabled
   public static Map<String, String> loadFolderTemplates() {
-    Logger.getInstance().info('ConfigurationHelper::loadFolderTemplates');
-    LicenseService.CheckOrganizationLicense();
     try {
+      Logger.getInstance().info('ConfigurationHelper::loadFolderTemplates');
+      LicenseService.CheckOrganizationLicense();
+
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
       Set<String>libraries = new Set<String>();
@@ -575,19 +576,25 @@ public with sharing class ConfigurationHelper {
       for (String libraryId : libraries) {
         Integer offset = 0;
         Integer batchSize = 2000;
-        iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
-          apiInfo.customerId,
-          libraryId,
-          null,
-          offset,
-          batchSize
-        );
-
-        if (resp.data?.results != null) {
-          for (IManageWWorkspace templ : resp.data.results) {
-            String key = libraryId + '::' + templ.id;
-            templates.put(key, libraryId + ' : ' + templ.name);
+        try {
+          iManageWrapper.iManageTemplatesResponse resp = iManageWrapper.searchTemplateWorkspace(
+            apiInfo.customerId,
+            libraryId,
+            null,
+            offset,
+            batchSize
+          );
+  
+          if (resp.data?.results != null) {
+            for (IManageWWorkspace templ : resp.data.results) {
+              String key = libraryId + '::' + templ.id;
+              templates.put(key, libraryId + ' : ' + templ.name);
+            }
           }
+        }
+        catch (Exception ex1) {
+          Logger.getInstance()
+            .error(ex1, 'ConfigurationHelper::loadFolderTemplates. Error fetching templates for the "' + libraryId + '" library.');
         }
       }
 
@@ -595,6 +602,7 @@ public with sharing class ConfigurationHelper {
     } catch (Exception ex) {
       Logger.getInstance()
         .error(ex, 'ConfigurationHelper::loadFolderTemplates');
+      Logger.getInstance().Flush();
       throw ex;
     } finally {
       Logger.getInstance().Flush();
