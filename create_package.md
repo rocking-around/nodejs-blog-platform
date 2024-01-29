@@ -6,14 +6,30 @@ sfdx auth:web:login --setdefaultusername --setalias DevHub
 
 #### Create a Scratch Org
 
+old cli
+
 ```
-sfdx force:org:create --setdefaultusername --definitionfile config/project-scratch-def.json --durationdays 7 --setalias iManageIntegrationPckg -u im.pckg.vers@gdsi-litify.com
+sfdx force:org:create --setdefaultusername --definition-file config/project-scratch-def.json --durationdays 7 --setalias iManageIntegrationPckg -u im.pckg.vers@gdsi-litify.com
+```
+
+new cli
+
+```
+sfdx org create scratch  --definition-file config/project-scratch-def.json --duration-days 7 --alias iManageIntegrationPckg --username im.pckg.vers@gdsi-litify.com
 ```
 
 ### Push your changes to the Scratch Org
 
+old cli
+
 ```
 sfdx force:source:push
+```
+
+new cli
+
+```
+sfdx project deploy start
 ```
 
 ### Create user (Optional)
@@ -24,16 +40,32 @@ sfdx force:user:create -f config/project-user-def.json
 
 ### Run tests
 
+old cli
+
 ```
 sfdx force:apex:test:run -r human --codecoverage --detailedcoverage --verbose
+```
+
+new cli
+
+```
+sfdx apex run test --result-format human --code-coverage --detailed-coverage --wait 60
 ```
 
 ### Create Package Version
 
 ☝ <span style="color:orange">Change the major or minor version of the package in the `sfdx-project.json` file (versionNumber field).</span>
 
+old cli
+
 ```
 sfdx force:package:version:create --package "iManage Integration" --path "force-app" --targetdevhubusername eugene.bilobik@gdsi-litify.com --definitionfile config/project-scratch-def.json --wait 60 --codecoverage --postinstallscript iManagePostInstallClass --installationkey """wml6Qq&3r!D*2K4vfovu0"""
+```
+
+new cli
+
+```
+sfdx package version create --package "iManage Integration" --path "force-app" --target-dev-hub eugene.bilobik@gdsi-litify.com --definition-file config/project-scratch-def.json --wait 60 --code-coverage --post-install-script iManagePostInstallClass --installation-key """wml6Qq&3r!D*2K4vfovu0"""
 ```
 
 > The result of the operation looks like this.
@@ -51,8 +83,16 @@ sfdx force:package:version:create --package "iManage Integration" --path "force-
 
 You can obtain the version number by executing the ["List of package versions"](#list_of_pckg_versions) commands.
 
+old cli
+
 ```
 sfdx force:package:version:promote --noprompt --package <The ID (starts with 04t) or alias of the package version to promote.>  --targetdevhubusername eugene.bilobik@gdsi-litify.com
+```
+
+new cli
+
+```
+sfdx package version promote --no-prompt --package <The ID (starts with 04t) or alias of the package version to promote.> --target-dev-hub eugene.bilobik@gdsi-litify.com
 ```
 
 <span style="color:green">Voila!!! 🎈🥳🎉</span>
