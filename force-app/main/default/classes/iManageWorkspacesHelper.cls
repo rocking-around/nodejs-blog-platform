@@ -65,9 +65,7 @@ public class iManageWorkspacesHelper {
   }
 
   @AuraEnabled
-  public static Map<String, String> findEntityWorkspaceInCache(
-    Id entityId
-  ) {
+  public static Map<String, String> findEntityWorkspaceInCache(Id entityId) {
     String logPrefix = 'iManageWorkspacesHelper::findEntityWorkspaceInCache';
     try {
       Map<String, String> result = new Map<String, String>(); // <-- library, workspaceId
@@ -78,7 +76,10 @@ public class iManageWorkspacesHelper {
         .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
       Logger.getInstance()
-        .info(logPrefix + ', Find information in the "IManage_WS_to_Entity_Mapping__c"');
+        .info(
+          logPrefix +
+          ', Find information in the "IManage_WS_to_Entity_Mapping__c"'
+        );
 
       List<IManage_WS_to_Entity_Mapping__c> records = [
         SELECT Id, EntityId__c, iManage_WS_Id__c, iManage_Library__c
@@ -86,19 +87,23 @@ public class iManageWorkspacesHelper {
         WHERE EntityId__c = :entityId
       ];
       Logger.getInstance()
-        .info(logPrefix + ', Found: ' + records.size() + ' record(s) in the IManage_WS_to_Entity_Mapping__c');
+        .info(
+          logPrefix +
+          ', Found: ' +
+          records.size() +
+          ' record(s) in the IManage_WS_to_Entity_Mapping__c'
+        );
 
       if (records.size() > 0) {
-        for (IManage_WS_to_Entity_Mapping__c item: records) {
+        for (IManage_WS_to_Entity_Mapping__c item : records) {
           result.put(item.iManage_Library__c, item.iManage_WS_Id__c);
         }
       }
 
       Logger.getInstance()
-      .info(logPrefix + ', Result = ' + JSON.serialize(result));
+        .info(logPrefix + ', Result = ' + JSON.serialize(result));
 
       return result;
-
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
@@ -121,8 +126,7 @@ public class iManageWorkspacesHelper {
         .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
       // Search in iManage
-      Logger.getInstance()
-        .info(logPrefix + ', Find information in iManage');
+      Logger.getInstance().info(logPrefix + ', Find information in iManage');
 
       iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
 
@@ -140,22 +144,25 @@ public class iManageWorkspacesHelper {
 
       for (String library : libraries) {
         iManageWrapper.iManageWorkspaceSearch searchResult = iManageWrapper.SearchWorkspace(
-            apiInfo.customerId,
-            library,
-            imSettings.ClientField__c,
-            imMapping.ClientId,
-            imSettings.MatterField__c,
-            imMapping.MatterId
+          apiInfo.customerId,
+          library,
+          imSettings.ClientField__c,
+          imMapping.ClientId,
+          imSettings.MatterField__c,
+          imMapping.MatterId
         );
         if (searchResult.error == null && searchResult.data != null) {
           for (IManageWWorkspace ws : searchResult.data) {
-            Map<String, Object> wsMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(ws));
+            Map<String, Object> wsMap = (Map<String, Object>) JSON.deserializeUntyped(
+              JSON.serialize(ws)
+            );
             // Check whether the results really match the conditions.
             // Because if you specify the wrong parameters, iManage will return all workspaces.
-            if (wsMap.containsKey(imSettings.ClientField__c)
-              && wsMap.containsKey(imSettings.MatterField__c)
-              && wsMap.get(imSettings.ClientField__c) == imMapping.ClientId
-              && wsMap.get(imSettings.MatterField__c) == imMapping.MatterId
+            if (
+              wsMap.containsKey(imSettings.ClientField__c) &&
+              wsMap.containsKey(imSettings.MatterField__c) &&
+              wsMap.get(imSettings.ClientField__c) == imMapping.ClientId &&
+              wsMap.get(imSettings.MatterField__c) == imMapping.MatterId
             ) {
               result.put(library, String.valueOf(ws.id));
             }
@@ -164,21 +171,27 @@ public class iManageWorkspacesHelper {
       }
 
       Logger.getInstance()
-              .info(logPrefix + ', Result = ' + JSON.serialize(result));
+        .info(logPrefix + ', Result = ' + JSON.serialize(result));
 
       // save to IManage_WS_to_Entity_Mapping__c
       try {
-        for (String lib : result.keySet()){
+        for (String lib : result.keySet()) {
           updateEntityToWsMapping(
             result.get(lib), // workspaceId
             lib,
             String.valueOf(entityId),
             false, // autoCreated
-            'IM'// source
+            'IM' // source
           );
         }
       } catch (Exception ex) {
-        Logger.getInstance().error(ex, logPrefix + ', saving to IManage_WS_to_Entity_Mapping__c, data = ' + JSON.serialize(result));
+        Logger.getInstance()
+          .error(
+            ex,
+            logPrefix +
+            ', saving to IManage_WS_to_Entity_Mapping__c, data = ' +
+            JSON.serialize(result)
+          );
       }
 
       return result;
@@ -193,7 +206,8 @@ public class iManageWorkspacesHelper {
   @AuraEnabled
   public static IManageWWorkspace findTemplateWorkspaceByName(
     String templateName,
-    String libraryId) {
+    String libraryId
+  ) {
     String logPrefix = 'iManageWorkspacesHelper::findTemplateWorkspaceByName';
     Map<String, Object> params = new Map<String, Object>{
       'libraryId' => libraryId,
@@ -244,16 +258,15 @@ public class iManageWorkspacesHelper {
       };
 
       Logger.getInstance()
-        .info(
-          logPrefix + ', start method. Params: ' +
-          JSON.serialize(params)
-        );
+        .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
       LicenseService.CheckOrganizationLicense();
       iManageSettings__c mSettings = iManageSettings__c.getOrgDefaults();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
 
-      Map<String, Object> mappingData = IManageMappingHelper.getIManageDataFromSObject(entityId);
+      Map<String, Object> mappingData = IManageMappingHelper.getIManageDataFromSObject(
+        entityId
+      );
       String custom1Value = String.valueOf(mappingData.get('clientId'));
       String custom1Desc = String.valueOf(mappingData.get('clientName'));
       String custom2Value = String.valueOf(mappingData.get('matterId'));
@@ -261,29 +274,37 @@ public class iManageWorkspacesHelper {
 
       if (String.isBlank(custom1Value)) {
         throw new IManageExceptions.IManageApplicationException(
-          'The "' + mSettings.Mapping_ClientIdField__c + '" field is not populated.'
+          'The "' +
+          mSettings.Mapping_ClientIdField__c +
+          '" field is not populated.'
         );
       }
 
       if (String.isBlank(custom1Desc)) {
         throw new IManageExceptions.IManageApplicationException(
-          'The "' + mSettings.Mapping_ClientNameField__c + '" field is not populated.'
+          'The "' +
+          mSettings.Mapping_ClientNameField__c +
+          '" field is not populated.'
         );
       }
 
       if (String.isBlank(custom2Value)) {
         throw new IManageExceptions.IManageApplicationException(
-          'The "' + mSettings.Mapping_MatterIdField__c + '" field is not populated.'
+          'The "' +
+          mSettings.Mapping_MatterIdField__c +
+          '" field is not populated.'
         );
       }
 
       if (String.isBlank(custom2Desc)) {
         throw new IManageExceptions.IManageApplicationException(
-          'The "' + mSettings.Mapping_ClientNameField__c + '" field is not populated.'
+          'The "' +
+          mSettings.Mapping_ClientNameField__c +
+          '" field is not populated.'
         );
       }
       // Custom 1
-     
+
       Map<String, Object> cust1GetResponse = iManageWrapper.getCustomProperty(
         custom1Value,
         mSettings.ClientField__c,
@@ -293,10 +314,16 @@ public class iManageWorkspacesHelper {
       );
 
       if (cust1GetResponse.containsKey('error')) {
-        Map<String, Object> cust1GetError = (Map<String, Object>)cust1GetResponse.get('error');
+        Map<String, Object> cust1GetError = (Map<String, Object>) cust1GetResponse.get(
+          'error'
+        );
         if (String.valueOf(cust1GetError.get('code')) == 'NRC_NO_RECORD') {
           Logger.getInstance()
-            .info(logPrefix + ': custom1 does not exist in iManage. Try to create. Alias = ' + custom1Value);
+            .info(
+              logPrefix +
+              ': custom1 does not exist in iManage. Try to create. Alias = ' +
+              custom1Value
+            );
 
           Map<String, Object> cust1CreateResponse = iManageWrapper.createCustomProperty(
             mSettings.ClientField__c,
@@ -313,10 +340,8 @@ public class iManageWorkspacesHelper {
               String.valueOf(cust1CreateResponse.get('code_message'))
             );
           } else {
-            Logger.getInstance()
-            .info(logPrefix + ': custom1 created');
+            Logger.getInstance().info(logPrefix + ': custom1 created');
           }
-
         } else {
           throw new IManageExceptions.IManageApplicationException(
             String.valueOf(cust1GetError.get('code_message'))
@@ -334,10 +359,16 @@ public class iManageWorkspacesHelper {
       );
 
       if (cust2GetResponse.containsKey('error')) {
-        Map<String, Object> cust2GetError = (Map<String, Object>)cust2GetResponse.get('error');
+        Map<String, Object> cust2GetError = (Map<String, Object>) cust2GetResponse.get(
+          'error'
+        );
         if (String.valueOf(cust2GetError.get('code')) == 'NRC_NO_RECORD') {
           Logger.getInstance()
-            .info(logPrefix + ': custom2 does not exist in iManage. Try to create. Alias = ' + custom2Value);
+            .info(
+              logPrefix +
+              ': custom2 does not exist in iManage. Try to create. Alias = ' +
+              custom2Value
+            );
 
           Map<String, Object> cust2CreateResponse = iManageWrapper.createCustomProperty(
             mSettings.MatterField__c,
@@ -354,17 +385,14 @@ public class iManageWorkspacesHelper {
               String.valueOf(cust2CreateResponse.get('code_message'))
             );
           } else {
-            Logger.getInstance()
-            .info(logPrefix + ': custom2 created');
+            Logger.getInstance().info(logPrefix + ': custom2 created');
           }
-
         } else {
           throw new IManageExceptions.IManageApplicationException(
             String.valueOf(cust2GetError.get('code_message'))
           );
         }
       }
-
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
@@ -382,7 +410,7 @@ public class iManageWorkspacesHelper {
   ) {
     String logPrefix = 'iManageWorkspacesHelper::createWorkspace';
     try {
-      Map<String, String> result = new Map<String, String> {
+      Map<String, String> result = new Map<String, String>{
         'id' => null,
         'name' => null
       };
@@ -509,30 +537,30 @@ public class iManageWorkspacesHelper {
     try {
       // Log parameters
       Map<String, Object> params = new Map<String, Object>{
-          'workspaceId' => workspaceId,
-          'library' => library,
-          'wsName' => wsName,
-          'client' => client,
-          'matter' => matter
+        'workspaceId' => workspaceId,
+        'library' => library,
+        'wsName' => wsName,
+        'client' => client,
+        'matter' => matter
       };
 
       Logger.getInstance()
-      .info(
-          logPrefix + ', start method. Params: ' +
-          JSON.serialize(params)
-      );
+        .info(logPrefix + ', start method. Params: ' + JSON.serialize(params));
 
       iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
       String customerId = apiInfo.customerId;
 
-      IManageWWorkspace sourceWorkspace = iManageWrapper.getWorkspace(workspaceId, library);
+      IManageWWorkspace sourceWorkspace = iManageWrapper.getWorkspace(
+        workspaceId,
+        library
+      );
 
       if (sourceWorkspace == null) {
         throw new IManageExceptions.IManageApplicationException(
           String.format(
             'Workspace not found. Id = {0}, Library = {1}',
-            new List<Object>{ workspaceId,  library}
+            new List<Object>{ workspaceId, library }
           )
         );
       }
@@ -545,6 +573,14 @@ public class iManageWorkspacesHelper {
       );
 
       String wsTemplateId = kvPair.get('templateId');
+
+      if (wsTemplateId == null) {
+        throw new IManageExceptions.IManageApplicationException(
+          'Workspace does not contain "templateId" in its properties (the "name-value-pairs" collection). Ws Id = ' +
+          sourceWorkspace.Id
+        );
+      }
+
       IManageWorkspaceWrap templateWorkspaceWrap = getWorkspaceTemplateWrap(
         wsTemplateId,
         library
@@ -559,7 +595,8 @@ public class iManageWorkspacesHelper {
       for (Integer i = tmpTemplateFolders.size() - 1; i >= 0; i--) {
         templateFolders.add(tmpTemplateFolders[i]);
       }
-      Logger.getInstance().info('Found ' + templateFolders.size() + ' template folders');
+      Logger.getInstance()
+        .info('Found ' + templateFolders.size() + ' template folders');
 
       if (templateWorkspaceWrap == null) {
         throw new IManageExceptions.IManageApplicationException(
@@ -572,11 +609,14 @@ public class iManageWorkspacesHelper {
         .cloneThis();
 
       //update workspace
-      Map<String, Object> wsMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(sourceWorkspace));
+      Map<String, Object> wsMap = (Map<String, Object>) JSON.deserializeUntyped(
+        JSON.serialize(sourceWorkspace)
+      );
 
       Map<String, Object> patchData = new Map<String, Object>();
       if (wsMap.size() == 0) {
-        Logger.getInstance().error(logPrefix + ', sourceWorkspace variable has no data');
+        Logger.getInstance()
+          .error(logPrefix + ', sourceWorkspace variable has no data');
         return;
       }
 
@@ -584,19 +624,30 @@ public class iManageWorkspacesHelper {
         patchData.put('name', wsName);
       }
 
-      if (String.isNotBlank(client) && (wsMap.get(imSettings.ClientField__c) != client)) {
+      if (
+        String.isNotBlank(client) &&
+        (wsMap.get(imSettings.ClientField__c) != client)
+      ) {
         patchData.put(imSettings.ClientField__c, client); // custom1
       }
 
-      if (String.isNotBlank(matter) && (wsMap.get(imSettings.MatterField__c) != matter)) {
+      if (
+        String.isNotBlank(matter) &&
+        (wsMap.get(imSettings.MatterField__c) != matter)
+      ) {
         patchData.put(imSettings.MatterField__c, matter); // custom2
       }
 
       Logger.getInstance().info(logPrefix + ', patchData = ' + patchData);
 
-      if (patchData.size() > 0)
-      {
-        Logger.getInstance().Info(logPrefix + '. Patch destination workspace (workspaceId = ' + workspaceId + ')...');
+      if (patchData.size() > 0) {
+        Logger.getInstance()
+          .Info(
+            logPrefix +
+            '. Patch destination workspace (workspaceId = ' +
+            workspaceId +
+            ')...'
+          );
         sourceWorkspace = iManageWrapper.patchWorkspaceApiCall(
           sourceWorkspace.Id,
           patchData,
@@ -614,8 +665,7 @@ public class iManageWorkspacesHelper {
         new Map<String, Object>{ 'templateId' => templateWorkspace.id }
       );
 
-      if (sourceWorkspace.default_security != 'inherit')
-      {
+      if (sourceWorkspace.default_security != 'inherit') {
         Logger.getInstance().info('Get WS template security');
         iManageWrapper.iManageSecurityResponse wsTemplateSecurityResp = iManageWrapper.getWorkspaceACL(
           wsTemplateId,
@@ -670,7 +720,6 @@ public class iManageWorkspacesHelper {
         client,
         matter
       );
-
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
@@ -701,7 +750,10 @@ public class iManageWorkspacesHelper {
     String workspaceId,
     String libraryId
   ) {
-    IManageWWorkspace workspace = iManageWrapper.getWorkspace(workspaceId, libraryId);
+    IManageWWorkspace workspace = iManageWrapper.getWorkspace(
+      workspaceId,
+      libraryId
+    );
     // System.debug('***** getWorkspaceTemplateWrap: workspace = ' + JSON.serialize(workspace));
     List<IManageWFolder> folders = getAllFoldersByWorkspace(
       workspaceId,
@@ -809,10 +861,10 @@ public class iManageWorkspacesHelper {
       .info(
         'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, START'
       );
-      // Logger.getInstance()
-      // .info(
-      //   'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, templateFolders: ' + JSON.serialize(templateFolders)
-      // );
+    // Logger.getInstance()
+    // .info(
+    //   'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, templateFolders: ' + JSON.serialize(templateFolders)
+    // );
     //   Logger.getInstance()
     //   .info(
     //     'iManageWorkspacesHelper::compareFoldersAndUpdateByTemplate, mappingWorkspaceWrap' + JSON.serialize(mappingWorkspaceWrap)
@@ -965,7 +1017,11 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
-    IManageWFolder folder = iManageWrapper.getFolderById(folderId, customerId, libraryId);
+    IManageWFolder folder = iManageWrapper.getFolderById(
+      folderId,
+      customerId,
+      libraryId
+    );
     if (kvPair.containsKey('IMCC_IsOptional')) {
       folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
     }
@@ -983,7 +1039,11 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
-    IManageWFolder folder = iManageWrapper.getSearchFolderById(folderId, customerId, libraryId);
+    IManageWFolder folder = iManageWrapper.getSearchFolderById(
+      folderId,
+      customerId,
+      libraryId
+    );
     if (kvPair.containsKey('IMCC_IsOptional')) {
       folder.isOptional = Boolean.valueOf(kvPair.get('IMCC_IsOptional'));
     }
@@ -998,13 +1058,16 @@ public class iManageWorkspacesHelper {
     Boolean autoCreated,
     String source
   ) {
-    IManageWWorkspace workspace = iManageWrapper.getWorkspace(workspaceId, libraryId);
+    IManageWWorkspace workspace = iManageWrapper.getWorkspace(
+      workspaceId,
+      libraryId
+    );
     IManage_WS_to_Entity_Mapping__c mapping = new IManage_WS_to_Entity_Mapping__c(
       Auto_created__c = autoCreated,
       EntityId__c = entityId,
       iManage_Workspace_Created_On__c = workspace.create_date,
       iManage_WS_Id__c = workspace.id,
-      iManage_WS_Name__c = workspace.name,
+      // OBSOLETE iManage_WS_Name__c = workspace.name,
       Source__c = source,
       iManage_Library__c = libraryId
     );
@@ -1021,8 +1084,8 @@ public class iManageWorkspacesHelper {
     IManageWorkspaceWrap mappingWorkspaceWrap
   ) {
     String parentDestFolderId = parentDestFolder == null
-        ? null
-        : parentDestFolder.id;
+      ? null
+      : parentDestFolder.id;
     Boolean parentIsTab =
       parentDestFolder != null &&
       parentDestFolder.folder_type == 'tab';
@@ -1047,10 +1110,7 @@ public class iManageWorkspacesHelper {
       return;
     }
 
-    if (
-      templateFolderWrap.parentFolder != null &&
-      parentDestFolder == null
-    ) {
+    if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
       Logger.getInstance()
         .info(
           String.format(
@@ -1064,7 +1124,10 @@ public class iManageWorkspacesHelper {
       return;
     }
 
-    tf = mappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
+    tf = mappingProfileWorkspaceValues(
+      (IManageWWorkspace) mappingWorkspaceWrap.wrapItem,
+      tf
+    );
 
     Boolean needEmail = String.isNotBlank(tf.email);
     //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
@@ -1132,10 +1195,7 @@ public class iManageWorkspacesHelper {
         )
       );
 
-
-    if (
-      newDestFolder.default_security != 'inherit'
-    ) {
+    if (newDestFolder.default_security != 'inherit') {
       Logger.getInstance().info('Get template folder security');
       List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
         ((IManageWFolder) templateFolderWrap.wrapItem).id,
@@ -1160,7 +1220,7 @@ public class iManageWorkspacesHelper {
           newDestFolder.id,
           customerId,
           libraryId,
-          new Map<String, Object> {
+          new Map<String, Object>{
             'default_security' => newDestFolder.default_security == 'inherit'
               ? 'public'
               : newDestFolder.default_security,
@@ -1211,10 +1271,7 @@ public class iManageWorkspacesHelper {
       return;
     }
 
-    if (
-          templateFolderWrap.parentFolder != null &&
-          parentDestFolder == null
-        ) {
+    if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
       Logger.getInstance()
         .info(
           String.format(
@@ -1225,97 +1282,98 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-        return;
+      return;
     }
 
-        tf = MappingProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
-        //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
+    tf = MappingProfileWorkspaceValues(
+      (IManageWWorkspace) mappingWorkspaceWrap.wrapItem,
+      tf
+    );
+    //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
 
-        Logger.getInstance()
-        .info(
-          String.format(
-            'Create tab {0}-{1}',
-            new List<Object>{
-              clientMatterCode,
-              templateFolderWrap.folderFullPath
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Create tab {0}-{1}',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+    IManageWFolder newDestTab = iManageWrapper.createTab(
+      tf,
+      ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
+      customerId,
+      libraryId
+    );
+
+    Logger.getInstance().info('Patch folder name-value-pair');
+    iManageWrapper.patchNameValuePair(
+      'folders',
+      newDestTab.id,
+      customerId,
+      libraryId,
+      new Map<String, Object>{ 'folderTemplateId' => tf.id }
+    );
+    Logger.getInstance()
+      .info(
+        String.format(
+          'Workspace: {0}. Tab: {1} added',
+          new List<Object>{
+            clientMatterCode,
+            templateFolderWrap.folderFullPath
+          }
+        )
+      );
+
+    if (newDestTab.default_security != 'inherit') {
+      Logger.getInstance().info('Get template tab security');
+      List<IManageWSecurity> fSecurityList = iManageWrapper.getTabACL(
+        ((IManageWFolder) templateFolderWrap.wrapItem).id,
+        customerId,
+        libraryId
+      );
+
+      if (fSecurityList.size() > 0) {
+        List<Map<String, Object>> include = new List<Map<String, Object>>();
+        for (IManageWSecurity d : fSecurityList) {
+          include.add(
+            new Map<String, Object>{
+              'id' => d.id,
+              'access_level' => d.access_level,
+              'type' => d.type
             }
-          )
-        );
-        IManageWFolder newDestTab = iManageWrapper.createTab(
-          tf,
-          ((IManageWWorkspace) mappingWorkspaceWrap.wrapItem).id,
-          customerId,
-          libraryId
-        );
+          );
+        }
 
-        Logger.getInstance().info('Patch folder name-value-pair');
-        iManageWrapper.patchNameValuePair(
-          'folders',
+        Logger.getInstance().info('Update tab security');
+        iManageWrapper.patchSecurityTab(
           newDestTab.id,
           customerId,
           libraryId,
-          new Map<String, Object>{ 'folderTemplateId' => tf.id }
+          new Map<String, Object>{
+            'default_security' => newDestTab.default_security == 'inherit'
+              ? 'public'
+              : newDestTab.default_security,
+            'include' => include
+          }
         );
+
         Logger.getInstance()
           .info(
             String.format(
-              'Workspace: {0}. Tab: {1} added',
+              'Workspace: {0}. Tab: {1} security added',
               new List<Object>{
                 clientMatterCode,
                 templateFolderWrap.folderFullPath
               }
             )
           );
+      }
+    }
 
-        if (newDestTab.default_security != 'inherit')
-        {
-          Logger.getInstance().info('Get template tab security');
-          List<IManageWSecurity> fSecurityList = iManageWrapper.getTabACL(
-            ((IManageWFolder) templateFolderWrap.wrapItem).id,
-            customerId,
-            libraryId
-          );
-
-          if (fSecurityList.size() > 0)
-          {
-            List<Map<String, Object>> include = new List<Map<String, Object>>();
-            for (IManageWSecurity d : fSecurityList) {
-              include.add(
-                new Map<String, Object>{
-                  'id' => d.id,
-                  'access_level' => d.access_level,
-                  'type' => d.type
-                }
-              );
-            }
-
-            Logger.getInstance().info('Update tab security');
-            iManageWrapper.patchSecurityTab(
-              newDestTab.id,
-              customerId,
-              libraryId,
-              new Map<String, Object> {
-                'default_security' => newDestTab.default_security == 'inherit'
-                  ? 'public'
-                  : newDestTab.default_security,
-                'include' => include
-              }
-            );
-
-            Logger.getInstance()
-              .info(
-                String.format(
-                  'Workspace: {0}. Tab: {1} security added',
-                  new List<Object>{
-                    clientMatterCode,
-                    templateFolderWrap.folderFullPath
-                  }
-                )
-              );
-          }
-        }
-
-        mappingWorkspaceWrap.addFolderAndResetMapping(newDestTab);
+    mappingWorkspaceWrap.addFolderAndResetMapping(newDestTab);
   }
 
   @TestVisible
@@ -1328,8 +1386,8 @@ public class iManageWorkspacesHelper {
     IManageWorkspaceWrap mappingWorkspaceWrap
   ) {
     String parentDestFolderId = parentDestFolder == null
-        ? null
-        : parentDestFolder.id;
+      ? null
+      : parentDestFolder.id;
 
     IManageWFolder tf = getSearchTemplateWFolder(
       ((IManageWFolder) templateFolderWrap.wrapItem).id,
@@ -1350,10 +1408,7 @@ public class iManageWorkspacesHelper {
       return;
     }
 
-    if (
-      templateFolderWrap.parentFolder != null &&
-      parentDestFolder == null
-    ) {
+    if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
       Logger.getInstance()
         .info(
           String.format(
@@ -1364,20 +1419,21 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-        return;
+      return;
     }
 
     //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
 
-    tf = mappingSearchProfileWorkspaceValues((IManageWWorkspace)mappingWorkspaceWrap.wrapItem, tf);
+    tf = mappingSearchProfileWorkspaceValues(
+      (IManageWWorkspace) mappingWorkspaceWrap.wrapItem,
+      tf
+    );
 
     Logger.getInstance()
       .info(
         String.format(
           'Create search folder profile: {0}',
-          new List<Object>{
-            JSON.serializePretty(tf, true)
-          }
+          new List<Object>{ JSON.serializePretty(tf, true) }
         )
       );
 
@@ -1400,8 +1456,7 @@ public class iManageWorkspacesHelper {
       libraryId
     );
 
-    if (newDestFolder.default_security != 'inherit')
-    {
+    if (newDestFolder.default_security != 'inherit') {
       Logger.getInstance().info('Get template folder security');
       List<IManageWSecurity> fSecurityList = iManageWrapper.getFolderACL(
         ((IManageWFolder) templateFolderWrap.wrapItem).id,
@@ -1409,8 +1464,7 @@ public class iManageWorkspacesHelper {
         libraryId
       );
 
-      if (fSecurityList.size() > 0)
-      {
+      if (fSecurityList.size() > 0) {
         List<Map<String, Object>> include = new List<Map<String, Object>>();
         for (IManageWSecurity d : fSecurityList) {
           include.add(
@@ -1426,7 +1480,7 @@ public class iManageWorkspacesHelper {
           newDestFolder.id,
           customerId,
           libraryId,
-          new Map<String, Object> {
+          new Map<String, Object>{
             'default_security' => newDestFolder.default_security == 'inherit'
               ? 'public'
               : newDestFolder.default_security,
@@ -1462,30 +1516,45 @@ public class iManageWorkspacesHelper {
   private static IManageWFolder mappingProfileWorkspaceValues(
     IManageWWorkspace workspace,
     IManageWFolder templateFolder
-  )
-  {
+  ) {
     String logPrefix = 'IManageWorkspacesHelper::mappingProfileWorkspaceValues';
-    Logger.getInstance().info(logPrefix + ': templateFolder.profile is null = ' + (templateFolder.profile == null));
+    Logger.getInstance()
+      .info(
+        logPrefix +
+        ': templateFolder.profile is null = ' +
+        (templateFolder.profile == null)
+      );
     if (templateFolder.profile == null) {
       return templateFolder;
     }
 
-    Logger.getInstance().info(logPrefix + ': templateFolder.profile before = ' + JSON.serialize(templateFolder.profile));
+    Logger.getInstance()
+      .info(
+        logPrefix +
+        ': templateFolder.profile before = ' +
+        JSON.serialize(templateFolder.profile)
+      );
 
     String mapTemplate = '%WORKSPACE_VALUE%';
     String jsonWorkspace = Json.serialize(workspace);
-    Map<String, Object> mapWorkspace = (Map<String, Object>)JSON.deserializeUntyped(jsonWorkspace);
+    Map<String, Object> mapWorkspace = (Map<String, Object>) JSON.deserializeUntyped(
+      jsonWorkspace
+    );
 
     String jsonTemolateFolderProfile = Json.serialize(templateFolder.profile);
-    Map<String, Object> mapTemplateFolderProfile = (Map<String, Object>)JSON.deserializeUntyped(jsonTemolateFolderProfile);
+    Map<String, Object> mapTemplateFolderProfile = (Map<String, Object>) JSON.deserializeUntyped(
+      jsonTemolateFolderProfile
+    );
 
     for (String templatePropName : mapTemplateFolderProfile.keySet()) {
       Object value = mapTemplateFolderProfile.get(templatePropName);
-      if (String.valueOf(value) == mapTemplate)
-      {
-          if (mapWorkspace.containsKey(templatePropName)) {
-            mapTemplateFolderProfile.put(templatePropName, mapWorkspace.get(templatePropName));
-          }
+      if (String.valueOf(value) == mapTemplate) {
+        if (mapWorkspace.containsKey(templatePropName)) {
+          mapTemplateFolderProfile.put(
+            templatePropName,
+            mapWorkspace.get(templatePropName)
+          );
+        }
       }
     }
 
@@ -1494,20 +1563,36 @@ public class iManageWorkspacesHelper {
       IManageWFolderProfile.class
     );
 
-    Logger.getInstance().info(logPrefix + ': templateFolder.profile after = ' + JSON.serialize(templateFolder.profile));
+    Logger.getInstance()
+      .info(
+        logPrefix +
+        ': templateFolder.profile after = ' +
+        JSON.serialize(templateFolder.profile)
+      );
 
     return templateFolder;
   }
 
-  private static Boolean compareAcls(Boolean withAccess, IManageWSecurity newSecurity, IManageWSecurity existsSecurity) {
-    Boolean groupEquals = newSecurity.isGroup() && existsSecurity.isGroup() && newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
-    Boolean userEquals = !newSecurity.isGroup() && !existsSecurity.isGroup() && newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
+  private static Boolean compareAcls(
+    Boolean withAccess,
+    IManageWSecurity newSecurity,
+    IManageWSecurity existsSecurity
+  ) {
+    Boolean groupEquals =
+      newSecurity.isGroup() &&
+      existsSecurity.isGroup() &&
+      newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
+    Boolean userEquals =
+      !newSecurity.isGroup() &&
+      !existsSecurity.isGroup() &&
+      newSecurity.id.toLowerCase() == existsSecurity.id.toLowerCase();
     if (!withAccess)
       return groupEquals || userEquals;
-    else
-    {
-      Boolean accessNotEquals = newSecurity.access_level != existsSecurity.access_level;
-      return (groupEquals && accessNotEquals) || (userEquals && accessNotEquals);
+    else {
+      Boolean accessNotEquals =
+        newSecurity.access_level != existsSecurity.access_level;
+      return (groupEquals && accessNotEquals) ||
+        (userEquals && accessNotEquals);
     }
   }
 
@@ -1518,9 +1603,9 @@ public class iManageWorkspacesHelper {
     Boolean applyIncludedAcls,
     Boolean applyModifiedAcls,
     Boolean applyRemovedAcls,
-    Boolean applyNewDefaultSecurity)
-  {
-    if (applyNewDefaultSecurity && newSecurity.default_security == 'inherit'){
+    Boolean applyNewDefaultSecurity
+  ) {
+    if (applyNewDefaultSecurity && newSecurity.default_security == 'inherit') {
       return null;
     }
 
@@ -1579,12 +1664,17 @@ public class iManageWorkspacesHelper {
       }
     }
 
-    String defaultSecurity = applyNewDefaultSecurity && existsSecurity.default_security != newSecurity.default_security
+    String defaultSecurity = applyNewDefaultSecurity &&
+      existsSecurity.default_security != newSecurity.default_security
       ? newSecurity.default_security
       : existsSecurity.default_security;
 
-    if (includeAcls.size() > 0 || removeAcls.size() > 0 || modifiedAcls.size() > 0 || string.isNotBlank(defaultSecurity))
-    {
+    if (
+      includeAcls.size() > 0 ||
+      removeAcls.size() > 0 ||
+      modifiedAcls.size() > 0 ||
+      string.isNotBlank(defaultSecurity)
+    ) {
       List<Map<String, Object>> include = new List<Map<String, Object>>();
       for (IManageWSecurity d : includeAcls) {
         include.add(
@@ -1609,14 +1699,9 @@ public class iManageWorkspacesHelper {
 
       List<Map<String, Object>> remove = new List<Map<String, Object>>();
       for (IManageWSecurity d : removeAcls) {
-        remove.add(
-          new Map<String, Object>{
-            'id' => d.id,
-            'type' => d.type
-          }
-        );
+        remove.add(new Map<String, Object>{ 'id' => d.id, 'type' => d.type });
       }
-      Map<String, Object> securityData = new Map<String, Object> {
+      Map<String, Object> securityData = new Map<String, Object>{
         'include' => include,
         'remove' => remove,
         'default_security' => defaultSecurity
@@ -1633,27 +1718,45 @@ public class iManageWorkspacesHelper {
     IManageWFolder templateSearchFolder
   ) {
     String logPrefix = 'IManageWorkspacesHelper::mappingSearchProfileWorkspaceValues';
-    Logger.getInstance().info(logPrefix + ': templateSearchFolder.searchprofile is null = ' + (templateSearchFolder.searchprofile  == null));
+    Logger.getInstance()
+      .info(
+        logPrefix +
+        ': templateSearchFolder.searchprofile is null = ' +
+        (templateSearchFolder.searchprofile == null)
+      );
     if (templateSearchFolder.searchprofile == null) {
       return templateSearchFolder;
     }
 
-    Logger.getInstance().info(logPrefix = ': templateSearchFolder.searchprofile before = ' + JSON.serialize(templateSearchFolder.searchprofile));
+    Logger.getInstance()
+      .info(
+        logPrefix =
+          ': templateSearchFolder.searchprofile before = ' +
+          JSON.serialize(templateSearchFolder.searchprofile)
+      );
 
     String mapTemplate = '%WORKSPACE_VALUE%';
     String jsonWorkspace = Json.serialize(workspace);
-    Map<String, Object> mapWorkspace = (Map<String, Object>)JSON.deserializeUntyped(jsonWorkspace);
+    Map<String, Object> mapWorkspace = (Map<String, Object>) JSON.deserializeUntyped(
+      jsonWorkspace
+    );
 
-    String jsonSearchProfile = Json.serialize(templateSearchFolder.searchprofile);
-    Map<String, Object> mapSearchProfile = (Map<String, Object>)JSON.deserializeUntyped(jsonSearchProfile);
+    String jsonSearchProfile = Json.serialize(
+      templateSearchFolder.searchprofile
+    );
+    Map<String, Object> mapSearchProfile = (Map<String, Object>) JSON.deserializeUntyped(
+      jsonSearchProfile
+    );
 
     for (String templatePropName : mapSearchProfile.keySet()) {
       Object value = mapSearchProfile.get(templatePropName);
-      if (String.valueOf(value) == mapTemplate)
-      {
-          if (mapWorkspace.containsKey(templatePropName)) {
-            mapSearchProfile.put(templatePropName, mapWorkspace.get(templatePropName));
-          }
+      if (String.valueOf(value) == mapTemplate) {
+        if (mapWorkspace.containsKey(templatePropName)) {
+          mapSearchProfile.put(
+            templatePropName,
+            mapWorkspace.get(templatePropName)
+          );
+        }
       }
     }
     templateSearchFolder.searchprofile = (IManageWSearchFolderProfile) JSON.deserialize(
@@ -1661,8 +1764,12 @@ public class iManageWorkspacesHelper {
       IManageWSearchFolderProfile.class
     );
 
-    Logger.getInstance().info(logPrefix = ': templateSearchFolder.searchprofile after = ' + JSON.serialize(templateSearchFolder.searchprofile));
+    Logger.getInstance()
+      .info(
+        logPrefix =
+          ': templateSearchFolder.searchprofile after = ' +
+          JSON.serialize(templateSearchFolder.searchprofile)
+      );
     return templateSearchFolder;
   }
-
 }
