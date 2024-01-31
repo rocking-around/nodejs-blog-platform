@@ -1,3 +1,4 @@
+@SuppressWarnings('PMD.AvoidGlobalModifier')
 global with sharing class EntityIManageWorkspaceUpdater {
   @InvocableMethod(callout=true)
   global static void updateIManageWorkspaces() {
