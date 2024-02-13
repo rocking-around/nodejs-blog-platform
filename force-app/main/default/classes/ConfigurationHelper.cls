@@ -668,4 +668,72 @@ public with sharing class ConfigurationHelper {
       Logger.getInstance().Flush();
     }
   }
+
+  @AuraEnabled
+  public static String DeleteFromLitifyList(String clientCode, string matterCode) {
+    Logger.getInstance()
+      .info('ConfigurationHelper::deleteFromLitifyList, start method');
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+      String clientEntityName = '';
+
+      if (settings.Mapping_EntityType__c != settings.Mapping_EntityClientIdObjectField__c)
+      {
+        List<IManageMappingHelper.GetFieldResult> results = IManageMappingHelper.getFields(
+          settings.Mapping_EntityType__c,
+          new List<String>{ 'REFERENCE' }
+        );
+
+        for (IManageMappingHelper.GetFieldResult item : results) {
+          if (item.getFieldName() == settings.Mapping_EntityClientIdObjectField__c)
+          {
+              clientEntityName = item.getReferenceTo()[0];
+              break;
+          }
+        }
+      }
+
+      if (clientEntityName != '')
+        clientEntityName = clientEntityName + '.';
+
+      String query = 'SELECT Id FROM ' +
+        settings.Mapping_EntityType__c +
+        ' WHERE ' +
+        settings.Mapping_MatterIdField__c + ' = \''  + matterCode + '\' AND ' +
+        clientEntityName + settings.Mapping_ClientIdField__c  + ' = \''  + clientCode + '\'';
+
+      List<SObject> records = Database.query(query);
+
+      if (records.size() == 0)
+        return 'Error:Workspace is not found.';
+
+      if (records.size() > 1)  
+        return 'Error:Multiple Workspaces were found by this Client and Matter Code. Please contact Administrator.';
+
+      String entityId = records[0].Id;
+
+      query = 'SELECT Id FROM gdsi_imanage__IManage_WS_to_Entity_Mapping__c WHERE gdsi_imanage__EntityId__c = \'' +
+        entityId + '\'';
+
+      records = Database.query(query);
+
+      if (records.size() == 0)
+        return 'Error:Workspace mapping is not found.';
+
+      Database.delete(records);
+
+      return 'Workspace mapping was deleted.';
+
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::deleteFromLitifyList');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+  
 }

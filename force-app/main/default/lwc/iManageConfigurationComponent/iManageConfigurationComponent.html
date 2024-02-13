@@ -255,6 +255,15 @@
               <c-i-manage-libraries></c-i-manage-libraries>
             </lightning-tab>
           </template>
+          <template if:true={areGeneralSettingsHasValuesAndSaved}>
+            <lightning-tab
+              class="tab-i-manage-delete-from-litify-list"
+              label="Delete from Mapping table"
+              value="i-manage-delete-from-litify-list"
+            >
+              <c-i-manage-delete-from-litify-list></c-i-manage-delete-from-litify-list>
+            </lightning-tab>
+          </template>
         </lightning-tabset>
       </lightning-card>
     </template>

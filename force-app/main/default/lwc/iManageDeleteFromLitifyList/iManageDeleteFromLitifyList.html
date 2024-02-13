@@ -1,0 +1,42 @@
+<template>
+        <lightning-card title="Delete from Mapping table">
+            <div class="container">
+                <template if:true={showSpinner}>
+                    <lightning-spinner
+                      alternative-text="Workinh"
+                      size="medium"
+                    ></lightning-spinner>
+                  </template>
+                <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    label="Client Code"
+                    name="ClientCode"
+                    value={clientCode}
+                    onchange={onClientCodeChanged}
+                    >
+                </lightning-input>          
+                <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    label="Matter Code"
+                    name="MatterCode"
+                    value={matterCode}
+                    onchange={onMatterCodeChanged}
+                    >~
+                    </lightning-input>          
+                <div class="button_container">
+                    <template if:true={isInputNotEmpty}>
+                        <lightning-button
+                            label="Delete"
+                            class="imanage-save-button"
+                            onclick={deleteClick}
+                            >
+                        </lightning-button>
+                    </template>
+                </div>
+            </div>
+        </lightning-card>
+</template>
