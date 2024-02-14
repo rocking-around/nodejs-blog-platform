@@ -451,6 +451,38 @@ public with sharing class ConfigurationHelperTests {
     System.assert(result.get(expectedKey) == expectedValue, 'template name  has wrong value = ' + result.get(expectedKey) + ', expected = ' + expectedValue);
   }
 
+  @IsTest
+  static void deleteFromLitifyListTest() {
+
+    iManageSettings__c settings = new iManageSettings__c(
+      Client_Id__c = 'val1',
+      ClientField__c = 'val2',
+      MatterField__c = 'val3',
+      Url__c = 'val4',
+      Mapping_EntityType__c = 'Opportunity',
+      Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+      Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
+      Mapping_EntityClientIdObjectField__c = 'Account',
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name',
+      iManage_Default_Folder_Id__c = 'test-folder',
+      iManage_Libraries__c = 'lib1'
+    );
+    insert settings;
+    // mock callouts
+    TestUtils.setupMockActiveLicense();
+
+
+    // --
+    Test.startTest();
+    String result = ConfigurationHelper.DeleteFromLitifyList('0064H00001Rd6VTQAZ', '0064H00001Rd6VTQAZ');
+    Test.stopTest();
+
+    System.assert(result == 'Error:Workspace is not found.', 'Find workpace error');
+  }
+
+
   private static HttpResponse getMockFolderResponse(
     Integer statusCode,
     String auth_status,
