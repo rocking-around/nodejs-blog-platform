@@ -18,6 +18,7 @@ export default class IManageCreateWsContainer extends LightningElement {
   matterId = undefined;
   clientName = undefined;
   matterName = undefined;
+  wsTemplate = undefined;
 
   error = {}; //code, message
 
@@ -83,11 +84,13 @@ export default class IManageCreateWsContainer extends LightningElement {
     this.matterId = data.matterId;
     this.clientName = data.clientName;
     this.matterName = data.matterName;
+    this.wsTemplate = data.wsTemplate;
 
     const result = await iManageCreateWsModal.open({
       size: "medium",
       recordId: this.recordId,
       wsSettings: this.wsSettings,
+      imData: data,
       newWsName: this.wsName,
       createWs: (ft) => this.createWs(ft, false),
       createdCallback: () => this.loadData(),

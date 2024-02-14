@@ -365,4 +365,15 @@ private class IManageMappingHelperTests {
     }
     Test.stopTest();
   }
+
+  @isTest
+  static void getFieldReferenceNameTest() {
+    TestUtils.setupMockActiveLicense();
+
+    String value = IManageMappingHelper.getFieldReferenceName(
+      'Opportunity',
+      'AccountId'
+    );
+    System.assertEquals(value, 'Account', 'Wrong reference name');
+  }
 }

@@ -93,6 +93,15 @@
             required
           ></lightning-combobox>
         </template>
+        <lightning-combobox
+            name="ws-template-object-field"
+            label="iManage Workspace Template Field"
+            value={editWsTemplateField}
+            placeholder="Select"
+            options={wsTemplateObjectFieldOptions}
+            onchange={onWsTemplateFieldChanged}
+            dropdown-alignment="auto"
+          ></lightning-combobox>
       </div>
       <div slot="actions">
         <template if:true={changed}>

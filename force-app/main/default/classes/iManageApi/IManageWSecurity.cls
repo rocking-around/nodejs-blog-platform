@@ -12,4 +12,8 @@ public with sharing class IManageWSecurity {
   public String sid { get; set; }
 
   public Boolean has_restricted_member { get; set; }
+
+  public Boolean isGroup() {
+    return this.type == 'group';
+  }
 }

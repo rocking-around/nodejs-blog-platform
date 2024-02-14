@@ -5,6 +5,7 @@ import loadFolderTemplates from "@salesforce/apex/ConfigurationHelper.loadFolder
 export default class IManageCreateWsModal extends LightningModal {
   @api recordId;
   @api wsSettings;
+  @api imData;
   @api newWsName;
 
   @api createWs;
@@ -52,7 +53,7 @@ export default class IManageCreateWsModal extends LightningModal {
   }
 
   async loadWsSettings() {
-    this.folderTemplate = this.wsSettings["iManageWs:Folder_Template_Id"];
+    this.folderTemplate = this.wsTemplate || this.wsSettings["iManageWs:Folder_Template_Id"];
     this.loading = false;
   }
 
@@ -124,6 +125,20 @@ export default class IManageCreateWsModal extends LightningModal {
 
   get hasErrors() {
     return (this.wsErrors || []).length > 0;
+  }
+
+  get wsTemplate() {
+    if (!this.imData || !this.imData.wsTemplate) {
+      return undefined;
+    }
+
+    if (this.imData.wsTemplate.includes('::')) {
+      return this.imData.wsTemplate;
+    }
+
+    let library = this.imData.wsTemplate.split('!')[0];
+
+    return `${library}::${this.imData.wsTemplate}`;
   }
 }
 
