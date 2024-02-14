@@ -6,6 +6,7 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import saveManualIManageDefaultFolderPath from "@salesforce/apex/ConfigurationHelper.saveManualIManageDefaultFolderPath";
 import getIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.getIManageDefaultFolderId";
+import saveIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.saveIManageDefaultFolderId";
 import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
 
 export default class IManageFolderPicker extends LightningElement {
@@ -75,8 +76,9 @@ export default class IManageFolderPicker extends LightningElement {
         //     e.stopPropagation();
         //     this.onFolderIdChanged(e);
         // }
-        savedCallback: () => this.loadData()
+        savedCallback: () => this.loadData(),
         //errorCallback: (err) => this.handleErrors(err)
+        selectedCallback: (folder) => this.saveIManageDefaultFolderId(folder)
       });
 
       if (result) {
@@ -108,6 +110,12 @@ export default class IManageFolderPicker extends LightningElement {
     if (this.folderId === this.folderIdEdit && this.isChanged) {
       this.isChanged = false;
     }
+  }
+
+  async saveIManageDefaultFolderId({id}) {
+    await saveIManageDefaultFolderId({
+      folderId: id
+    });
   }
 
   async saveClick() {

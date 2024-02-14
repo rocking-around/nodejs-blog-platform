@@ -1,9 +1,11 @@
 import getLinks from "@salesforce/apex/IManageLinksAndFilesHelper.getLinks";
+import getFolderLinks from "@salesforce/apex/IManageLinksAndFilesHelper.getFolderLinks";
 import getFiles from "@salesforce/apex/IManageLinksAndFilesHelper.getFiles";
 import getMetadata from "@salesforce/apex/IManageLinksAndFilesHelper.getIManageDocumentsMetadata";
 import getLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getLinksCount";
+import getFolderLinksCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFolderLinksCount";
 import getFilesCount from "@salesforce/apex/IManageLinksAndFilesHelper.getFilesCount";
-import { mapLinksToGridModel, mapFilesToGridModel } from "./helpers";
+import { mapLinksToGridModel, mapFolderLinksToGridModel, mapFilesToGridModel } from "./helpers";
 
 const DEFAULT_PAGING_SOURCE = {
   getData: new Promise((resolve) => {
@@ -41,7 +43,7 @@ class PageResult {
   }
 }
 
-export default class IManageLinksAndFilesPaging {
+class BasePaging {
   _pageSize;
   _page = 0;
   _recordId = undefined;
@@ -78,20 +80,7 @@ export default class IManageLinksAndFilesPaging {
     });
   }
 
-  initPaging() {
-    this.addSource({
-      getData: getFiles,
-      getCount: getFilesCount,
-      map: mapFilesToGridModel,
-      metadataRef: (x) => x.ContentDocumentId
-    });
-    this.addSource({
-      getData: getLinks,
-      getCount: getLinksCount,
-      map: mapLinksToGridModel,
-      metadataRef: (x) => x.Id
-    });
-  }
+  initPaging() {}
 
   loadPage(page) {
     return new Promise((resolve, reject) => {
@@ -154,5 +143,33 @@ export default class IManageLinksAndFilesPaging {
     }
 
     return 0;
+  }
+}
+
+export class IManageLinksAndFilesPaging extends BasePaging {
+  initPaging() {
+    this.addSource({
+      getData: getFiles,
+      getCount: getFilesCount,
+      map: mapFilesToGridModel,
+      metadataRef: (x) => x.ContentDocumentId
+    });
+    this.addSource({
+      getData: getLinks,
+      getCount: getLinksCount,
+      map: mapLinksToGridModel,
+      metadataRef: (x) => x.Id
+    });
+  }
+}
+
+export class IManageFoldersPaging extends BasePaging {
+  initPaging() {
+    this.addSource({
+      getData: getFolderLinks,
+      getCount: getFolderLinksCount,
+      map: mapFolderLinksToGridModel,
+      metadataRef: (x) => x.Id
+    });
   }
 }

@@ -57,6 +57,7 @@ public with sharing class ConfigurationHelperTests {
     docSettings.Intake_Document__c = true;
     docSettings.Matter_Document__c = true;
     docSettings.Matter__c = true;
+    docSettings.Save_Folder_Link__c = true;
     insert docSettings;
 
     Test.startTest();
@@ -72,12 +73,14 @@ public with sharing class ConfigurationHelperTests {
       'iManageDocuments:Matter_Document'
     );
     Boolean matter = (Boolean) result.get('iManageDocuments:Matter');
+    Boolean saveFolderLink = (Boolean) result.get('iManageDocuments:Save_Folder_Link');
 
     System.assert(calendar, 'Calendar should be enabled');
     System.assert(!task, 'Task should be disabled');
     System.assert(intakeDoc, 'Intake_Document should be enabled');
     System.assert(matterDoc, 'Matter_Document should be enabled');
     System.assert(matter, 'Matter should be enabled');
+    System.assert(saveFolderLink, 'Matter should be enabled');
   }
 
   static testMethod void saveIManageDocumentsSettingsTest() {

@@ -1,11 +1,11 @@
 import { api } from "lwc";
 import LightningModal from "lightning/modal";
-import saveIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.saveIManageDefaultFolderId";
 
 export default class IManageFolderPickerIFrame extends LightningModal {
   @api url;
   @api imanageApi;
   @api title;
+  @api selectedCallback;
   @api savedCallback;
 
   iManageApiInitialized = false;
@@ -57,7 +57,7 @@ export default class IManageFolderPickerIFrame extends LightningModal {
     return super.close(result);
   }
 
-  async handleFolderSelected({ id }) {
+  async handleFolderSelected(folder) {
     // const selectEvent = new CustomEvent("select", {
     //   detail: { id, name }
     // });
@@ -67,9 +67,10 @@ export default class IManageFolderPickerIFrame extends LightningModal {
     try {
       this.showSpinner = true;
       this.saving = true;
-      await saveIManageDefaultFolderId({
-        folderId: id
-      });
+
+      if (this.selectedCallback) {
+        this.selectedCallback(folder)
+      }
 
       if (this.savedCallback) {
         this.savedCallback();

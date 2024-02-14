@@ -174,6 +174,63 @@ public with sharing class IManageLinksAndFilesHelper {
   }
 
   @AuraEnabled
+  public static List<IManage_Folder_Link__c> getFolderLinks(
+    String parentId,
+    Integer size,
+    Integer skip
+  ) {
+    String logPrefix = 'ManageLinksAndFilesHelper::getFolderLinks';
+
+    try {
+      Map<String, Object> params = new Map<String, Object>{
+        'parentId' => parentId,
+        'size' => size,
+        'skip' => skip
+      };
+
+      Logger.getInstance()
+        .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+        );
+
+      LicenseService.CheckOrganizationLicense();
+
+      List<IManage_Folder_Link__c> result = [
+        SELECT Id, LastModifiedDate, Name, EntityId__c, iManage_Id__c, iManage_Library__c
+        FROM IManage_Folder_Link__c
+        WHERE EntityId__c = :parentId
+        LIMIT :size
+        OFFSET :skip
+      ];
+      Logger.getInstance()
+        .info(
+          logPrefix + ', Result: ' +
+          result?.size() +
+          ' items(s)'
+        );
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static Integer getFolderLinksCount(String parentId) {
+    LicenseService.CheckOrganizationLicense();
+
+    Integer result = [
+      SELECT COUNT()
+      FROM IManage_Folder_Link__c
+      WHERE EntityId__c = :parentId
+    ];
+    return result;
+  }
+
+  @AuraEnabled
   public static Void deleteLink(Id id) {
     Map<String, Object> params = new Map<String, Object>{ 'id' => id };
 
@@ -231,6 +288,39 @@ public with sharing class IManageLinksAndFilesHelper {
         );
     } catch (Exception ex) {
       Logger.getInstance().error(ex, 'IManageLinksAndFilesHelper::deleteFile');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static Void deleteFolderLink(Id id) {
+    String logPrefix = 'ManageLinksAndFilesHelper::deleteFolderLink';
+    try {
+      Map<String, Object> params = new Map<String, Object>{ 'id' => id };
+
+      Logger.getInstance()
+        .info(
+          logPrefix + ', start method. Params: ' +
+          JSON.serialize(params)
+        );
+      LicenseService.CheckOrganizationLicense();
+
+      IManage_Folder_Link__c[] links = [
+        SELECT Id
+        FROM IManage_Folder_Link__c
+        WHERE Id = :id
+      ];
+      delete links;
+      Logger.getInstance()
+        .info(
+          logPrefix + ', Deleted' +
+          links?.size() +
+          ' item(s)'
+        );
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
       throw ex;
     } finally {
       Logger.getInstance().Flush();
@@ -398,6 +488,32 @@ public with sharing class IManageLinksAndFilesHelper {
     }
   }
 
+  @AuraEnabled
+  public static Id saveFolderLinkFromIManage(
+    String recordId,
+    Map<String, Object> folderData
+  ) {
+    String logPrefix = 'ManageLinksAndFilesHelper::saveFolderLinkFromIManage';
+    try {
+      String imFolderId = String.valueOf(folderData.get('id'));
+      String imLibrary = String.valueOf(folderData.get('database'));
+      String name = String.valueOf(folderData.get('name'));
+      IManage_Folder_Link__c sobj = new IManage_Folder_Link__c(
+        EntityId__c = recordId,
+        iManage_Id__c = imFolderId,
+        iManage_Library__c = imLibrary,
+        Name = name
+      );
+      insert sobj;
+      return sobj.Id;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, logPrefix);
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
   private static Void clearIManageDocumentMetadata(Id entityId) {
     Map<String, Object> params = new Map<String, Object>{
       'entityId' => entityId
@@ -462,7 +578,7 @@ public with sharing class IManageLinksAndFilesHelper {
       update existingMetadata;
       Logger.getInstance()
         .info(
-          'iManageFileWorker::clearIManageDocumentMetadata, Updated  ' +
+          'iManageFileWorker::changeIManageDocumentMetadataEntity, Updated  ' +
           existingMetadata?.size() +
           ' item(s)'
         );

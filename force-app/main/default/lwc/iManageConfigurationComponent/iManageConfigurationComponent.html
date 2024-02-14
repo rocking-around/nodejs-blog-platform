@@ -181,6 +181,15 @@
                       ></lightning-input>
                     </div>
                   </div>
+                  <lightning-input
+                    class="form-item"
+                    type="checkbox"
+                    name="Save_Folder_Link"
+                    label="Enable Folder Links"
+                    disabled={saving}
+                    checked={iManageDocSettingsEdit.Save_Folder_Link}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
                 </div>
                 <div slot="actions">
                   <template if:true={isIManageDocSettingsChanged}>
