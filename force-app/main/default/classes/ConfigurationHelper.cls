@@ -691,6 +691,8 @@ public with sharing class ConfigurationHelper {
       .info('ConfigurationHelper::deleteFromLitifyList, start method');
     LicenseService.CheckOrganizationLicense();
 
+    String query = '';
+
     try {
       iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
 
@@ -698,16 +700,23 @@ public with sharing class ConfigurationHelper {
 
       if (settings.Mapping_EntityType__c != settings.Mapping_EntityClientIdObjectField__c)
       {
-        List<IManageMappingHelper.GetFieldResult> results = IManageMappingHelper.getFields(
-          settings.Mapping_EntityType__c,
-          new List<String>{ 'REFERENCE' }
-        );
+        if (settings.Mapping_EntityClientIdObjectField__c.endsWith('__c'))
+        {
+          clientEntityName = settings.Mapping_EntityClientIdObjectField__c.replace('__c', '__r');
+        }
+        else
+        {
+          List<IManageMappingHelper.GetFieldResult> results = IManageMappingHelper.getFields(
+            settings.Mapping_EntityType__c,
+            new List<String>{ 'REFERENCE' }
+          );
 
-        for (IManageMappingHelper.GetFieldResult item : results) {
-          if (item.getFieldName() == settings.Mapping_EntityClientIdObjectField__c)
-          {
-              clientEntityName = item.getReferenceTo()[0];
-              break;
+          for (IManageMappingHelper.GetFieldResult item : results) {
+            if (item.getFieldName() == settings.Mapping_EntityClientIdObjectField__c)
+            {
+                clientEntityName = item.getReferenceTo()[0];
+                break;
+            }
           }
         }
       }
@@ -715,7 +724,7 @@ public with sharing class ConfigurationHelper {
       if (clientEntityName != '')
         clientEntityName = clientEntityName + '.';
 
-      String query = 'SELECT Id FROM ' +
+      query = 'SELECT Id FROM ' +
         settings.Mapping_EntityType__c +
         ' WHERE ' +
         settings.Mapping_MatterIdField__c + ' = \''  + matterCode + '\' AND ' +
@@ -745,7 +754,7 @@ public with sharing class ConfigurationHelper {
 
     } catch (Exception ex) {
       Logger.getInstance()
-        .error(ex, 'ConfigurationHelper::deleteFromLitifyList');
+        .error(ex, 'ConfigurationHelper::deleteFromLitifyList, query: ' + query);
       throw ex;
     } finally {
       Logger.getInstance().Flush();
