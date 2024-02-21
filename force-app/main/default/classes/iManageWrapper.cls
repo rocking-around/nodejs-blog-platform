@@ -1069,6 +1069,46 @@ public class iManageWrapper {
     return result;
   }
 
+  public static Map<String, Object> patchCustomProperty(
+    String customTable,
+    String alias,
+    String description,
+    String parentAlias,
+    String customerId,
+    String libraryId
+  ) {
+    String logPrefix = 'iManageWrapper::patchCustomProperty';
+    String query = String.format(
+      '/work/api/v2/customers/{0}/libraries/{1}/customs/{2}/{3}',
+      new List<Object>{ customerId, libraryId, customTable, alias }
+    );
+    Map<String, Object> reqBody = new Map<String, Object> {
+      'description' => description
+    };
+    if (String.isNotBlank(parentAlias)) {
+      query += '?parent_alias=' + parentAlias;
+    }
+
+    String body = JSON.serialize(reqBody);
+
+    Logger.getInstance()
+      .info(
+        logPrefix + ', query=' +
+        query + '; body=' + body
+      );
+    String responseBody = IManageRequestHelper.Patch(query, body);
+    Logger.getInstance()
+      .info(logPrefix + ', response=' + responseBody);
+
+    if (String.isBlank(responseBody)) {
+      return new Map<String, Object> ();
+    }
+
+    Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(responseBody);
+
+    return result;
+  }
+
   /* Private */
 
   private static Blob GetFormBase64(Blob jsonBlob, Blob data) {

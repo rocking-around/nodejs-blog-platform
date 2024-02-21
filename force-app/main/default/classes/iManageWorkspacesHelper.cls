@@ -393,6 +393,28 @@ public class iManageWorkspacesHelper {
           );
         }
       }
+      else {
+        String oldDescription = '';
+        if (cust2GetResponse.containsKey('data')) {
+          Map<String, Object> cust2Data = (Map<String, Object>) cust2GetResponse.get(
+            'data'
+          );
+          oldDescription = String.valueOf(cust2Data.get('description'));
+        }
+
+        if (oldDescription != custom2Desc) {
+          Map<String, Object> cust2PatchResponse = iManageWrapper.patchCustomProperty(
+            mSettings.MatterField__c,
+            custom2Value,
+            custom2Desc,
+            custom1Value, // parentAlias,
+            apiInfo.customerId,
+            libraryId
+          );
+        }
+      }
+
+
     } catch (Exception ex) {
       Logger.getInstance().error(ex, logPrefix);
       throw ex;
