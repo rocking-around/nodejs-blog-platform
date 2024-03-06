@@ -144,17 +144,15 @@ public class iManageFileSaverTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
+    String folder = 'TestFolder';
+    
     Test.startTest();
-    iManageFileSaver.SaveFile(data, name, extension, entityId);
+    iManageFileSaver.SaveFile(data, name, extension, entityId, folder);
     Test.stopTest();
   }
 
   static testMethod void saveFileNullFolderIdExceptionsTest() {
     TestUtils.setupMockActiveLicense();
-
-    iManageSettings__c ims = iManageSettings__c.getOrgDefaults();
-    ims.iManage_Default_Folder_Id__c = null;
-    update ims;
 
     //Create Matter
     Opportunity matter = new Opportunity(
@@ -171,7 +169,7 @@ public class iManageFileSaverTests {
 
     Test.startTest();
     try {
-      iManageFileSaver.SaveFile(data, name, extension, entityId);
+      iManageFileSaver.SaveFile(data, name, extension, entityId, null);
     } catch (Exception ex) {
       System.assert(
         ex instanceof iManageFileSaver.IManageFileSaverException,

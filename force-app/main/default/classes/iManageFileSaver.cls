@@ -3,7 +3,8 @@ global class iManageFileSaver {
     Blob data,
     string name,
     string extension,
-    String entityId
+    String entityId,
+    String folder
   ) {
     Map<String, Object> params = new Map<String, Object>{
       'data' => '***',
@@ -20,9 +21,9 @@ global class iManageFileSaver {
 
     try {
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-      if (mc.iManage_Default_Folder_Id__c == null)
+      if (folder == null)
         throw new IManageFileSaverException(
-          'iManage Default folder not defined. Please configure it.'
+          'folder not defined. Please configure it.'
         );
 
       IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
@@ -48,7 +49,7 @@ global class iManageFileSaver {
       String folderId = CreateFolderStructure(
         apiInfo,
         workspaceId,
-        mc.iManage_Default_Folder_Id__c,
+        folder,
         mc,
         link
       );
