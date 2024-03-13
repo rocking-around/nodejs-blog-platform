@@ -20,6 +20,11 @@
       sandbox={sandbox}
       title={title}
     ></iframe>
+    <template  if:true={notFound}>
+      <div class="notFound">
+      You may not have rights to see this Workspace, or the Workspace does not exist.
+      </div>
+    </template>
     <div class="slds-m-around_medium slds-text-align_right">
       <lightning-button
         label="Refresh"

@@ -78,4 +78,8 @@ export default class IManageContainer extends LightningElement {
     const { code, message } = this.error;
     return code ? this.errors[code] : message;
   }
+
+  get notFound() {
+    return this._iManageUrl && !this._iManageUrl.includes("&start=");
+  }
 }

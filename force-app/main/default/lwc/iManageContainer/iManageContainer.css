@@ -8,3 +8,9 @@
 .error {
   color: brown;
 }
+
+.notFound
+{
+  font-weight: bold;
+  margin-top: 10px;
+}
