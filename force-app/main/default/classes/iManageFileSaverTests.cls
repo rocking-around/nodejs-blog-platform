@@ -234,7 +234,7 @@ public class iManageFileSaverTests {
     String folder = 'TestFolder';
     
     Test.startTest();
-    iManageFileSaver.SaveFile(data, name, extension, entityId, folder);
+    iManageFileSaver.SaveFileToFolder(data, name, extension, entityId, folder);
     Test.stopTest();
   }
 
