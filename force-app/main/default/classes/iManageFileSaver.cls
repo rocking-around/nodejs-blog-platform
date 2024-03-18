@@ -3,6 +3,80 @@ global class iManageFileSaver {
     Blob data,
     string name,
     string extension,
+    String entityId
+  ) {
+    Map<String, Object> params = new Map<String, Object>{
+      'data' => '***',
+      'name' => name,
+      'extension' => extension,
+      'entityId' => entityId
+    };
+    Logger.getInstance()
+      .info(
+        'iManageFileSaver::SaveFile, start method. Params: ' +
+        JSON.serialize(params)
+      );
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+      if (mc.iManage_Default_Folder_Id__c == null)
+        throw new IManageFileSaverException(
+          'iManage Default folder not defined. Please configure it.'
+        );
+
+      IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
+        entityId
+      );
+      if (link == null || link.ClientId == null || link.MatterId == null)
+        throw new IManageFileSaverException(
+          'iManage mapping not configured. Please configure it.'
+        );
+
+      iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
+      String workspaceId = iManageWorkspacesHelper.SearchWorkspace(
+        mc,
+        apiInfo,
+        link
+      );
+      Logger.getInstance()
+        .info(
+          'iManageFileSaver::SaveFile, start method. workspaceId = ' +
+          workspaceId
+        );
+
+      String folderId = CreateFolderStructure(
+        apiInfo,
+        workspaceId,
+        mc.iManage_Default_Folder_Id__c,
+        mc,
+        link
+      );
+      Logger.getInstance()
+        .info(
+          'iManageFileSaver::SaveFile, start method. folderId = ' + folderId
+        );
+
+      iManageWrapper.PostDocument(
+        apiInfo.customerId,
+        apiInfo.library,
+        folderId,
+        name,
+        extension,
+        data
+      );
+    } catch (IManageFileSaverException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'iManageFileSaver::SaveFile');
+      throw ex;
+    }
+  }
+
+  global static void SaveFileToFolder(
+    Blob data,
+    string name,
+    string extension,
     String entityId,
     String folder
   ) {

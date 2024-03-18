@@ -144,6 +144,93 @@ public class iManageFileSaverTests {
     };
     EchoHttpMock.setTestMockResponse(responses);
 
+    Test.startTest();
+    iManageFileSaver.SaveFile(data, name, extension, entityId);
+    Test.stopTest();
+  }
+
+  static testMethod void saveFileToFolderTest() {
+    iManageSettings__c ims = iManageSettings__c.getOrgDefaults();
+
+    //Create Matter
+    Opportunity matter = new Opportunity(
+      StageName = '100',
+      Name = '10',
+      CloseDate = system.now().addDays(30).date()
+    );
+    insert matter;
+
+    Blob data = Blob.valueOf('test data');
+    String name = 'file name';
+    String extension = 'txt';
+    String entityId = String.valueOf(matter.Id);
+
+    String workspaceId = 'ws-1';
+    String folderId = 'folder-1';
+    String folderStructure = folderId;
+    Integer customerId = 333;
+    String library = folderId = 'ACTIVE';
+
+    Organization org = [SELECT Id FROM Organization];
+    String orgId = String.valueOf(org.Id);
+    String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
+    String searchFolderQuery =
+      '/work/api/v2/customers/' +
+      String.valueOf(customerId) +
+      '/libraries/' +
+      library +
+      '/folders/search';
+
+    String serchWorkspaceQuery =
+      '/work/api/v2/customers/' +
+      customerId +
+      '/libraries/' +
+      library +
+      '/workspaces?' +
+      ims.ClientField__c +
+      '=' +
+      matter.Id +
+      '&' +
+      ims.MatterField__c +
+      '=' +
+      matter.Id;
+
+    String postDocumentsQuery =
+      '/work/api/v2/customers/' +
+      customerId +
+      '/libraries/' +
+      library +
+      '/folders/' +
+      folderId +
+      '/documents';
+
+    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
+      licenseUrl => TestUtils.getMockLicenseResponse(200, orgId),
+      'callout:iManageCreds/api' => getMockAuthResponse(
+        200,
+        'authenticated',
+        customerId
+      ),
+      serchWorkspaceQuery => getMockWorkspaceSearchResponse(
+        200,
+        'authenticated',
+        workspaceId
+      ),
+      searchFolderQuery => getMockFolderSearchResponse(
+        200,
+        'authenticated',
+        folderId
+      ),
+      postDocumentsQuery => getMockPostDocumentResponse(
+        200,
+        'authenticated',
+        name,
+        extension
+      )
+    };
+    EchoHttpMock.setTestMockResponse(responses);
+
     String folder = 'TestFolder';
     
     Test.startTest();
@@ -153,6 +240,10 @@ public class iManageFileSaverTests {
 
   static testMethod void saveFileNullFolderIdExceptionsTest() {
     TestUtils.setupMockActiveLicense();
+
+    iManageSettings__c ims = iManageSettings__c.getOrgDefaults();
+    ims.iManage_Default_Folder_Id__c = null;
+    update ims;
 
     //Create Matter
     Opportunity matter = new Opportunity(
@@ -169,7 +260,7 @@ public class iManageFileSaverTests {
 
     Test.startTest();
     try {
-      iManageFileSaver.SaveFile(data, name, extension, entityId, null);
+      iManageFileSaver.SaveFile(data, name, extension, entityId);
     } catch (Exception ex) {
       System.assert(
         ex instanceof iManageFileSaver.IManageFileSaverException,
