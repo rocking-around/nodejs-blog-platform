@@ -46,7 +46,7 @@
         <shortDescription
     >imanage_message_codes_license_expired</shortDescription>
         <value
-    >Organization&apos;s license for the iManage integration system was expired. Please contact with Administrator.</value>
+    >Your Litify/iManage Integration license has expired. Please contact GDSI to renew your license.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_license_not_found</fullName>
