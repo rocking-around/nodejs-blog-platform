@@ -14,23 +14,8 @@
       <lightning-tabset>
         <template if:true={isDocumentsTabVisible}>
           <lightning-tab label="Documents"  onactive={handleDocumentsTabActive}>
-            <div class="buttons">
-              <template if:true={allowSaveIManageDocAsCopy}>
-                <lightning-button
-                  label="New Document from iManage"
-                  onclick={loadNewDocumentFromIManage}
-                  disabled={disableNewFileFromImanageButton}
-                ></lightning-button>
-              </template>
-              <template if:true={allowSaveIManageDocAsLink}>
-                <lightning-button
-                  label="New Link from iManage"
-                  onclick={loadNewLinkFromIManage}
-                  disabled={loading}
-                ></lightning-button>
-              </template>
-            </div>
             <div class="paging paging-top">
+              <span>Total records: {docsRecordsCount}</span>
               <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
               <template if:true={docsNextButtonVisible}>
                 <lightning-button-icon
@@ -41,7 +26,22 @@
                   disabled={docsNextButtonDisabled}
                 ></lightning-button-icon>
               </template>
-              <span>Total records: {docsRecordsCount}</span>
+              <div class="buttons">
+                <template if:true={allowSaveIManageDocAsCopy}>
+                  <lightning-button
+                    label="New Document from iManage"
+                    onclick={loadNewDocumentFromIManage}
+                    disabled={disableNewFileFromImanageButton}
+                  ></lightning-button>
+                </template>
+                <template if:true={allowSaveIManageDocAsLink}>
+                  <lightning-button
+                    label="New Link from iManage"
+                    onclick={loadNewLinkFromIManage}
+                    disabled={loading}
+                  ></lightning-button>
+                </template>
+              
               <lightning-button-icon
                 icon-name="utility:settings"
                 alternative-text="Settings"
@@ -49,6 +49,7 @@
                 onclick={showModalBox}
               >
               </lightning-button-icon>
+            </div>
             </div>
             <div class="grid">
               <c-i-manage-links-and-files-datatable
