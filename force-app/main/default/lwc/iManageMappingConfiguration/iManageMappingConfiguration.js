@@ -471,7 +471,7 @@ export default class IManageMappingEditor extends LightningElement {
     );
     getFields({
       objectName: objName,
-      fieldTypes: fieldTypes || ["ID", "STRING", "INTEGER", "DOUBLE", "LONG"]
+      fieldTypes: fieldTypes || ["ID", "STRING", "INTEGER", "DOUBLE", "LONG", "PICKLIST"]
     })
       .then((resp) => {
         this.writeDebug(
