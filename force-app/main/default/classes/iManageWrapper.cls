@@ -158,9 +158,10 @@ public class iManageWrapper {
         '&' +
         clientField +
         '=' +
-        clientId +
-        '&';
+        clientId;
       }
+
+      System.debug('query:' + query);
     /*String body =
             '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
             '"filters": { "' +

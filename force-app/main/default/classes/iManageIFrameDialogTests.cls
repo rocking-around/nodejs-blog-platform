@@ -13,6 +13,7 @@ private class iManageIFrameDialogTests {
     mcSetting.Mapping_EntityClientIdObjectField__c = 'Opportunity';
     mcSetting.Mapping_ClientIdField__c = 'Id';
     mcSetting.Mapping_ClientNameField__c = 'Name';
+    mcSetting.Mapping_LibraryField__c = '';
     insert mcSetting;
   }
 
@@ -55,9 +56,9 @@ private class iManageIFrameDialogTests {
     String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
 
     String wsSearchUrl =
-      'callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces?custom1=' +
+      'callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces?custom2=' +
       matter.Id +
-      '&custom2=' +
+      '&custom1=' +
       matter.Id;
     System.debug('*** wsSearchUrl: ' + wsSearchUrl);
     Map<String, HttpResponse> responses = new Map<String, HttpResponse>{

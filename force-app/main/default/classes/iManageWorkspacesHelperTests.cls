@@ -79,10 +79,10 @@ private class iManageWorkspacesHelperTests {
             new List<Object>{
                 customerId,
                 library,
-                mc.ClientField__c,
-                clientId,
                 mc.MatterField__c,
-                matterId
+                matterId,
+                mc.ClientField__c,
+                clientId
             }
         );
 
@@ -273,10 +273,10 @@ private class iManageWorkspacesHelperTests {
             new List<Object>{
                 customerId,
                 library,
-                mc.ClientField__c,
-                clientId,
                 mc.MatterField__c,
-                matterId
+                matterId,
+                mc.ClientField__c,
+                clientId
             }
         );
 
@@ -1474,7 +1474,8 @@ private class iManageWorkspacesHelperTests {
             iManage_Ws_Auto_Create__c = false,
             iManage_Ws_Folder_Template_Id__c = folderTemplate,
             iManage_Ws_Name_Pattern__c = wsNamePattern,
-            iManage_Libraries__c = libraries
+            iManage_Libraries__c = libraries,
+            Mapping_LibraryField__c = ''
         );
         return settings;
     }

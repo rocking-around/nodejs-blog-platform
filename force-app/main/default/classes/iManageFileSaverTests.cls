@@ -18,7 +18,8 @@ public class iManageFileSaverTests {
       Mapping_EntityClientIdObjectField__c = 'Opportunity',
       Mapping_ClientIdField__c = 'Id',
       Mapping_ClientNameField__c = 'Name',
-      iManage_Default_Folder_Id__c = 'Test1'
+      iManage_Default_Folder_Id__c = 'Test1',
+      Mapping_LibraryField__c = ''
     );
     insert settings;
   }
@@ -101,11 +102,11 @@ public class iManageFileSaverTests {
       '/libraries/' +
       library +
       '/workspaces?' +
-      ims.ClientField__c +
+      ims.MatterField__c +
       '=' +
       matter.Id +
       '&' +
-      ims.MatterField__c +
+      ims.ClientField__c +
       '=' +
       matter.Id;
 
@@ -188,11 +189,11 @@ public class iManageFileSaverTests {
       '/libraries/' +
       library +
       '/workspaces?' +
-      ims.ClientField__c +
+      ims.MatterField__c +
       '=' +
       matter.Id +
       '&' +
-      ims.MatterField__c +
+      ims.ClientField__c +
       '=' +
       matter.Id;
 
