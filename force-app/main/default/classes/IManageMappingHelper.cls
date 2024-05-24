@@ -35,6 +35,7 @@ public with sharing class IManageMappingHelper {
       mapping.ClientIdField = settings.Mapping_ClientIdField__c;
       mapping.ClientNameField = settings.Mapping_ClientNameField__c;
       mapping.WsTemplateField = settings.Mapping_WSTemplateField__c;
+      mapping.LibraryField = settings.Mapping_LibraryField__c;
 
       Logger.getInstance()
         .info(
@@ -144,6 +145,8 @@ public with sharing class IManageMappingHelper {
     IManageMappingHelper.IManageIFrameData result = new IManageMappingHelper.IManageIFrameData();
     result.ClientId = String.valueOf(mappingData.get('clientId'));
     result.MatterId = String.valueOf(mappingData.get('matterId'));
+    result.Library = String.valueOf(mappingData.get('library'));
+    
 
     Logger.getInstance()
       .info(
@@ -283,6 +286,11 @@ public with sharing class IManageMappingHelper {
       recordFields.add(mapping.WsTemplateField);
     }
 
+    Boolean libraryFieldNotEmpty = String.isNotBlank(mapping.LibraryField);
+    if (libraryFieldNotEmpty) {
+      recordFields.add(mapping.LibraryField);
+    }
+
     String soql = 'SELECT ' +
     String.join(new List<String>(recordFields), ', ') +
     ' FROM ' +
@@ -297,6 +305,7 @@ public with sharing class IManageMappingHelper {
     String clientName = null;
     String matterName = null;
     String wsTemplate = null;
+    String library = null;
 
     // Client
     String clientSObjd = mapping.EntityClientIdObjectField == entityIdSObjName
@@ -323,12 +332,17 @@ public with sharing class IManageMappingHelper {
       wsTemplate = String.valueOf(record.get(mapping.WsTemplateField));
     }
 
+    if (libraryFieldNotEmpty) {
+      library =  String.valueOf(record.get(mapping.LibraryField));
+    }
+
     Map<String, Object> result = new Map<String, Object> {
       'clientId' => clientId,
       'matterId' => matterId,
       'clientName' => clientName,
       'matterName' => matterName,
-      'wsTemplate' => wsTemplate
+      'wsTemplate' => wsTemplate,
+      'library' => library
     };
 
     Logger.getInstance()
@@ -369,6 +383,7 @@ public with sharing class IManageMappingHelper {
         'EntityClientIdObjectField'
       );
       s.Mapping_WSTemplateField__c = (String) mapping.get('WsTemplateField');
+      s.Mapping_LibraryField__c = (String) mapping.get('LibraryField');
       upsert s;
       Logger.getInstance()
         .info('IManageMappingHelper::saveMapping, Saved: ' + JSON.serialize(s));
@@ -659,5 +674,6 @@ public with sharing class IManageMappingHelper {
   public class IManageIFrameData {
     public String ClientId;
     public String MatterId;
+    public String Library; 
   }
 }

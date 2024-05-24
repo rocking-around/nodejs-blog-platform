@@ -15,4 +15,6 @@ public with sharing class IManageMapping {
   public String ClientNameField;
   @AuraEnabled
   public String WsTemplateField;
+  @AuraEnabled
+  public String LibraryField;
 }

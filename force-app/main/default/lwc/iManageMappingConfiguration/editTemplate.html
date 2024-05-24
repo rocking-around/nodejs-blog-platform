@@ -102,6 +102,15 @@
             onchange={onWsTemplateFieldChanged}
             dropdown-alignment="auto"
           ></lightning-combobox>
+          <lightning-combobox
+            name="ws-template-library-field"
+            label="SalesForce Library Field"
+            value={editLibraryField}
+            placeholder="Select"
+            options={libraryObjectFieldOptions}
+            onchange={onLlibraryFieldChanged}
+            dropdown-alignment="auto"
+        ></lightning-combobox>
       </div>
       <div slot="actions">
         <template if:true={changed}>

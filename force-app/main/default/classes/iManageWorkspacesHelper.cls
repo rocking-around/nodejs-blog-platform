@@ -10,6 +10,10 @@ public class iManageWorkspacesHelper {
       mc.iManage_Libraries__c == ''
       ? apiData.library
       : mc.iManage_Libraries__c;
+
+     if (mc.Mapping_LibraryField__c != null && mc.Mapping_LibraryField__c != '' && link.Library != null && link.Library != '' && link.Library != 'Other') 
+      libraries = link.Library;
+
     Logger.getInstance()
       .info(
         'iManageWorkspacesHelper::SearchWorkspace, list libraries: ' + libraries

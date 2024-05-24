@@ -23,6 +23,7 @@ const mappingEntityClientIdObjectField = {
   fieldApiName: "EntityClientIdObjectField"
 };
 const mappingWsTemplateField = { fieldApiName: "WsTemplateField" };
+const mappingLibraryField = { fieldApiName: "LibraryField" };
 
 export default class IManageMappingEditor extends LightningElement {
   isDebug = false;
@@ -39,7 +40,8 @@ export default class IManageMappingEditor extends LightningElement {
     [mappingClientIdField.fieldApiName]: null,
     [mappingClientNameField.fieldApiName]: null,
     [mappingEntityClientIdObjectField.fieldApiName]: null,
-    [mappingWsTemplateField.fieldApiName]: null
+    [mappingWsTemplateField.fieldApiName]: null,
+    [mappingLibraryField.fieldApiName]: null
   };
 
   @track iManageMapping;
@@ -61,6 +63,7 @@ export default class IManageMappingEditor extends LightningElement {
   @track clientIdObjectFieldOptions;
   @track clientNameObjectFieldOptions;
   @track wsTemplateObjectFieldOptions;
+  @track libraryObjectFieldOptions;
 
   entityType = {};
 
@@ -188,6 +191,15 @@ export default class IManageMappingEditor extends LightningElement {
     return opt ? opt.label : val;
   }
 
+  get libraryField() {
+    let val = this.iManageMapping[mappingLibraryField.fieldApiName];
+    let opt = (this.libraryObjectFieldOptions || []).find(
+      (x) => x.value === val
+    );
+    return opt ? opt.label : val;
+  }
+
+
   get editEntityTypeField() {
     return this.iManageMappingEdit[mappingEntityTypeField.fieldApiName];
   }
@@ -216,8 +228,11 @@ export default class IManageMappingEditor extends LightningElement {
   get editWsTemplateField() {
     return this.iManageMappingEdit[mappingWsTemplateField.fieldApiName];
   }
+  get editLibraryField() {
+    return this.iManageMappingEdit[mappingLibraryField.fieldApiName];
+  }
 
-  getIManageMapping() {
+getIManageMapping() {
     if (!this.entityApiName) {
       return;
     }
@@ -292,6 +307,11 @@ export default class IManageMappingEditor extends LightningElement {
         ),
         this.loadIdObjFieldOptions(
           [{name: "wsTemplateObjectFieldOptions", required: false}],
+          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName],
+          ['STRING']
+        ),
+        this.loadIdObjFieldOptions(
+          [{name: "libraryObjectFieldOptions", required: false}],
           this.defaultIManageMapping[mappingEntityTypeField.fieldApiName],
           ['STRING']
         )
@@ -630,6 +650,19 @@ export default class IManageMappingEditor extends LightningElement {
     this.changed = true;
   }
 
+  onLlibraryFieldChanged(evt) {
+    let value = evt.target.value;
+    this.writeDebug(
+      "*********** IManageMappingEditor. onLlibraryFieldChanged: " +
+        value
+    );
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingLibraryField.fieldApiName]: (value.length === 0 ? undefined : value) }
+    };
+    this.changed = true;
+  }
+
   onEntityTypeFieldChanged(evt) {
     let value = evt.target.value;
     this.writeDebug(
@@ -645,7 +678,8 @@ export default class IManageMappingEditor extends LightningElement {
         [mappingClientIdField.fieldApiName]: undefined,
         [mappingClientNameField.fieldApiName]: undefined,
         [mappingEntityClientIdObjectField.fieldApiName]: undefined,
-        [mappingWsTemplateField.fieldApiName]: undefined
+        [mappingWsTemplateField.fieldApiName]: undefined,
+        [mappingLibraryField.fieldApiName]: undefined
       }
     };
     this.changed = true;
