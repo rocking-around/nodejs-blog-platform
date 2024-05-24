@@ -148,13 +148,19 @@ public class iManageWrapper {
       '/libraries/' +
       library +
       '/workspaces?' +
-      clientField +
-      '=' +
-      clientId +
-      '&' +
       matterField +
       '=' +
       matterId;
+
+      if (clientId != null)
+      {
+        query = query +
+        '&' +
+        clientField +
+        '=' +
+        clientId +
+        '&';
+      }
     /*String body =
             '{"limit": 1, "profile_fields": { "folder": [ "name" ] }, ' +
             '"filters": { "' +

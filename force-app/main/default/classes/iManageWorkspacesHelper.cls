@@ -18,6 +18,12 @@ public class iManageWorkspacesHelper {
       .info(
         'iManageWorkspacesHelper::SearchWorkspace, list libraries: ' + libraries
       );
+
+    String clientId = link.ClientId;
+    if(mc.Mapping_LibraryField__c != null && mc.Mapping_LibraryField__c != '')   {
+      clientId = null;
+    }
+
     for (String library : libraries.split(';')) {
       try {
         Logger.getInstance()
@@ -29,7 +35,7 @@ public class iManageWorkspacesHelper {
           apiData.customerId,
           library,
           mc.ClientField__c,
-          link.ClientId,
+          clientId,
           mc.MatterField__c,
           link.MatterId
         );
@@ -138,6 +144,11 @@ public class iManageWorkspacesHelper {
         entityId
       );
 
+      String clientId = imMapping.ClientId;
+      if(imSettings.Mapping_LibraryField__c != null && imSettings.Mapping_LibraryField__c != '')   {
+        clientId = null;
+      }
+
       iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
 
       Set<String> libraries = new Set<String>();
@@ -151,7 +162,7 @@ public class iManageWorkspacesHelper {
           apiInfo.customerId,
           library,
           imSettings.ClientField__c,
-          imMapping.ClientId,
+          clientId,
           imSettings.MatterField__c,
           imMapping.MatterId
         );
