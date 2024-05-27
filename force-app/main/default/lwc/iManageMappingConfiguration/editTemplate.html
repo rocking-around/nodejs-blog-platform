@@ -111,6 +111,15 @@
             onchange={onLlibraryFieldChanged}
             dropdown-alignment="auto"
         ></lightning-combobox>
+        <lightning-input
+          class="form-item"
+          type="checkbox"
+          name="UseOnlyCustom2"
+          label="Don’t look for Custom1"
+          checked={editUseOnlyCustom2}
+          onchange={onUseOnlyCustom2Changed}
+      > 
+    </lightning-input>
       </div>
       <div slot="actions">
         <template if:true={changed}>

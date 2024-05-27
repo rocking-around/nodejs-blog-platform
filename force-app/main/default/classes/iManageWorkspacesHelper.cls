@@ -20,7 +20,7 @@ public class iManageWorkspacesHelper {
       );
 
     String clientId = link.ClientId;
-    if(mc.Mapping_LibraryField__c != null && mc.Mapping_LibraryField__c != '')   {
+    if(mc.iManage_UseOnlyCustom2__c) {
       clientId = null;
     }
 

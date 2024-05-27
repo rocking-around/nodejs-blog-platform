@@ -17,7 +17,6 @@
             disabled="true"
             value={entityApiName}
           ></lightning-input>
-
           <lightning-input
             type="text"
             label="Salesforce Client Id Object"
@@ -70,6 +69,15 @@
             disabled="true"
             value={libraryField}
         ></lightning-input>
+        <lightning-input
+            class="form-item"
+            type="checkbox"
+            name="UseOnlyCustom2"
+            label="Don’t look for Custom1"
+            disabled=true
+            checked={useOnlyCustom2}
+          > 
+        </lightning-input>
         </template>
       </div>
       <div slot="actions">

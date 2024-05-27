@@ -24,6 +24,7 @@ const mappingEntityClientIdObjectField = {
 };
 const mappingWsTemplateField = { fieldApiName: "WsTemplateField" };
 const mappingLibraryField = { fieldApiName: "LibraryField" };
+const mappingUseOnlyCustom2 = { fieldApiName: "UseOnlyCustom2" };
 
 export default class IManageMappingEditor extends LightningElement {
   isDebug = false;
@@ -41,7 +42,8 @@ export default class IManageMappingEditor extends LightningElement {
     [mappingClientNameField.fieldApiName]: null,
     [mappingEntityClientIdObjectField.fieldApiName]: null,
     [mappingWsTemplateField.fieldApiName]: null,
-    [mappingLibraryField.fieldApiName]: null
+    [mappingLibraryField.fieldApiName]: null,
+    [mappingUseOnlyCustom2.fieldApiName]: null,
   };
 
   @track iManageMapping;
@@ -64,7 +66,7 @@ export default class IManageMappingEditor extends LightningElement {
   @track clientNameObjectFieldOptions;
   @track wsTemplateObjectFieldOptions;
   @track libraryObjectFieldOptions;
-
+  
   entityType = {};
 
   @wire(isCsvExportEnabled)
@@ -199,6 +201,9 @@ export default class IManageMappingEditor extends LightningElement {
     return opt ? opt.label : val;
   }
 
+  get useOnlyCustom2() {
+    return  this.iManageMapping[mappingUseOnlyCustom2.fieldApiName];
+  }
 
   get editEntityTypeField() {
     return this.iManageMappingEdit[mappingEntityTypeField.fieldApiName];
@@ -232,6 +237,10 @@ export default class IManageMappingEditor extends LightningElement {
     return this.iManageMappingEdit[mappingLibraryField.fieldApiName];
   }
 
+  get editUseOnlyCustom2() {
+    return this.iManageMappingEdit[mappingUseOnlyCustom2.fieldApiName];
+  }
+
 getIManageMapping() {
     if (!this.entityApiName) {
       return;
@@ -242,6 +251,8 @@ getIManageMapping() {
           "*********** IManageMappingEditor. getIManageMapping:",
           resp
         );
+        console.log("getIManageMapping");
+        console.log(resp);
         if (resp === null) {
           this.isEdit = true;
           this.iManageMapping = { ...this.defaultIManageMapping };
@@ -251,7 +262,7 @@ getIManageMapping() {
         return this.initEditor(this.iManageMapping);
       })
       .catch((err) => {
-        this.error = err.body.message || err;
+        this.error = err.body ? err.body.message || err : err;
         console.error(err);
       })
       .finally(() => {
@@ -659,6 +670,21 @@ getIManageMapping() {
     this.iManageMappingEdit = {
       ...this.iManageMappingEdit,
       ...{ [mappingLibraryField.fieldApiName]: (value.length === 0 ? undefined : value) }
+    };
+    this.changed = true;
+  }
+
+  
+  onUseOnlyCustom2Changed(evt) {
+    const { checked } = evt.detail;
+    
+    this.writeDebug(
+      "*********** IManageMappingEditor. onUseOnlyCustom2Changed: " +
+        checked
+    );
+    this.iManageMappingEdit = {
+      ...this.iManageMappingEdit,
+      ...{ [mappingUseOnlyCustom2.fieldApiName]: checked }
     };
     this.changed = true;
   }

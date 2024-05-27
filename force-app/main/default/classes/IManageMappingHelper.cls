@@ -36,6 +36,7 @@ public with sharing class IManageMappingHelper {
       mapping.ClientNameField = settings.Mapping_ClientNameField__c;
       mapping.WsTemplateField = settings.Mapping_WSTemplateField__c;
       mapping.LibraryField = settings.Mapping_LibraryField__c;
+      mapping.UseOnlyCustom2 = settings.iManage_UseOnlyCustom2__c;
 
       Logger.getInstance()
         .info(
@@ -384,6 +385,7 @@ public with sharing class IManageMappingHelper {
       );
       s.Mapping_WSTemplateField__c = (String) mapping.get('WsTemplateField');
       s.Mapping_LibraryField__c = (String) mapping.get('LibraryField');
+      s.iManage_UseOnlyCustom2__c = (Boolean) mapping.get('UseOnlyCustom2');
       upsert s;
       Logger.getInstance()
         .info('IManageMappingHelper::saveMapping, Saved: ' + JSON.serialize(s));

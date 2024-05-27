@@ -17,4 +17,6 @@ public with sharing class IManageMapping {
   public String WsTemplateField;
   @AuraEnabled
   public String LibraryField;
+  @AuraEnabled
+  public Boolean UseOnlyCustom2;
 }
