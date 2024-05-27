@@ -203,7 +203,8 @@ private class IManageMappingHelperTests {
       Mapping_MatterNameField__c = 'Name',
       Mapping_EntityClientIdObjectField__c = 'AccountId',
       Mapping_ClientIdField__c = 'Id',
-      Mapping_ClientNameField__c = 'Name'
+      Mapping_ClientNameField__c = 'Name',
+      iManage_UseOnlyCustom2__c = true
     );
     insert settings;
 
@@ -212,7 +213,8 @@ private class IManageMappingHelperTests {
       'EntityMatterIdObjectField' => 'Opportunity',
       'MatterIdField' => 'Id',
       'EntityClientIdObjectField' => 'CreatedById',
-      'ClientIdField' => 'Id'
+      'ClientIdField' => 'Id',
+      'UseOnlyCustom2' => false
     };
 
     Test.startTest();

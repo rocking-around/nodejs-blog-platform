@@ -8,8 +8,8 @@
       "path": "force-app",
       "default": true,
       "package": "iManage Integration",
-      "versionName": "ver 2.34",
-      "versionNumber": "2.34.0.NEXT",
+      "versionName": "ver 2.35",
+      "versionNumber": "2.35.0.NEXT",
       "ancestorVersion": "HIGHEST",
       "definitionFile": "config/project-scratch-def.json",
       "dependencies": [],
@@ -71,6 +71,7 @@
     "iManage Integration@2.30.0-1": "04tDn0000011Ng9IAE",
     "iManage Integration@2.32.0-1": "04tDn000000aS5nIAE",
     "iManage Integration@2.33.0-1": "04tDn000000aS5sIAE",
-    "iManage Integration@2.34.0-1": "04tDn000000aS6HIAU"
+    "iManage Integration@2.34.0-1": "04tDn000000aS6HIAU",
+    "iManage Integration@2.35.0-1": "04tDn000000vCDSIA2"
   }
 }
