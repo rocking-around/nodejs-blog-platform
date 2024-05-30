@@ -21,6 +21,7 @@ export default class IManageContainer extends LightningElement {
   @api url = "";
   _iManageUrl = "";
   loading = true;
+  loaded = false;
 
   error = {}; //code, message
   errors = {
@@ -56,14 +57,26 @@ export default class IManageContainer extends LightningElement {
       })
       .finally(() => {
         this.loading = false;
+        this.loaded = true;
       });
   }
 
   handleRefreshClick() {
     this.loading = true;
+    this.loaded = false;
     this._iManageUrl = "";
     this.connectedCallback();
     //window.location.reload();
+  }
+
+  handleOpenNewTabClick() {
+    var workspaceId = this.getQueryVariable(this._iManageUrl, "start");
+    if (workspaceId)
+    {
+        var lib = workspaceId.split('!')[0];
+        var url = "https://cloudimanage.com/work/web/r/libraries/" + lib + "/workspaces/" + workspaceId;
+        window.open(url, '_blank')
+    }   
   }
 
   get showIFrame() {
@@ -82,4 +95,19 @@ export default class IManageContainer extends LightningElement {
   get notFound() {
     return this._iManageUrl && !this._iManageUrl.includes("&start=");
   }
+
+  get found() {
+    return this._iManageUrl.includes("&start=");
+  }
+
+  getQueryVariable(query, variable) {
+    var vars = query.split('&');
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+        if (decodeURIComponent(pair[0]) == variable) {
+            return decodeURIComponent(pair[1]);
+        }
+    }
+  }
+
 }

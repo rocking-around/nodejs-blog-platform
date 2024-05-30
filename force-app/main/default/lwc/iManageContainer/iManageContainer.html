@@ -12,6 +12,7 @@
     <p class="error">{errorMessage}</p>
   </template>
   <template if:true={showIFrame}>
+
     <iframe
       src={iManageUrl}
       height={height}
@@ -26,7 +27,16 @@
       </div>
     </template>
     <div class="slds-m-around_medium slds-text-align_right">
+      <template  if:true={found}>
+        <lightning-button
+        class="form-button"
+        label="Open in new tab"
+        onclick={handleOpenNewTabClick}
+        variant="brand"
+      ></lightning-button>
+      </template>
       <lightning-button
+        class="form-button"
         label="Refresh"
         onclick={handleRefreshClick}
         variant="brand"
