@@ -73,8 +73,9 @@ export default class IManageContainer extends LightningElement {
     var workspaceId = this.getQueryVariable(this._iManageUrl, "start");
     if (workspaceId)
     {
+        var baseUrl = this._iManageUrl.substring(0, this._iManageUrl.indexOf("/work/partner-apps/"));
         var lib = workspaceId.split('!')[0];
-        var url = "https://cloudimanage.com/work/web/r/libraries/" + lib + "/workspaces/" + workspaceId;
+        var url = baseUrl + "/work/web/r/libraries/" + lib + "/workspaces/" + workspaceId;
         window.open(url, '_blank')
     }   
   }
