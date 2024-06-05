@@ -3,6 +3,7 @@ global abstract class LoggerBase implements ILogger {
   protected Boolean Enabled;
 
   private String Logs = '';
+  private List<String> LogsList = new List<String>();
 
   public Void Enable() {
     Enabled = true;
@@ -40,11 +41,16 @@ global abstract class LoggerBase implements ILogger {
 
   public Void Flush() {
     try {
-      if (Enabled && String.isNotEmpty(Logs))
-        this.InsertDBLog(Logs);
+      if (Enabled)
+      {
+        for(Integer i = 0; i < LogsList.size(); i++)
+          this.InsertDBLog(LogsList.get(i));  
+
+        if (String.isNotEmpty(Logs))
+          this.InsertDBLog(Logs);
+      }
     } catch (Exception ex) {
       system.debug(ex);
-      // ignore error into logging system
     }
     Logs = '';
   }
@@ -63,9 +69,12 @@ global abstract class LoggerBase implements ILogger {
     system.debug(log);
     Integer logSize = log.length();
     if (log.length() > 131072)
-      log = log.substring(0, 131071);
+      log = log.substring(0, 131068) + '...';
     if (Logs.length() + log.length() > 131072)
-      Flush();
+    {
+      LogsList.add(Logs);
+      Logs = '';
+    }
     Logs += log;
   }
 }
