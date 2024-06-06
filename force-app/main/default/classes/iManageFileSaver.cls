@@ -84,7 +84,8 @@ global class iManageFileSaver {
       'data' => '***',
       'name' => name,
       'extension' => extension,
-      'entityId' => entityId
+      'entityId' => entityId,
+      'folder' => folder
     };
     Logger.getInstance()
       .info(
@@ -95,9 +96,9 @@ global class iManageFileSaver {
 
     try {
       iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
-      if (folder == null)
+      if (mc.iManage_Default_Folder_Id__c == null)
         throw new IManageFileSaverException(
-          'folder not defined. Please configure it.'
+          'iManage Default folder not defined. Please configure it.'
         );
 
       IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(
@@ -120,10 +121,12 @@ global class iManageFileSaver {
           workspaceId
         );
 
+      String f = folder == null || String.isEmpty(folder) ? mc.iManage_Default_Folder_Id__c : folder;
+
       String folderId = CreateFolderStructure(
         apiInfo,
         workspaceId,
-        folder,
+        f,
         mc,
         link
       );
