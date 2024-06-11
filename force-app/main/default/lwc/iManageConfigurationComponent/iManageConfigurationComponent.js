@@ -8,6 +8,7 @@ import saveGeneralSettings from "@salesforce/apex/ConfigurationHelper.saveGenera
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 import saveIManageDocumentsSettings from "@salesforce/apex/ConfigurationHelper.saveIManageDocumentsSettings";
 import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
+import TestUpload from "@salesforce/apex/iManageWrapper.TestUpload";
 
 import {
   GeneralSettingsForm,
@@ -176,6 +177,16 @@ export default class IManageConfigurationComponent extends LightningElement {
 
   onIManageDocSettingsChangedHandler(value) {
     this.isIManageDocSettingsChanged = value;
+  }
+
+  
+  handleTestUploadClick() {
+    TestUpload().then((resp)  => {
+        console.log(resp);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   }
 
   async saveCommonSettings() {

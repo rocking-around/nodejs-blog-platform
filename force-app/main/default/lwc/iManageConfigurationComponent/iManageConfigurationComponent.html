@@ -73,6 +73,12 @@
                     onchange={onGeneralSettingChanged}
                   >
                   </lightning-input>
+                  <lightning-button
+                    class="form-button"
+                    label="Test Upload"
+                    onclick={handleTestUploadClick}
+                    variant="brand"
+                ></lightning-button>
                 </div>
                 <div slot="actions">
                   <template if:true={isGeneralSettingsChanged}>

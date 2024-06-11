@@ -49,6 +49,14 @@ public class iManageWrapper {
     return apiInfo;
   }
 
+  @AuraEnabled
+  public static String TestUpload() {
+    Blob someFile = DownloadFile('1', 'ACTIVE', 'ACTIVE!50639530.1'); 
+    iManageDocument doc = PostDocument('1', 'ACTIVE', 'ACTIVE!10789154', 'SFTest1', 'docx', someFile);
+    return doc.data.id;
+  }
+
+
   public static iManageDocument GetDocument(
     String customerId,
     String library,
