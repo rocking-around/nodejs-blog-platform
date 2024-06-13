@@ -65,7 +65,8 @@ private class vNHttpFormBuilderTests {
       key,
       value,
       mimeType,
-      fileBlob
+      fileBlob,
+      true
     );
 
     System.assert(

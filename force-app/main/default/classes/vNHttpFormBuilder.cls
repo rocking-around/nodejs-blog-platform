@@ -83,7 +83,8 @@ public class vNHttpFormBuilder {
     string key,
     string value,
     string mimeType,
-    blob fileBlob
+    blob fileBlob,
+    Boolean writeContentDisposition
   ) {
     EndingType ending = EndingType.None;
     string contentDisposition =
@@ -97,11 +98,15 @@ public class vNHttpFormBuilder {
     string contentDispositionCrLf64 = EncodingUtil.base64Encode(
       contentDispositionCrlfBlob
     );
-    string content = SafelyPad(
+    string content = '';
+    
+    if (writeContentDisposition)
+     content = SafelyPad(
       contentDisposition,
       contentDispositionCrLf64,
       '\r\n'
     );
+    
     string contentType = 'Content-Type: ' + mimeType;
     string contentTypeCrLf = contentType + '\r\n\r\n';
     blob contentTypeCrLfBlob = blob.valueOf(contentTypeCrLf);

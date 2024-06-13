@@ -51,9 +51,21 @@ public class iManageWrapper {
 
   @AuraEnabled
   public static String TestUpload() {
-    Blob someFile = DownloadFile('1', 'ACTIVE', 'ACTIVE!50639530.1'); 
-    iManageDocument doc = PostDocument('1', 'ACTIVE', 'ACTIVE!10789154', 'SFTest1', 'docx', someFile);
-    return doc.data.id;
+    try
+    {
+      Logger.getInstance().info('TestUpload');
+      Blob someFile = DownloadFile('1', 'ACTIVE', 'ACTIVE!50639530.1'); 
+      iManageDocument doc = PostDocument('1', 'ACTIVE', 'ACTIVE!10789154', 'SFTest1', 'docx', someFile);
+      return doc.data.id;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'TestUpload');
+      throw ex;
+    }
+    finally
+    {
+      Logger.getInstance().Flush();
+    }
   }
 
 
@@ -1135,7 +1147,8 @@ public class iManageWrapper {
       'profile',
       'test',
       'application/json',
-      jsonBlob
+      jsonBlob,
+      true
     );
 
     form64 += resultJson.Content;
@@ -1145,10 +1158,12 @@ public class iManageWrapper {
       'file',
       'f1.txt',
       'application/octet-stream',
-      data
+      data,
+      false
     );
     form64 += result.Content;
     form64 += vNHttpFormBuilder.WriteBoundary(result.EndingType, true);
+    Logger.getInstance().info('iManageWrapper::GetFormBase64, form64=' + form64);
     return EncodingUtil.base64Decode(form64);
   }
 
