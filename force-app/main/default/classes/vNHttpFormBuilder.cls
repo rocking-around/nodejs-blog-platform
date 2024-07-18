@@ -87,32 +87,37 @@ public class vNHttpFormBuilder {
     Boolean writeContentDisposition
   ) {
     EndingType ending = EndingType.None;
-    string contentDisposition =
+    string content = '';
+    
+    if (writeContentDisposition)
+    {
+
+      string contentDisposition =
       'Content-Disposition: form-data; name="' +
       key +
       '"; filename="' +
       value +
       '"';
-    string contentDispositionCrLf = contentDisposition + '\r\n';
-    blob contentDispositionCrLfBlob = blob.valueOf(contentDispositionCrLf);
-    string contentDispositionCrLf64 = EncodingUtil.base64Encode(
-      contentDispositionCrlfBlob
-    );
-    string content = '';
-    
-    if (writeContentDisposition)
-     content = SafelyPad(
-      contentDisposition,
-      contentDispositionCrLf64,
-      '\r\n'
-    );
-    
-    string contentType = 'Content-Type: ' + mimeType;
-    string contentTypeCrLf = contentType + '\r\n\r\n';
-    blob contentTypeCrLfBlob = blob.valueOf(contentTypeCrLf);
-    string contentTypeCrLf64 = EncodingUtil.base64Encode(contentTypeCrLfBlob);
 
-    content += SafelyPad(contentType, contentTypeCrLf64, '\r\n\r\n');
+      string contentDispositionCrLf = contentDisposition + '\r\n';
+      blob contentDispositionCrLfBlob = blob.valueOf(contentDispositionCrLf);
+      string contentDispositionCrLf64 = EncodingUtil.base64Encode(
+        contentDispositionCrlfBlob
+      );
+
+      content = SafelyPad(
+        contentDisposition,
+        contentDispositionCrLf64,
+        '\r\n'
+        );
+      
+      string contentType = 'Content-Type: ' + mimeType;
+      string contentTypeCrLf = contentType + '\r\n\r\n';
+      blob contentTypeCrLfBlob = blob.valueOf(contentTypeCrLf);
+      string contentTypeCrLf64 = EncodingUtil.base64Encode(contentTypeCrLfBlob);
+
+      content += SafelyPad(contentType, contentTypeCrLf64, '\r\n\r\n');
+    }
 
     string file64 = EncodingUtil.base64Encode(fileBlob);
     integer file64Length = file64.length();
