@@ -292,12 +292,14 @@ private class IManageLinksAndFilesHelperTests {
     String mDocNumber = 'Metadata Doc #';
     String mAuthor = 'Metadata Author';
     String mDocClass = 'DOCUMENT';
+    String mDocSubClass = 'SubDOCUMENT';
     Map<String, Object> metadata = new Map<String, Object>{
       'name' => mName,
       'version' => mVers,
       'document_number' => mDocNumber,
       'author' => mAuthor,
-      'document_class' => mDocClass
+      'document_class' => mDocClass,
+      'document_subclass' => mDocSubClass
     };
     Test.startTest();
     IManageLinksAndFilesHelper.saveIManageDocumentMetadata(
@@ -336,6 +338,11 @@ private class IManageLinksAndFilesHelperTests {
       'Document_Class__c has wrong value'
     );
     System.assertEquals(
+      docMetadata.Document_SubClass__c,
+      mDocSubClass,
+      'Document_SubClass__c has wrong value'
+    );
+    System.assertEquals(
       docMetadata.Document_Author__c,
       mAuthor,
       'Document_Author__c has wrong value'
@@ -369,12 +376,14 @@ private class IManageLinksAndFilesHelperTests {
     String mDocNumber = 'Metadata Doc #';
     String mAuthor = 'Metadata Author';
     String mDocClass = 'DOCUMENT';
+    String mDocSubClass = 'SubDOCUMENT';
     Map<String, Object> metadata = new Map<String, Object>{
       'name' => mName,
       'version' => mVers,
       'document_number' => mDocNumber,
       'author' => mAuthor,
-      'document_class' => mDocClass
+      'document_class' => mDocClass,
+      'document_subclass' => mDocSubClass
     };
     Test.startTest();
     IManageLinksAndFilesHelper.saveIManageDocumentMetadata(
@@ -451,6 +460,16 @@ private class IManageLinksAndFilesHelperTests {
       docMetadata2.Document_Class__c,
       mDocClass,
       'Document_Class__c has wrong value'
+    );
+    System.assertEquals(
+      docMetadata1.Document_SubClass__c,
+      mDocSubClass,
+      'Document_SubClass__c has wrong value'
+    );
+    System.assertEquals(
+      docMetadata2.Document_SubClass__c,
+      mDocSubClass,
+      'Document_SubClass__c has wrong value'
     );
     System.assertEquals(
       docMetadata1.Document_Author__c,
@@ -551,7 +570,8 @@ private class IManageLinksAndFilesHelperTests {
       Document_Version__c = 'v1',
       DocNumber__c = '1',
       Document_Author__c = 'author',
-      Document_Class__c = 'd_class'
+      Document_Class__c = 'd_class',
+      Document_SubClass__c = 'd_subclass'
     );
     insert md;
 

@@ -139,6 +139,7 @@ public with sharing class IManageLinksAndFilesHelper {
           Document_Version__c,
           DocNumber__c,
           Document_Class__c,
+          Document_SubClass__c,
           Document_Author__c,
           EntityId__c
         FROM iManageDocumentMetadata__c
@@ -153,6 +154,7 @@ public with sharing class IManageLinksAndFilesHelper {
             'Document_Version__c' => md.Document_Version__c,
             'DocNumber__c' => md.DocNumber__c,
             'Document_Class__c' => md.Document_Class__c,
+            'Document_SubClass__c' => md.Document_SubClass__c,
             'Document_Author__c' => md.Document_Author__c,
             'EntityId__c' => md.EntityId__c
           }
@@ -448,7 +450,8 @@ public with sharing class IManageLinksAndFilesHelper {
         Document_Version__c = String.valueOf(metadata.get('version')),
         DocNumber__c = String.valueOf(metadata.get('document_number')),
         Document_Author__c = String.valueOf(metadata.get('author')),
-        Document_Class__c = String.valueOf(metadata.get('document_class'))
+        Document_Class__c = String.valueOf(metadata.get('document_class')),
+        Document_SubClass__c = String.valueOf(metadata.get('document_subclass'))
       );
       insert md;
       Logger.getInstance()
@@ -567,6 +570,7 @@ public with sharing class IManageLinksAndFilesHelper {
           EntityId__c,
           Document_Version__c,
           Document_Class__c,
+          Document_SubClass__c,
           DocNumber__c,
           Document_Author__c
         FROM iManageDocumentMetadata__c

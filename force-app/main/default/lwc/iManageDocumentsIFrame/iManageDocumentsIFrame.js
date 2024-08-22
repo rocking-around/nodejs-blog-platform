@@ -126,7 +126,8 @@ export default class IManageDocumentsIFrame extends LightningModal {
       name,
       document_number,
       version,
-      class: document_class
+      class: document_class,
+      subclass: document_subclass
     } = doc;
     await saveIManageDocumentMetadata({
       entityId,
@@ -135,6 +136,7 @@ export default class IManageDocumentsIFrame extends LightningModal {
         name,
         document_number,
         document_class,
+        document_subclass,
         version
       }
     });

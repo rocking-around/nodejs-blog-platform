@@ -34,6 +34,13 @@ export const DOCS_COLUMNS_DEFINITION = [
     initialWidth: 105
   },
   {
+    fieldName: "metadataDocumentSubClass",
+    label: "iManage SubClass",
+    wrapText: true,
+    hideDefaultActions: true,
+    initialWidth: 130
+  },
+  {
     fieldName: "metadataDocumentNumber",
     label: "Number",
     wrapText: true,
@@ -109,6 +116,7 @@ export const mapLinksToGridModel = (links) => {
     metadataVersion: l.metadata?.Document_Version__c,
     metadataDocumentNumber: l.metadata?.DocNumber__c,
     metadataDocumentClass: l.metadata?.Document_Class__c,
+    metadataDocumentSubClass: l.metadata?.Document_SubClass__c,
     metadataDocumentAuthor: l.metadata?.Document_Author__c
   }));
 };
@@ -149,6 +157,7 @@ export const mapFilesToGridModel = (files = []) => {
     metadataVersion: metadata?.Document_Version__c,
     metadataDocumentNumber: metadata?.DocNumber__c,
     metadataDocumentClass: metadata?.Document_Class__c,
+    metadataDocumentSubClass: metadata?.Document_SubClass__c,
     metadataDocumentAuthor: metadata?.Document_Author__c
   }));
 };

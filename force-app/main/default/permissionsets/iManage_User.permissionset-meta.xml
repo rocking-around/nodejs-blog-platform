@@ -186,6 +186,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>iManageDocumentMetadata__c.Document_SubClass__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>iManageDocumentMetadata__c.Document_Version__c</field>
         <readable>true</readable>
     </fieldPermissions>
