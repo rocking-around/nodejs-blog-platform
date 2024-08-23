@@ -121,7 +121,9 @@ public with sharing class ConfigurationHelper {
           Client__c,
           Save_Document__c,
           Save_Link__c,
-          Save_Folder_Link__c
+          Save_Folder_Link__c,
+          ClassCaption__c,
+          SubClassCaption__c
         FROM iManageDocumentSettings__c
       ];
 
@@ -142,7 +144,9 @@ public with sharing class ConfigurationHelper {
             Client__c = false,
             Save_Document__c = false,
             Save_Link__c = false,
-            Save_Folder_Link__c = false
+            Save_Folder_Link__c = false,
+            ClassCaption__c = 'iManage Class',
+            SubClassCaption__c = 'iManage SubClass'
           );
 
       Map<String, Object> result = new Map<String, Object>{
@@ -154,12 +158,14 @@ public with sharing class ConfigurationHelper {
         'iManageDocuments:Client' => settings.Client__c,
         'iManageDocuments:Save_Document' => settings.Save_Document__c,
         'iManageDocuments:Save_Link' => settings.Save_Link__c,
-        'iManageDocuments:Save_Folder_Link' => settings.Save_Folder_Link__c
+        'iManageDocuments:Save_Folder_Link' => settings.Save_Folder_Link__c,
+        'iManageDocuments:ClassCaption' => settings.ClassCaption__c,
+        'iManageDocuments:SubClassCaption' => settings.SubClassCaption__c
       };
 
       Logger.getInstance()
         .info(
-          'ConfigurationHelper::saveGeneralSettings. Result: ' +
+          'ConfigurationHelper::getIManageDocumentSettings! Result: ' +
           JSON.serialize(result)
         );
       return result;
@@ -197,7 +203,9 @@ public with sharing class ConfigurationHelper {
           Client__c,
           Save_Document__c,
           Save_Link__c,
-          Save_Folder_Link__c
+          Save_Folder_Link__c,
+          ClassCaption__c,
+          SubClassCaption__c
         FROM iManageDocumentSettings__c
       ];
 
@@ -218,7 +226,9 @@ public with sharing class ConfigurationHelper {
             Client__c = false,
             Save_Document__c = false,
             Save_Link__c = false,
-            Save_Folder_Link__c = false
+            Save_Folder_Link__c = false,
+            ClassCaption__c = 'iManage Class',
+            SubClassCaption__c = 'iManage SubClass'
           );
 
       for (String key : data.keySet()) {
@@ -249,6 +259,12 @@ public with sharing class ConfigurationHelper {
           }
           when 'iManageDocuments:Save_Folder_Link' {
             settings.Save_Folder_Link__c = (Boolean) data.get(key);
+          }
+          when 'iManageDocuments:ClassCaption' {
+            settings.ClassCaption__c = (String) data.get(key);
+          }
+          when 'iManageDocuments:SubClassCaption' {
+            settings.SubClassCaption__c = (String) data.get(key);
           }
         }
       }

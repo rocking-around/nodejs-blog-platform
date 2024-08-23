@@ -196,6 +196,26 @@
                     checked={iManageDocSettingsEdit.Save_Folder_Link}
                     onchange={onIManageDocumentSettingChanged}
                   ></lightning-input>
+                  <lightning-input
+                    class="form-item"
+                    type="text"
+                    required
+                    name="ClassCaption"
+                    label="Class Caption"
+                    disabled={saving}
+                    value={iManageDocSettingsEdit.ClassCaption}
+                    onchange={onIManageDocumentSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                  class="form-item"
+                  type="text"
+                  required
+                  name="SubClassCaption"
+                  label="SubClass Caption"
+                  disabled={saving}
+                  value={iManageDocSettingsEdit.SubClassCaption}
+                  onchange={onIManageDocumentSettingChanged}
+                ></lightning-input>
                 </div>
                 <div slot="actions">
                   <template if:true={isIManageDocSettingsChanged}>

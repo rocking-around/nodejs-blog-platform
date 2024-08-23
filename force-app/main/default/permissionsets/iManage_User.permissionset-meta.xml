@@ -234,6 +234,16 @@
         <field>iManageDocumentSettings__c.Task__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>iManageDocumentSettings__c.ClassCaption__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>iManageDocumentSettings__c.SubClassCaption__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>iManage User</label>
     <objectPermissions>

@@ -29,12 +29,12 @@ export default class IManageLinksAndFiles extends LightningElement {
   isDebug = true;
   isEnabled = undefined;
   isShowModal = false;
-  docsGridColumns = DOCS_COLUMNS_DEFINITION;
-  docsViewColumns = DOCS_COLUMNS_DEFINITION.map((column) => column.fieldName);
-  docsListColumns = DOCS_COLUMNS_DEFINITION.map((column) => ({
-    value: column.fieldName,
-    label: column.label
-  }));
+
+  docsGridColumns = undefined;
+  docsViewColumns = undefined;
+  docsListColumns = undefined;
+
+
   foldersGridColumns = FOLDERS_COLUMNS_DEFINITION;
   foldersViewColumns = FOLDERS_COLUMNS_DEFINITION.map((column) => column.fieldName);
   foldersListColumns = FOLDERS_COLUMNS_DEFINITION.map((column) => ({
@@ -72,6 +72,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   constructor() {
     super();
+
     this.writeDebug = writeDebug.bind(this);
 
     if (localStorage.getItem("imanage_documents_columns")) {
@@ -86,6 +87,29 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async connectedCallback() {
     var docSettings = await getIManageDocumentSettings();
+
+    let classColumn = DOCS_COLUMNS_DEFINITION.find(function (el) {
+      return el.fieldName === "metadataDocumentClass";
+    });
+
+    if (classColumn)
+      classColumn.label = docSettings["iManageDocuments:ClassCaption"];
+
+    let subClassColumn = DOCS_COLUMNS_DEFINITION.find(function (el) {
+      return el.fieldName === "metadataDocumentSubClass";
+    });
+
+    if (subClassColumn)
+      subClassColumn.label = docSettings["iManageDocuments:SubClassCaption"];
+
+    this.docsGridColumns = DOCS_COLUMNS_DEFINITION;
+    this.docsViewColumns = DOCS_COLUMNS_DEFINITION.map((column) => column.fieldName);
+    this.docsListColumns = DOCS_COLUMNS_DEFINITION.map((column) => ({
+      value: column.fieldName,
+      label: column.label
+    }));
+
+
     this.allowSaveIManageDocAsCopy =
       docSettings["iManageDocuments:Save_Document"];
     this.allowSaveIManageDocAsLink = docSettings["iManageDocuments:Save_Link"];

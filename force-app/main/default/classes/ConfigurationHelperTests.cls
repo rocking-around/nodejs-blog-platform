@@ -58,6 +58,8 @@ public with sharing class ConfigurationHelperTests {
     docSettings.Matter_Document__c = true;
     docSettings.Matter__c = true;
     docSettings.Save_Folder_Link__c = true;
+    docSettings.ClassCaption__c = 'Class';
+    docSettings.SubClassCaption__c = 'SubClass';
     insert docSettings;
 
     Test.startTest();
@@ -74,6 +76,8 @@ public with sharing class ConfigurationHelperTests {
     );
     Boolean matter = (Boolean) result.get('iManageDocuments:Matter');
     Boolean saveFolderLink = (Boolean) result.get('iManageDocuments:Save_Folder_Link');
+    String classCaption = (String)result.get('iManageDocuments:ClassCaption');
+    String subClassCaption = (String)result.get('iManageDocuments:SubClassCaption');
 
     System.assert(calendar, 'Calendar should be enabled');
     System.assert(!task, 'Task should be disabled');
@@ -81,6 +85,8 @@ public with sharing class ConfigurationHelperTests {
     System.assert(matterDoc, 'Matter_Document should be enabled');
     System.assert(matter, 'Matter should be enabled');
     System.assert(saveFolderLink, 'Matter should be enabled');
+    System.assert(classCaption == 'Class' , 'ClassCaption has wrong value');
+    System.assert(subClassCaption == 'SubClass' , 'SubClassCaption has wrong value');  
   }
 
   static testMethod void saveIManageDocumentsSettingsTest() {
@@ -94,7 +100,9 @@ public with sharing class ConfigurationHelperTests {
       'iManageDocuments:Matter' => false,
       'iManageDocuments:Client' => true,
       'iManageDocuments:Save_Document' => true,
-      'iManageDocuments:Save_Link' => true
+      'iManageDocuments:Save_Link' => true,
+      'iManageDocuments:ClassCaption' => 'Class',
+      'iManageDocuments:SubClassCaption' => 'SubClass'
     };
     Test.startTest();
     ConfigurationHelper.saveIManageDocumentsSettings(data);
@@ -113,6 +121,8 @@ public with sharing class ConfigurationHelperTests {
     Boolean client = (Boolean) result.get('iManageDocuments:Client');
     Boolean saveDoc = (Boolean) result.get('iManageDocuments:Save_Document');
     Boolean saveLink = (Boolean) result.get('iManageDocuments:Save_Link');
+    String classCaption = (String)result.get('iManageDocuments:ClassCaption');
+    String subClassCaption = (String)result.get('iManageDocuments:SubClassCaption');
 
     System.assert(!calendar, 'Calendar should be enabled');
     System.assert(task, 'Task should be disabled');
@@ -122,6 +132,8 @@ public with sharing class ConfigurationHelperTests {
     System.assert(client, 'Client should be enabled');
     System.assert(saveDoc, 'Save_Document should be enabled');
     System.assert(saveLink, 'Save_Link should be enabled');
+    System.assert(classCaption == 'Class' , 'ClassCaption has wrong value');
+    System.assert(subClassCaption == 'SubClass' , 'SubClassCaption has wrong value');  
   }
 
   static testMethod void getIManageDefaultFolderIdTest() {
