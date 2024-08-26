@@ -149,6 +149,12 @@ public with sharing class ConfigurationHelper {
             SubClassCaption__c = 'iManage SubClass'
           );
 
+      if (settings.ClassCaption__c == null || settings.ClassCaption__c == '')          
+        settings.ClassCaption__c = 'iManage Class';
+
+      if (settings.SubClassCaption__c == null || settings.SubClassCaption__c == '')          
+        settings.SubClassCaption__c = 'iManage SubClass';
+
       Map<String, Object> result = new Map<String, Object>{
         'iManageDocuments:Calendar' => settings.Calendar__c,
         'iManageDocuments:Task' => settings.Task__c,
