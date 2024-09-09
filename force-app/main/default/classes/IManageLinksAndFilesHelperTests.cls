@@ -11,6 +11,160 @@ private class IManageLinksAndFilesHelperTests {
     insert opp;
   }
 
+  static testMethod void getFilesAndLinksPagedTest() {
+    TestUtils.setupMockActiveLicense();
+
+     //insert parent Object
+     Opportunity opp = new Opportunity(
+      Name = 'Test Opportunity',
+      Closedate = System.today(),
+      StageName = 'Prospecting'
+    );
+    insert opp;
+
+     //insert file
+     String fileName = 'Test';
+     String fileExt = 'txt';
+     ContentVersion cv = new ContentVersion(
+       ContentLocation = 'S', // S = Stored in Salesforce
+       PathOnClient = fileName + '.' + fileExt,
+       Title = 'Test',
+       VersionData = Blob.valueof('Test content')
+     );
+     insert cv;
+     ContentVersion contentVersion = [
+       SELECT Id, ContentDocumentId
+       FROM ContentVersion
+       WHERE Id = :cv.Id
+       LIMIT 1
+     ];
+ 
+     ContentDocumentLink contentDocumentLink = new ContentDocumentLink(
+       ContentDocumentId = contentVersion.ContentDocumentId,
+       LinkedEntityId = opp.Id,
+       ShareType = 'I', // Inferred permission
+       Visibility = 'AllUsers'
+     );
+     insert contentDocumentLink;
+
+     String mName = 'Metadata Name';
+     String mVers = '5';
+     String mDocNumber = 'Metadata Doc #1';
+     String mAuthor = 'Metadata Author1';
+     String mDocClass = 'DOCUMENT';
+     String mDocSubClass = 'SubDOCUMENT';
+
+     iManageDocumentMetadata__c md = new iManageDocumentMetadata__c(
+      EntityId__c = contentVersion.ContentDocumentId,
+      Name = mName,
+      Document_Version__c = mVers,
+      DocNumber__c = mDocNumber,
+      Document_Author__c = mAuthor,
+      Document_Class__c = mDocClass,
+      Document_SubClass__c = mDocSubClass
+    );
+    insert md;
+
+    // Insert File_Link
+    String fileLinkUrl = 'http://google.com?q=test';
+    String vers = '2';
+    IManage_File_Link__c fileLink = new IManage_File_Link__c(
+      ParentId__c = opp.Id,
+      Version__c = vers,
+      File_Link__c = fileLinkUrl
+    );
+
+    insert fileLink;
+
+    String mName2 = 'Metadata Name2';
+    String mVers2 = '2';
+    String mDocNumber2 = 'Metadata Doc #2';
+    String mAuthor2 = 'Metadata Author2';
+    String mDocClass2 = 'DOCUMENT2';
+    String mDocSubClass2 = 'SubDOCUMENT2';
+
+    iManageDocumentMetadata__c md2 = new iManageDocumentMetadata__c(
+      EntityId__c = fileLink.Id,
+      Name = mName2,
+      Document_Version__c = mVers2,
+      DocNumber__c = mDocNumber2,
+      Document_Author__c = mAuthor2,
+      Document_Class__c = mDocClass2,
+      Document_SubClass__c = mDocSubClass2
+    );
+    insert md2;
+
+    // Insert File_Link
+    IManage_File_Link__c fileLink2 = new IManage_File_Link__c(
+      ParentId__c = opp.Id,
+      Version__c = vers,
+      File_Link__c = fileLinkUrl
+    );
+
+    insert fileLink2;
+
+    iManageDocumentMetadata__c md3 = new iManageDocumentMetadata__c(
+      EntityId__c = fileLink2.Id,
+      Name = mName2,
+      Document_Version__c = mVers2,
+      DocNumber__c = 'Metadata Doc #0',
+      Document_Author__c = mAuthor2,
+      Document_Class__c = mDocClass2,
+      Document_SubClass__c = mDocSubClass2
+    );
+    insert md3;
+
+    // Insert File_Link
+    IManage_File_Link__c fileLink3 = new IManage_File_Link__c(
+      ParentId__c = opp.Id,
+      Version__c = vers,
+      File_Link__c = fileLinkUrl
+    );
+
+    insert fileLink3;
+
+    iManageDocumentMetadata__c md4 = new iManageDocumentMetadata__c(
+      EntityId__c = fileLink3.Id,
+      Name = mName2,
+      Document_Version__c = mVers2,
+      DocNumber__c = 'Metadata Doc #3',
+      Document_Author__c = mAuthor2,
+      Document_Class__c = mDocClass2,
+      Document_SubClass__c = mDocSubClass2
+    );
+    insert md4;
+
+    
+    Test.startTest();
+      GridData result = IManageLinksAndFilesHelper.getFilesAndLinksPaged(
+        opp.Id, 2, 1, 'DocNumber__c', 'asc');
+    Test.stopTest();
+
+    System.assertEquals(2, result.Data.size(), 'Wrong files count');
+    System.assertEquals(4, result.Total, 'Wrong files total');
+
+    Map<String, Object> item1 = result.Data[0];
+    System.assertEquals(contentVersion.ContentDocumentId, item1.get('Id'), 'Wrong Id');
+    System.assertEquals('Test', item1.get('Title'), 'Wrong Title');
+    System.assertEquals(opp.Id, item1.get('LinkedEntityId'), 'Wrong LinkedEntityId');
+    System.assertEquals(fileExt, item1.get('FileExtension'), 'Wrong FileExtension');
+    System.assertEquals(mName, item1.get('Name'), 'Wrong Name');
+    System.assertEquals(mDocNumber, item1.get('DocNumber__c'), 'Wrong DocNumber__c');
+    System.assertEquals(mDocClass, item1.get('Document_Class__c'), 'Wrong Document_Class__c');
+    System.assertEquals(mDocSubClass, item1.get('Document_SubClass__c'), 'Wrong Document_SubClass__c');
+    //System.assertEquals(mAuthor, item1.get('Document_Author__c'), 'Wrong Document_Author__c');
+
+    Map<String, Object> item2 = result.Data[1];
+    System.assertEquals(fileLink.Id, item2.get('Id'), 'Wrong Id');
+    System.assertEquals(fileLinkUrl, item2.get('FileLink'), 'Wrong FileLink');
+    System.assertEquals(opp.Id, item2.get('LinkedEntityId'), 'Wrong LinkedEntityId');
+    System.assertEquals(mName2, item2.get('Name'), 'Wrong Name');
+    System.assertEquals(mDocNumber2, item2.get('DocNumber__c'), 'Wrong DocNumber__c');
+    System.assertEquals(mDocClass2, item2.get('Document_Class__c'), 'Wrong Document_Class__c');
+    System.assertEquals(mDocSubClass2, item2.get('Document_SubClass__c'), 'Wrong Document_SubClass__c');
+    //System.assertEquals(mAuthor2, item2.get('Document_Author__c'), 'Wrong Document_Author__c');
+  }
+
   static testMethod void getLinksTest() {
     TestUtils.setupMockActiveLicense();
 

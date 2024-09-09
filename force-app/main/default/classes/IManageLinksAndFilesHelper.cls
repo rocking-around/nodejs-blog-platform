@@ -55,7 +55,7 @@ public with sharing class IManageLinksAndFilesHelper {
   }
 
   @AuraEnabled 
-  public static List<Map<String, Object>> getFilesAndLinksPaged(
+  public static GridData getFilesAndLinksPaged(
     String parentId,
     Integer size,
     Integer skip,
@@ -204,7 +204,7 @@ public with sharing class IManageLinksAndFilesHelper {
 
       Logger.getInstance().Flush();
   
-      return result;
+      return new GridData(result, allItems.size());
     }  
      catch (Exception ex) {
       Logger.getInstance().error(ex, 'IManageLinksAndFilesHelper::getFilesAndLinksPaged');
