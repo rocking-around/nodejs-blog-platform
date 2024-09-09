@@ -54,6 +54,167 @@ public with sharing class IManageLinksAndFilesHelper {
     return result;
   }
 
+  @AuraEnabled 
+  public static List<Map<String, Object>> getFilesAndLinksPaged(
+    String parentId,
+    Integer size,
+    Integer skip,
+    String sortField,
+    String sorfDirection
+  )
+  {
+
+    Map<String, Object> params = new Map<String, Object>{
+      'parentId' => parentId,
+      'size' => size,
+      'skip' => skip,
+      'sortField' => sortField,
+      'sorfDirection' => sorfDirection
+    };
+
+    Logger.getInstance()
+    .info(
+      'IManageLinksAndFilesHelper::getLinks, start getFilesAndLinksPaged. Params: ' +
+      JSON.serialize(params)
+    );
+
+    try {
+      List<ContentDocumentLink> files = [
+        SELECT
+          ContentDocumentId,
+          LinkedEntityId,
+          ContentDocument.id,
+          ContentDocument.LastModifiedDate,
+          ContentDocument.title,
+          ContentDocument.FileExtension,
+          ContentDocument.ContentModifiedDate
+        FROM ContentDocumentLink
+        WHERE LinkedEntityId = :parentId
+      ];
+
+      List<Map<String, Object>> result = new List<Map<String, Object>> ();
+      List<SortMapWrapper> allItems = new List<SortMapWrapper>();
+
+      List<Id> contentDocumentIds = new  List<Id>();
+      for(ContentDocumentLink o : files)
+      {
+          contentDocumentIds.add(o.ContentDocumentId);
+      }
+
+      List<Map<String, Object>> iManageDocumentsMetadata = getiManageDocumentsMetadata(contentDocumentIds);
+
+      Map<String, Object> metadata;
+    
+
+      for(ContentDocumentLink o : files)
+      {
+
+        metadata = null;
+        for( Map<String, Object> md : iManageDocumentsMetadata)
+        {
+          if (o.ContentDocumentId == md.get('EntityId__c'))
+          {
+            metadata = md;
+            break;
+          }
+        }
+
+        Map<String, Object> item = new Map<String, Object>{
+          'Id' => o.ContentDocumentId,
+          'Title' => o.ContentDocument.title,
+          'LinkedEntityId' => o.LinkedEntityId,
+          'FileExtension' => o.ContentDocument.FileExtension,
+          'Name' => metadata?.get('Name'),
+          'Document_Version__c' => metadata?.get('Document_Version__c'),
+          'DocNumber__c' => metadata?.get('DocNumber__c'),
+          'Document_Class__c' => metadata?.get('Document_Class__c'),
+          'Document_SubClass__c' => metadata?.get('Document_SubClass__c'),
+          'Document_Author__c' => metadata?.get('Document_Author__c)')
+        };
+
+        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sorfDirection, item);
+
+        allItems.add(wrapItem);
+      }
+
+      List<IManage_File_Link__c> links = [
+        SELECT Id, LastModifiedDate, Name, File_Link__c, ParentId__c, Version__c
+        FROM IManage_File_Link__c
+        WHERE ParentId__c = :parentId
+      ];
+      
+      List<Id> linkIds = new  List<Id>();
+      for(IManage_File_Link__c o : links)
+      {
+        linkIds.add(o.Id);
+      }
+
+      iManageDocumentsMetadata = getiManageDocumentsMetadata(linkIds);
+
+      for(IManage_File_Link__c o : links)
+      {
+        metadata = null;
+        for( Map<String, Object> md : iManageDocumentsMetadata)
+        {
+          if (o.Id == md.get('EntityId__c'))
+          {
+            metadata = md;
+            break;
+          }
+        }
+        
+        Map<String, Object> item = new Map<String, Object>{
+          'Id' => o.Id,
+          'Title' => o.Name,
+          'LinkedEntityId' => o.ParentId__c,
+          'FileLink' => o.File_Link__c,
+          'Name' => metadata?.get('Name'),
+          'Document_Version__c' => metadata?.get('Document_Version__c'),
+          'DocNumber__c' => metadata?.get('DocNumber__c'),
+          'Document_Class__c' => metadata?.get('Document_Class__c'),
+          'Document_SubClass__c' => metadata?.get('Document_SubClass__c'),
+          'Document_Author__c' => metadata?.get('Document_Author__c)')
+        };
+
+        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sorfDirection, item);
+
+        allItems.add(wrapItem);
+      }
+
+      allItems.sort();
+
+      Integer c = 0;
+
+      for(SortMapWrapper i : allItems)
+      {
+          c++;
+
+          if (c > skip)
+            result.add(i.M);
+
+          if (result.size() == size)
+            break;
+      }
+
+      Logger.getInstance()
+      .info(
+        'IManageLinksAndFilesHelper::getLinks, result: ' +
+        JSON.serialize(result)
+      );
+
+      Logger.getInstance().Flush();
+  
+      return result;
+    }  
+     catch (Exception ex) {
+      Logger.getInstance().error(ex, 'IManageLinksAndFilesHelper::getFilesAndLinksPaged');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+
   @AuraEnabled
   public static List<SObject> getFiles(
     String parentId,

@@ -19,6 +19,7 @@ import deleteIManageDocumentMetadata from "@salesforce/apex/IManageLinksAndFiles
 import changeIManageDocumentMetadataEntity from "@salesforce/apex/IManageLinksAndFilesHelper.changeIManageDocumentMetadataEntity";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 import saveFolderLinkFromIManage from "@salesforce/apex/IManageLinksAndFilesHelper.saveFolderLinkFromIManage";
+import getFilesAndLinksPaged from "@salesforce/apex/IManageLinksAndFilesHelper.getFilesAndLinksPaged";
 
 const PAGE_SIZE = 10;
 
@@ -86,6 +87,18 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   async connectedCallback() {
+
+    console.debug('IManageLinksAndFiles:connectedCallback');
+
+    // var test = await getFilesAndLinksPaged({
+    //   parentId: '0064H00001Rd6VTQAZ',
+    //   size: 5,
+    //   skip: 3,
+    //   sortField: 'Document_SubClass__c', 
+    //   sorfDirection:'desc'});
+
+    // console.debug(test);
+
     var docSettings = await getIManageDocumentSettings();
 
     let classColumn = DOCS_COLUMNS_DEFINITION.find(function (el) {
