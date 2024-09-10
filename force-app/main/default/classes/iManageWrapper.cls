@@ -121,7 +121,7 @@ public class iManageWrapper {
       '/folders/' +
       folderId +
       '/documents';
-    Logger.getInstance().info('iManageWrapper::PostDocument, query=' + query);
+    Logger.getInstance().info('iManageWrapper::PostDocument, query=' + query + 'json: ' + json);
     String response = IManageRequestHelper.PostFile(
       query,
       formBlob,
@@ -130,6 +130,26 @@ public class iManageWrapper {
     );
     Logger.getInstance()
       .info('iManageWrapper::PostDocument, response=' + response);
+
+    if (response.startsWith('{"error")'))
+    {
+      Logger.getInstance()
+      .info('iManageWrapper::PostDocument retry');
+
+      response = IManageRequestHelper.PostFile(
+        query,
+        formBlob,
+        contentLength,
+        contentType
+      );
+
+      Logger.getInstance()
+      .info('iManageWrapper::PostDocument, response=' + response);
+    }
+
+    if (response.startsWith('{"error")'))
+      throw new AuraHandledException(response);
+
     return (iManageDocument) System.JSON.deserialize(
       response,
       iManageDocument.class
