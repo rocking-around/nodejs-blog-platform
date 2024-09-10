@@ -131,7 +131,7 @@ public class iManageWrapper {
     Logger.getInstance()
       .info('iManageWrapper::PostDocument, response=' + response);
 
-    if (response.startsWith('{"error")'))
+    if (response.startsWith('{"error"'))
     {
       Logger.getInstance()
       .info('iManageWrapper::PostDocument retry');
@@ -147,7 +147,7 @@ public class iManageWrapper {
       .info('iManageWrapper::PostDocument, response=' + response);
     }
 
-    if (response.startsWith('{"error")'))
+    if (response.startsWith('{"error"'))
       throw new AuraHandledException(response);
 
     return (iManageDocument) System.JSON.deserialize(
