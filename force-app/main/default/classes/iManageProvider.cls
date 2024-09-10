@@ -23,11 +23,11 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'stateToPropagate' => stateToPropagate
     };
 
-    Logger.getInstance()
-      .info(
-        'iManageProvider::initiate, start method. Params: ' +
-        JSON.serialize(params)
-      );
+    // Logger.getInstance()
+    //   .info(
+    //     'iManageProvider::initiate, start method. Params: ' +
+    //     JSON.serialize(params)
+    //   );
 
     try {
       clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
@@ -48,10 +48,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         redirectUri;
       return new PageReference(url);
     } catch (Exception ex) {
-      Logger.getInstance().error(ex, 'iManageProvider::initiate');
+      // Logger.getInstance().error(ex, 'iManageProvider::initiate');
       throw ex;
     } finally {
-      Logger.getInstance().Flush();
+      // Logger.getInstance().Flush();
     }
   }
 
@@ -68,11 +68,11 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'state' => state
     };
 
-    Logger.getInstance()
-      .info(
-        'iManageProvider::handleCallback, start method. Params: ' +
-        JSON.serialize(params)
-      );
+    // Logger.getInstance()
+    //   .info(
+    //     'iManageProvider::handleCallback, start method. Params: ' +
+    //     JSON.serialize(params)
+    //   );
 
     try {
       clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
@@ -120,10 +120,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         sfdcState
       );
     } catch (Exception ex) {
-      Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
+      // Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
       throw ex;
     } finally {
-      Logger.getInstance().Flush();
+      // Logger.getInstance().Flush();
     }
   }
 
@@ -137,11 +137,11 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'state' => response
     };
 
-    Logger.getInstance()
-      .info(
-        'iManageProvider::getUserInfo, start method. Params: ' +
-        JSON.serialize(params)
-      );
+    // Logger.getInstance()
+    //   .info(
+    //     'iManageProvider::getUserInfo, start method. Params: ' +
+    //     JSON.serialize(params)
+    //   );
 
     try {
       userInfoUrl = authProviderConfiguration.get(PREFIX + 'User_Info_URL__c');
@@ -190,10 +190,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         null
       );
     } catch (Exception ex) {
-      Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
+      // Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
       throw ex;
     } finally {
-      Logger.getInstance().Flush();
+      // Logger.getInstance().Flush();
     }
   }
 

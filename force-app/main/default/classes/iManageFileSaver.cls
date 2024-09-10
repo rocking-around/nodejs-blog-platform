@@ -135,7 +135,7 @@ global class iManageFileSaver {
           'iManageFileSaver::SaveFile, start method. folderId = ' + folderId
         );
 
-      iManageWrapper.PostDocument(
+        iManageWrapper.PostDocument(
         apiInfo.customerId,
         apiInfo.library,
         folderId,
@@ -144,6 +144,7 @@ global class iManageFileSaver {
         data
       );
     } catch (IManageFileSaverException ex) {
+      Logger.getInstance().error(ex, 'iManageFileSaver::SaveFile');
       throw ex;
     } catch (Exception ex) {
       Logger.getInstance().error(ex, 'iManageFileSaver::SaveFile');

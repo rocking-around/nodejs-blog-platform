@@ -148,7 +148,7 @@ public class iManageWrapper {
     }
 
     if (response.startsWith('{"error"'))
-      throw new AuraHandledException(response);
+      throw new iManageFileSaver.IManageFileSaverException(response);
 
     return (iManageDocument) System.JSON.deserialize(
       response,
