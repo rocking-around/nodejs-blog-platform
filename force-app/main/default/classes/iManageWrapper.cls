@@ -105,6 +105,12 @@ public class iManageWrapper {
     gen.writeStartObject();
     gen.writeStringField('name', name);
     gen.writeStringField('extension', extension);
+    gen.writeStringField('author', 'IMANADMIN');
+    gen.writeStringField('operator', 'IMANADMIN');
+    gen.writeStringField('class', 'DOC');
+    gen.writeStringField('type', 'WORDX');
+    gen.writeStringField('custom1', '0002');
+    gen.writeStringField('custom2', '0020-00');
     gen.writeEndObject();
     gen.writeBooleanField('warnings_for_required_and_disabled_fields', true);
     gen.writeEndObject();
@@ -135,6 +141,38 @@ public class iManageWrapper {
     {
       Logger.getInstance()
       .info('iManageWrapper::PostDocument retry');
+
+      Long timeDiff = 0;
+      DateTime firstTime = System.now();
+      do {
+          timeDiff = System.now().getTime() - firstTime.getTime();
+      }
+      while(timeDiff <= 100); 
+
+
+      response = IManageRequestHelper.PostFile(
+        query,
+        formBlob,
+        contentLength,
+        contentType
+      );
+
+      Logger.getInstance()
+      .info('iManageWrapper::PostDocument, response=' + response);
+    }
+
+    if (response.startsWith('{"error"'))
+    {
+      Logger.getInstance()
+      .info('iManageWrapper::PostDocument retry2');
+
+      Long timeDiff = 0;
+      DateTime firstTime = System.now();
+      do {
+          timeDiff = System.now().getTime() - firstTime.getTime();
+      }
+      while(timeDiff <= 100); 
+
 
       response = IManageRequestHelper.PostFile(
         query,
