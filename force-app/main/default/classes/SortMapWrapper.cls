@@ -1,13 +1,13 @@
 public with sharing class SortMapWrapper implements Comparable
 {
     public String SortField;
-    public String SorfDirection;
+    public String SortDirection;
     public Map<String, Object> M;
 
-    public SortMapWrapper(String sortField, String sorfDirection, Map<String, Object> m)
+    public SortMapWrapper(String sortField, String sortDirection, Map<String, Object> m)
     {
         this.SortField = sortField;
-        this.SorfDirection = sorfDirection;
+        this.SortDirection = sortDirection;
         this.M = m;
     }
 
@@ -26,7 +26,7 @@ public with sharing class SortMapWrapper implements Comparable
         else
             result = -1;
             
-        if (SorfDirection != 'asc')
+        if (SortDirection != 'asc')
             result = -result;
 
         return result;

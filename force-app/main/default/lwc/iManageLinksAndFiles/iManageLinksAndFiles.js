@@ -55,6 +55,10 @@ export default class IManageLinksAndFiles extends LightningElement {
   allowSaveIManageDocAsLink = false;
   allowSaveIManageFolderAsLink = false;
 
+  docsCurrentPage = 0;
+  docsSortField = "id";
+  docsSortDirection = "asc";
+
   @track docsGridData = [];
   @track foldersGridData = [];
 
@@ -222,20 +226,26 @@ export default class IManageLinksAndFiles extends LightningElement {
     );
   }
 
-  loadDocsData() {
-    this.docsPaging = new IManageLinksAndFilesPaging(this.recordId, PAGE_SIZE);
+  loadDocsData(forSort) {
 
     this.loading = true;
-    Promise.all([this.docsPaging.getTotalRecords(), this.docsPaging.loadPage(0)])
-      .then(([totalRecords, { data, hasNext }]) => {
-        this.docsRecordsCount = totalRecords;
 
-        this.docsGridData = [...data];
-        this.docsHasNextPage = hasNext;
-        this.writeDebug(
-          "IManageLinksAndFiles.docsGridData:",
-          JSON.parse(JSON.stringify(this.docsGridData))
-        );
+    let size = forSort ? this.docsGridData.length : PAGE_SIZE;
+
+    Promise.all([getFilesAndLinksPaged({
+      parentId: this._recordId,  
+      size: size,
+      skip: 0,
+      sortField: this.getDocsSortField(),
+      sortDirection: this.docsSortDirection })])
+      .then(([filesAndLinksPaged]) => {
+        console.debug("loadDocsData response:");
+        console.debug(filesAndLinksPaged);
+
+        this.docsGridData = filesAndLinksPaged.Data;
+        this.docsHasNextPage = filesAndLinksPaged.HasNext;
+        this.docsRecordsCount = filesAndLinksPaged.Total;
+        this.docsCurrentPage = 0;
       })
       .catch((err) => this.handleErrors(err))
       .finally(() => {
@@ -278,6 +288,19 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   get foldersNextButtonVisible() {
     return this.foldersHasNextPage;
+  }
+
+  onDocsSort(e) {
+    this.docsSortField = e.detail.fieldName;
+    this.docsSortDirection = e.detail.sortDirection;
+    this.loadDocsData(true) 
+  }
+
+  getDocsSortField()
+  {
+    if (this.docsSortField === "fileUrl")
+      return "fileUrlLabel"
+    return this.docsSortField;
   }
 
   onDocsRowClick(e) {
@@ -399,15 +422,21 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   docsLoadNextPage() {
     this.loading = true;
-    this.docsPaging
-      .loadNext()
-      .then(({ data, hasNext }) => {
-        this.docsGridData = [...this.docsGridData, ...data];
-        this.docsHasNextPage = hasNext;
-        this.writeDebug(
-          "IManageLinksAndFiles.docsGridData:",
-          JSON.parse(JSON.stringify(this.docsGridData))
-        );
+
+    Promise.all([getFilesAndLinksPaged({
+      parentId: this._recordId,
+      size: PAGE_SIZE,
+      skip: (this.docsCurrentPage  + 1) * PAGE_SIZE , 
+      sortField: this.getDocsSortField(),
+      sortDirection: this.docsSortDirection })])
+      .then(([filesAndLinksPaged]) => {
+        console.debug("docsLoadNextPage response:");
+        console.debug(filesAndLinksPaged);
+
+        this.docsGridData = [...this.docsGridData, ...filesAndLinksPaged.Data];
+        this.docsHasNextPage = filesAndLinksPaged.HasNext;
+        this.docsRecordsCount = filesAndLinksPaged.Total;
+        this.docsCurrentPage++;
       })
       .catch((err) => this.handleErrors(err))
       .finally(() => {

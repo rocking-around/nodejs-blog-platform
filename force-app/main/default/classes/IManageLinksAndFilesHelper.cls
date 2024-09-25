@@ -60,7 +60,7 @@ public with sharing class IManageLinksAndFilesHelper {
     Integer size,
     Integer skip,
     String sortField,
-    String sorfDirection
+    String sortDirection
   )
   {
 
@@ -69,7 +69,7 @@ public with sharing class IManageLinksAndFilesHelper {
       'size' => size,
       'skip' => skip,
       'sortField' => sortField,
-      'sorfDirection' => sorfDirection
+      'sortDirection' => sortDirection
     };
 
     Logger.getInstance()
@@ -120,19 +120,23 @@ public with sharing class IManageLinksAndFilesHelper {
         }
 
         Map<String, Object> item = new Map<String, Object>{
-          'Id' => o.ContentDocumentId,
-          'Title' => o.ContentDocument.title,
-          'LinkedEntityId' => o.LinkedEntityId,
-          'FileExtension' => o.ContentDocument.FileExtension,
-          'Name' => metadata?.get('Name'),
-          'Document_Version__c' => metadata?.get('Document_Version__c'),
-          'DocNumber__c' => metadata?.get('DocNumber__c'),
-          'Document_Class__c' => metadata?.get('Document_Class__c'),
-          'Document_SubClass__c' => metadata?.get('Document_SubClass__c'),
-          'Document_Author__c' => metadata?.get('Document_Author__c)')
+          'id' => o.ContentDocumentId,
+          'fileName' => o.ContentDocument.title,
+          'lastModifiedDate' => o.ContentDocument.LastModifiedDate,
+          'isInIManage' => false,
+          'isNotInIManage' => true,
+          'fileUrl' => '/lightning/r/ContentDocument/' + o.ContentDocumentId +'/view',
+          'fileUrlLabel' =>  o.ContentDocument.title + (o.ContentDocument.FileExtension != '' ? '.' + o.ContentDocument.FileExtension : ''),
+          'preview' => true,
+          'metadataName' => metadata?.get('Name'),
+          'metadataVersion' => metadata?.get('Document_Version__c'),
+          'metadataDocumentNumber' => metadata?.get('DocNumber__c'),
+          'metadataDocumentClass' => metadata?.get('Document_Class__c'),
+          'metadataDocumentSubClass' => metadata?.get('Document_SubClass__c'),
+          'metadataDocumentAuthor' => metadata?.get('Document_Author__c)')
         };
 
-        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sorfDirection, item);
+        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sortDirection, item);
 
         allItems.add(wrapItem);
       }
@@ -164,19 +168,23 @@ public with sharing class IManageLinksAndFilesHelper {
         }
         
         Map<String, Object> item = new Map<String, Object>{
-          'Id' => o.Id,
-          'Title' => o.Name,
-          'LinkedEntityId' => o.ParentId__c,
-          'FileLink' => o.File_Link__c,
-          'Name' => metadata?.get('Name'),
-          'Document_Version__c' => metadata?.get('Document_Version__c'),
-          'DocNumber__c' => metadata?.get('DocNumber__c'),
-          'Document_Class__c' => metadata?.get('Document_Class__c'),
-          'Document_SubClass__c' => metadata?.get('Document_SubClass__c'),
-          'Document_Author__c' => metadata?.get('Document_Author__c)')
+          'id' => o.Id,
+          'fileName' => o.Name,
+          'lastModifiedDate' => o.LastModifiedDate,
+          'isInIManage' => true,
+          'isNotInIManage' => false,
+          'fileUrl' => o.File_Link__c,
+          'fileUrlLabel' => o.Name,
+          'preview' => false,
+          'metadataName' => metadata?.get('Name'),
+          'metadataVersion' => metadata?.get('Document_Version__c'),
+          'metadataDocumentNumber' => metadata?.get('DocNumber__c'),
+          'metadataDocumentClass' => metadata?.get('Document_Class__c'),
+          'metadataDocumentSubClass' => metadata?.get('Document_SubClass__c'),
+          'metadataDocumentAuthor' => metadata?.get('Document_Author__c)')
         };
 
-        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sorfDirection, item);
+        SortMapWrapper wrapItem = new SortMapWrapper(sortField, sortDirection, item);
 
         allItems.add(wrapItem);
       }
@@ -196,6 +204,8 @@ public with sharing class IManageLinksAndFilesHelper {
             break;
       }
 
+      Boolean hasNext = skip + result.size() < allItems.size();
+
       Logger.getInstance()
       .info(
         'IManageLinksAndFilesHelper::getLinks, result: ' +
@@ -204,7 +214,7 @@ public with sharing class IManageLinksAndFilesHelper {
 
       Logger.getInstance().Flush();
   
-      return new GridData(result, allItems.size());
+      return new GridData(result, allItems.size(), hasNext);
     }  
      catch (Exception ex) {
       Logger.getInstance().error(ex, 'IManageLinksAndFilesHelper::getFilesAndLinksPaged');

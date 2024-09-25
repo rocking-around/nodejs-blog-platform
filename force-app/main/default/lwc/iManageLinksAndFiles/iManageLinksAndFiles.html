@@ -13,7 +13,7 @@
 
       <lightning-tabset>
         <template if:true={isDocumentsTabVisible}>
-          <lightning-tab label="Documents"  onactive={handleDocumentsTabActive}>
+          <lightning-tab label="Documents" onactive={handleDocumentsTabActive}>
             <div class="paging paging-top">
               <span>Total records: {docsRecordsCount}</span>
               <!-- <lightning-button-icon icon-name="utility:chevronleft"  alternative-text="Previous" title="Previous" onclick={loadPreviousPage}></lightning-button-icon> -->
@@ -60,6 +60,9 @@
                 show-row-number-column
                 columns={docsGridColumns}
                 onrowaction={onDocsRowClick}
+                sorted-by={docsSortField}
+                sorted-direction={docsSortDirection}
+                onsort={onDocsSort}
               >
               </c-i-manage-links-and-files-datatable>
               <template if:true={isDocsGridDataEmpty}>

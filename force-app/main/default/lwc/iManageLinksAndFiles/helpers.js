@@ -18,46 +18,53 @@ export const DOCS_COLUMNS_DEFINITION = [
       label: { fieldName: "fileUrlLabel" },
       preview: { fieldName: "preview" },
       id: { fieldName: "id" }
-    }
+    },
+    sortable: true
   },
   {
     fieldName: "metadataName",
     label: "iManage Name",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    sortable: true
   },
   {
     fieldName: "metadataDocumentClass",
     label: "iManage Class",
     wrapText: true,
     hideDefaultActions: true,
-    initialWidth: 105
+    initialWidth: 105,
+    sortable: true
   },
   {
     fieldName: "metadataDocumentSubClass",
     label: "iManage SubClass",
     wrapText: true,
     hideDefaultActions: true,
-    initialWidth: 130
+    initialWidth: 130,
+    sortable: true
   },
   {
     fieldName: "metadataDocumentNumber",
     label: "Number",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    sortable: true
   },
   {
     fieldName: "metadataVersion",
     label: "Version",
     wrapText: true,
     hideDefaultActions: true,
-    initialWidth: 70
+    initialWidth: 70,
+    sortable: true
   },
   {
     fieldName: "metadataDocumentAuthor",
     label: "Author",
     wrapText: true,
-    hideDefaultActions: true
+    hideDefaultActions: true,
+    sortable: true
   },
   {
     type: "boolean",
@@ -65,7 +72,8 @@ export const DOCS_COLUMNS_DEFINITION = [
     label: "Link",
     wrapText: true,
     hideDefaultActions: true,
-    initialWidth: 55
+    initialWidth: 55,
+    sortable: true
   }
 ];
 
