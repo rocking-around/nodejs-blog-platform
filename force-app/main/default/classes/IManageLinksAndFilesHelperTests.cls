@@ -137,31 +137,27 @@ private class IManageLinksAndFilesHelperTests {
     
     Test.startTest();
       GridData result = IManageLinksAndFilesHelper.getFilesAndLinksPaged(
-        opp.Id, 2, 1, 'DocNumber__c', 'asc');
+        opp.Id, 2, 1, 'metadataDocumentNumber', 'asc');
     Test.stopTest();
 
     System.assertEquals(2, result.Data.size(), 'Wrong files count');
     System.assertEquals(4, result.Total, 'Wrong files total');
 
     Map<String, Object> item1 = result.Data[0];
-    System.assertEquals(contentVersion.ContentDocumentId, item1.get('Id'), 'Wrong Id');
-    System.assertEquals('Test', item1.get('Title'), 'Wrong Title');
-    System.assertEquals(opp.Id, item1.get('LinkedEntityId'), 'Wrong LinkedEntityId');
-    System.assertEquals(fileExt, item1.get('FileExtension'), 'Wrong FileExtension');
-    System.assertEquals(mName, item1.get('Name'), 'Wrong Name');
-    System.assertEquals(mDocNumber, item1.get('DocNumber__c'), 'Wrong DocNumber__c');
-    System.assertEquals(mDocClass, item1.get('Document_Class__c'), 'Wrong Document_Class__c');
-    System.assertEquals(mDocSubClass, item1.get('Document_SubClass__c'), 'Wrong Document_SubClass__c');
+    System.assertEquals(contentVersion.ContentDocumentId, item1.get('id'), 'Wrong id');
+    System.assertEquals('Test', item1.get('fileName'), 'Wrong fileName');
+    System.assertEquals(mName, item1.get('metadataName'), 'Wrong metadataName');
+    System.assertEquals(mDocNumber, item1.get('metadataDocumentNumber'), 'Wrong metadataDocumentNumber');
+    System.assertEquals(mDocClass, item1.get('metadataDocumentClass'), 'Wrong metadataDocumentClass');
+    System.assertEquals(mDocSubClass, item1.get('metadataDocumentSubClass'), 'Wrong metadataDocumentSubClass');
     //System.assertEquals(mAuthor, item1.get('Document_Author__c'), 'Wrong Document_Author__c');
 
     Map<String, Object> item2 = result.Data[1];
-    System.assertEquals(fileLink.Id, item2.get('Id'), 'Wrong Id');
-    System.assertEquals(fileLinkUrl, item2.get('FileLink'), 'Wrong FileLink');
-    System.assertEquals(opp.Id, item2.get('LinkedEntityId'), 'Wrong LinkedEntityId');
-    System.assertEquals(mName2, item2.get('Name'), 'Wrong Name');
-    System.assertEquals(mDocNumber2, item2.get('DocNumber__c'), 'Wrong DocNumber__c');
-    System.assertEquals(mDocClass2, item2.get('Document_Class__c'), 'Wrong Document_Class__c');
-    System.assertEquals(mDocSubClass2, item2.get('Document_SubClass__c'), 'Wrong Document_SubClass__c');
+    System.assertEquals(fileLink.Id, item2.get('id'), 'Wrong id');
+    System.assertEquals(mName, item1.get('metadataName'), 'Wrong metadataName');
+    System.assertEquals(mDocNumber, item1.get('metadataDocumentNumber'), 'Wrong metadataDocumentNumber');
+    System.assertEquals(mDocClass, item1.get('metadataDocumentClass'), 'Wrong metadataDocumentClass');
+    System.assertEquals(mDocSubClass, item1.get('metadataDocumentSubClass'), 'Wrong metadataDocumentSubClass');
     //System.assertEquals(mAuthor2, item2.get('Document_Author__c'), 'Wrong Document_Author__c');
   }
 
