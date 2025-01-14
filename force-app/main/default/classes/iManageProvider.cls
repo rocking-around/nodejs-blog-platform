@@ -113,6 +113,9 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         IManageResponse.class
       );
 
+      Logger.getInstance()
+      .info('iManageProvider::handleCallback');
+
       return new Auth.AuthProviderTokenResponse(
         'iManageProvider',
         response.access_token,
@@ -120,10 +123,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         sfdcState
       );
     } catch (Exception ex) {
-      // Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
-      throw ex;
+       Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
+      throw new AuraHandledException(ex.getMessage());
     } finally {
-      // Logger.getInstance().Flush();
+       Logger.getInstance().Flush();
     }
   }
 
@@ -142,6 +145,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     //     'iManageProvider::getUserInfo, start method. Params: ' +
     //     JSON.serialize(params)
     //   );
+
+    String locale, loginURL;
+    locale = 'en-us';
+    loginURL = authProviderConfiguration.get(PREFIX + 'Login_URL__c');
 
     try {
       userInfoUrl = authProviderConfiguration.get(PREFIX + 'User_Info_URL__c');
@@ -163,10 +170,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
 
       String[] names = infoApiResponse.data.user.name.split(' ');
 
-      String userId, fullName, firstName, lastName, locale, loginURL, email;
-
-      locale = 'en-us';
-      loginURL = authProviderConfiguration.get(PREFIX + 'Login_URL__c');
+      String userId, fullName, firstName, lastName, email;
 
       userId = infoApiResponse.data.user.id;
       fullName = infoApiResponse.data.user.name;
@@ -175,6 +179,8 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         firstName = names[0];
         lastName = names[1];
       }
+
+      Logger.getInstance().info('iManageProvider::getUserInfo');
 
       return new Auth.UserData(
         userId,
@@ -190,10 +196,27 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         null
       );
     } catch (Exception ex) {
-      // Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
-      throw ex;
+        Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
+        String msg;
+        msg = ex.getMessage();
+        if (msg.length() > 50)
+        msg = msg.substring(0, 50);
+        
+        return new Auth.UserData(
+          'User',
+          'Test',
+          'Test',
+          msg,
+          '',
+          null,
+          '1',
+          locale,
+          'iManage',
+          loginURL,
+          null
+        );
     } finally {
-      // Logger.getInstance().Flush();
+       Logger.getInstance().Flush();
     }
   }
 
