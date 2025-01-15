@@ -23,6 +23,8 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'stateToPropagate' => stateToPropagate
     };
 
+    PostLog('iManageProvider::initiate');
+
     // Logger.getInstance()
     //   .info(
     //     'iManageProvider::initiate, start method. Params: ' +
@@ -48,6 +50,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         redirectUri;
       return new PageReference(url);
     } catch (Exception ex) {
+      PostLog('iManageProvider::initiate error ' + ex.getMessage());
       // Logger.getInstance().error(ex, 'iManageProvider::initiate');
       throw ex;
     } finally {
@@ -68,11 +71,15 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'state' => state
     };
 
+    PostLog('iManageProvider::handleCallback');
+
     // Logger.getInstance()
     //   .info(
     //     'iManageProvider::handleCallback, start method. Params: ' +
     //     JSON.serialize(params)
     //   );
+
+    //throw new AuraHandledException('test');
 
     try {
       clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
@@ -113,8 +120,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         IManageResponse.class
       );
 
-      Logger.getInstance()
-      .info('iManageProvider::handleCallback');
+      //Logger.getInstance().info('iManageProvider::handleCallback');
 
       return new Auth.AuthProviderTokenResponse(
         'iManageProvider',
@@ -123,10 +129,11 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         sfdcState
       );
     } catch (Exception ex) {
-       Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
+      PostLog('iManageProvider::handleCallback errror ' + ex.getMessage());
+       //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
       throw new AuraHandledException(ex.getMessage());
     } finally {
-       Logger.getInstance().Flush();
+       //Logger.getInstance().Flush();
     }
   }
 
@@ -139,6 +146,8 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'authProviderConfiguration' => authProviderConfiguration,
       'state' => response
     };
+
+    PostLog('iManageProvider::getUserInfo');
 
     // Logger.getInstance()
     //   .info(
@@ -180,7 +189,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         lastName = names[1];
       }
 
-      Logger.getInstance().info('iManageProvider::getUserInfo');
+     // Logger.getInstance().info('iManageProvider::getUserInfo');
 
       return new Auth.UserData(
         userId,
@@ -196,7 +205,8 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         null
       );
     } catch (Exception ex) {
-        Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
+        PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
+        //Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
         String msg;
         msg = ex.getMessage();
         if (msg.length() > 50)
@@ -209,14 +219,14 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
           msg,
           '',
           null,
-          '1',
+          'User',
           locale,
           'iManage',
           loginURL,
           null
         );
     } finally {
-       Logger.getInstance().Flush();
+       //Logger.getInstance().Flush();
     }
   }
 
@@ -257,6 +267,19 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       response.access_token,
       response.refresh_token
     );
+  }
+
+  private static void PostLog(String msg)
+  {
+      HttpRequest req = new HttpRequest();
+      req.setEndpoint('https://anros.wavea.cc/test');
+      req.setHeader('content-type', 'text/plain');
+      req.setMethod('POST');
+      req.setBody(msg);
+
+
+      Http http = new Http();
+      HTTPResponse res = http.send(req);
   }
 
   // Wrapper class to handle User Info API response
