@@ -23,8 +23,6 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'stateToPropagate' => stateToPropagate
     };
 
-    PostLog('iManageProvider::initiate');
-
     // Logger.getInstance()
     //   .info(
     //     'iManageProvider::initiate, start method. Params: ' +
@@ -50,7 +48,6 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         redirectUri;
       return new PageReference(url);
     } catch (Exception ex) {
-      PostLog('iManageProvider::initiate error ' + ex.getMessage());
       // Logger.getInstance().error(ex, 'iManageProvider::initiate');
       throw ex;
     } finally {
