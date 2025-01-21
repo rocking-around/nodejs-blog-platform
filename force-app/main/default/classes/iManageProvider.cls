@@ -97,38 +97,48 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       req.setEndpoint(accessTokenUrl);
       req.setHeader('content-type', 'application/x-www-form-urlencoded');
       req.setMethod('POST');
-      req.setBody(
-        'client_id=' +
+      String body = 'client_id=' +
         EncodingUtil.urlEncode(clientId, 'UTF-8') +
         '&client_secret=' +
         EncodingUtil.urlEncode(clientSecret, 'UTF-8') +
         '&grant_type=authorization_code&code=' +
         EncodingUtil.urlEncode(code, 'UTF-8') +
         '&redirect_uri=' +
-        EncodingUtil.urlEncode(redirectUri, 'UTF-8')
-      );
+        EncodingUtil.urlEncode(redirectUri, 'UTF-8');
+      req.setBody(body);
 
       Http http = new Http();
-      HTTPResponse res = http.send(req);
-      String responseBody = res.getBody();
+      HTTPResponse res; 
+      try
+      {
+        res = http.send(req);
 
-      IManageResponse response = (IManageResponse) JSON.deserialize(
-        responseBody,
-        IManageResponse.class
-      );
+        String responseBody = res.getBody();
+        IManageResponse response = (IManageResponse) JSON.deserialize(
+          responseBody,
+          IManageResponse.class
+        );
 
-      //Logger.getInstance().info('iManageProvider::handleCallback');
+        //Logger.getInstance().info('iManageProvider::handleCallback');
 
-      return new Auth.AuthProviderTokenResponse(
-        'iManageProvider',
-        response.access_token,
-        response.refresh_token,
-        sfdcState
-      );
-    } catch (Exception ex) {
-      PostLog('iManageProvider::handleCallback errror ' + ex.getMessage());
+        return new Auth.AuthProviderTokenResponse(
+          'iManageProvider',
+          response.access_token,
+          response.refresh_token,
+          sfdcState
+        );
+      }
+      catch (Exception ex) 
+      {
+        String mgs = 'Message:' + ex.getMessage() + ' StackTrace: ' + ex.getStackTraceString() +
+          ' Url: ' + accessTokenUrl + ' Body: ' + body;
+          PostLog('iManageProvider::handleCallback errror ' + mgs);
+          throw ex;
+      }
+    } catch (Exception ex1) {
+      PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
        //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
-      throw new AuraHandledException(ex.getMessage());
+      throw new AuraHandledException(ex1.getMessage());
     } finally {
        //Logger.getInstance().Flush();
     }
