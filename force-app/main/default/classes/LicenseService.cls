@@ -112,14 +112,20 @@ global with sharing class LicenseService {
       );
 
     try {
-      Integer countUsers = [
+      Integer countUsersSalesforce = [
         SELECT COUNT()
         FROM User
-        WHERE
-          IsActive = TRUE
-          AND (NOT Username LIKE 'cloud@%')
-          AND (NOT Username LIKE 'autoproc@%')
+        WHERE Profile.UserLicense.Name = 'Salesforce' AND IsActive = true
       ];
+
+      Integer countUsersSalesforcePlatform = [
+        SELECT COUNT()
+        FROM User
+        WHERE Profile.UserLicense.Name = 'Salesforce Platform' AND IsActive = true
+      ];
+
+      Integer countUsers = countUsersSalesforce + countUsersSalesforcePlatform;
+
       Organization org = [
         SELECT
           Id,
