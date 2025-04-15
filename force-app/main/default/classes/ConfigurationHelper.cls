@@ -293,6 +293,80 @@ public with sharing class ConfigurationHelper {
   }
 
   @AuraEnabled
+  public static Map<String, Object> getFolderSettings() {
+    Logger.getInstance()
+      .info('ConfigurationHelper::getFolderSettings, start method');
+
+    try {
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+
+      Map<String, Object> result = new Map<String, Object>{
+        'DefaultFolderId' => settings?.iManage_Default_Folder_Id__c,
+        'FolderClass' => settings?.iManage_Default_Folder_Class__c
+      };
+
+      Logger.getInstance()
+        .info(
+          'ConfigurationHelper::getFolderSettings, result: ' +
+          JSON.serialize(result)
+        );
+      return result;
+    } catch (Exception ex) {
+      Logger.getInstance().error(ex, 'ConfigurationHelper::getFolderSettings');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  @AuraEnabled
+  public static void saveFolderSettings(String folderPath, String defaultClass) {
+    Map<String, Object> params = new Map<String, Object>{
+      'folderPath' => folderPath,
+      'defaultClass' => defaultClass
+    };
+    Logger.getInstance()
+      .info(
+        'ConfigurationHelper::saveManualIManageDefaultFolderPath, start method. Params: ' +
+        JSON.serialize(params)
+      );
+
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      if (!IsFolderPathCorrect(folderPath)) {
+        System.debug(
+          'saveManualIManageDefaultFolderPath. The path is incorrect: ' +
+          folderPath
+        );
+        throw IManageBaseHelper.BuildException(
+          IManageBaseHelper.IManageErrors.INCORRECT_FOLDER_NAME
+        );
+      }
+
+      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
+      settings.iManage_Default_Folder_Id__c = folderPath;
+      settings.iManage_Default_Folder_Class__c = defaultClass;
+
+      upsert settings;
+      System.debug(
+        'saveManualIManageDefaultFolderPath. Saved: ' + JSON.serialize(settings)
+      );
+    } catch (AuraHandledException ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::saveManualIManageDefaultFolderPath');
+      throw ex;
+    } catch (Exception ex) {
+      Logger.getInstance()
+        .error(ex, 'ConfigurationHelper::saveManualIManageDefaultFolderPath');
+      throw ex;
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
+  
+  @AuraEnabled
   public static String getIManageDefaultFolderId() {
     Logger.getInstance()
       .info('ConfigurationHelper::getIManageDefaultFolderId, start method');

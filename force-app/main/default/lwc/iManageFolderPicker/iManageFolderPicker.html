@@ -1,5 +1,5 @@
 <template>
-  <lightning-card title="iManage Folder Settings">
+  <lightning-card title="iManage Folder Settings 12">
     <div class="container">
       <template if:true={showSpinner}>
         <lightning-spinner
@@ -26,6 +26,18 @@
           disabled={pickBtnDisabled}
         ></lightning-button-icon>
       </div>
+    </div>
+    <div class="form">
+      <lightning-input
+        class="form-item"
+        type="text"
+        name="FolderClass"
+        label="Class/Document Type"
+        disabled={saving}
+        value={folderClassViewValue}
+        onchange={onFolderClassChanged}
+      >
+      </lightning-input>
     </div>
     <div slot="actions">
       <template if:true={isChanged}>

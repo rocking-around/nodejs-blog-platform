@@ -6,8 +6,10 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import saveManualIManageDefaultFolderPath from "@salesforce/apex/ConfigurationHelper.saveManualIManageDefaultFolderPath";
 import getIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.getIManageDefaultFolderId";
+import getFolderSettings from "@salesforce/apex/ConfigurationHelper.getFolderSettings";
 import saveIManageDefaultFolderId from "@salesforce/apex/ConfigurationHelper.saveIManageDefaultFolderId";
 import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
+import saveFolderSettings from "@salesforce/apex/ConfigurationHelper.saveFolderSettings";
 
 export default class IManageFolderPicker extends LightningElement {
   saving = false;
@@ -16,7 +18,9 @@ export default class IManageFolderPicker extends LightningElement {
 
   iManageApiInitialized = false;
   folderId = undefined;
+  folderClass = undefined;
   folderIdEdit = undefined;
+  folderClassEdit = undefined;
   pickBtnDisabled = false;
 
   async connectedCallback() {
@@ -46,7 +50,12 @@ export default class IManageFolderPicker extends LightningElement {
   async loadData() {
     try {
       this.showSpinner = true;
-      this.folderId = await getIManageDefaultFolderId();
+      //this.folderId = await getIManageDefaultFolderId();
+
+      let folderSettings = await getFolderSettings();
+      this.folderId = folderSettings.DefaultFolderId;
+      this.folderClass = folderSettings.FolderClass;
+
       this.resetEdit();
     } catch (error) {
       this.handleErrors(error);
@@ -101,13 +110,32 @@ export default class IManageFolderPicker extends LightningElement {
 
   onFolderIdChanged(e) {
     const { value } = e.detail;
+    if (!this.folderClassEdit)
+      this.folderClassEdit = this.folderClass;
 
     this.folderIdEdit = value;
 
-    if (this.folderId !== this.folderIdEdit && !this.isChanged) {
+    this.checkChanges();
+  }
+
+  onFolderClassChanged(e)
+  {
+    const { value } = e.detail;
+    if (!this.folderIdEdit)
+      this.folderIdEdit = this.folderId;
+
+
+    this.folderClassEdit =  value;
+
+    this.checkChanges();
+  }
+
+  checkChanges()
+  {
+    if ((this.folderId !== this.folderIdEdit || this.folderClass !== this.folderClassEdit) &&  !this.isChanged) {
       this.isChanged = true;
     }
-    if (this.folderId === this.folderIdEdit && this.isChanged) {
+    if (this.folderId === this.folderIdEdit && this.folderClass === this.folderClassEdit && this.isChanged) {
       this.isChanged = false;
     }
   }
@@ -128,8 +156,9 @@ export default class IManageFolderPicker extends LightningElement {
       this.saving = true;
       this.pickBtnDisabled = true;
 
-      await saveManualIManageDefaultFolderPath({
-        folderPath: this.folderIdEdit
+      await saveFolderSettings({
+        folderPath: this.folderIdEdit,
+        defaultClass: this.folderClassEdit
       });
 
       this.dispatchEvent(
@@ -167,6 +196,7 @@ export default class IManageFolderPicker extends LightningElement {
 
   resetEdit() {
     this.folderIdEdit = undefined;
+    this.folderClassEdit = undefined;
     this.isChanged = false;
   }
 
@@ -176,5 +206,9 @@ export default class IManageFolderPicker extends LightningElement {
 
   get folderIdViewValue() {
     return this.isChanged ? this.folderIdEdit : this.folderId;
+  }
+
+  get folderClassViewValue() {
+    return this.isChanged ? this.folderClassEdit : this.folderClass;
   }
 }
