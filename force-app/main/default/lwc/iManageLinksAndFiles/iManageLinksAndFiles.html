@@ -42,13 +42,15 @@
                   ></lightning-button>
                 </template>
               
-              <lightning-button-icon
-                icon-name="utility:settings"
-                alternative-text="Settings"
-                title="Settings"
-                onclick={showModalBox}
-              >
-              </lightning-button-icon>
+              <template if:false={simplifiedMode}>
+                <lightning-button-icon
+                  icon-name="utility:settings"
+                  alternative-text="Settings"
+                  title="Settings"
+                  onclick={showModalBox}
+                >
+                </lightning-button-icon>
+              </template>
             </div>
             </div>
             <div class="grid">

@@ -55,6 +55,8 @@ export default class IManageLinksAndFiles extends LightningElement {
   allowSaveIManageDocAsLink = false;
   allowSaveIManageFolderAsLink = false;
 
+  simplifiedMode = false;
+
   docsCurrentPage = 0;
   docsSortField = "id";
   docsSortDirection = "asc";
@@ -67,8 +69,8 @@ export default class IManageLinksAndFiles extends LightningElement {
     this._recordId = value;
     this.writeDebug(`IManageLinksAndFiles. Set recordId: ${this._recordId}`);
     this.checkSettings(
-      () => {},// this.loadData(),
-      () => this.showNotConfiguredMessage()
+      () => {  },// this.loadData(),
+      () => { this.setSimplifiedMode(); }  // this.showNotConfiguredMessage()
     );
   }
   get recordId() {
@@ -91,6 +93,7 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   async connectedCallback() {
+
 
     console.debug('IManageLinksAndFiles:connectedCallback');
 
@@ -154,6 +157,9 @@ export default class IManageLinksAndFiles extends LightningElement {
         }
       ]
     ];
+
+    if (this.simplifiedMode)
+      this.setSimplifiedMode();
   }
 
   getRowActions(row, callback) {
@@ -214,6 +220,18 @@ export default class IManageLinksAndFiles extends LightningElement {
     } catch (error) {
       this.handleErrors(error);
     }
+  }
+
+  setSimplifiedMode() {
+    const colums = ["metadataName", "metadataDocumentNumber", "metadataVersion"];
+
+    this.docsGridColumns =  this.docsGridColumns.filter(
+      (item) =>
+        item.type === "action" || colums.includes(item.fieldName)
+    );
+
+    this.simplifiedMode = true;
+    this.allowSaveIManageDocAsCopy = false;
   }
 
   showNotConfiguredMessage() {
@@ -608,7 +626,7 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   get isFolderTabVisible() {
-    return this.allowSaveIManageFolderAsLink;
+    return this.allowSaveIManageFolderAsLink && !this.simplifiedMode;
   }
 
   handleFoldersTabActive() {
