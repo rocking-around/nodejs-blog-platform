@@ -68,10 +68,7 @@ export default class IManageLinksAndFiles extends LightningElement {
   @api set recordId(value) {
     this._recordId = value;
     this.writeDebug(`IManageLinksAndFiles. Set recordId: ${this._recordId}`);
-    this.checkSettings(
-      () => {  },// this.loadData(),
-      () => { this.setSimplifiedMode(); }  // this.showNotConfiguredMessage()
-    );
+
   }
   get recordId() {
     return this._recordId;
@@ -158,8 +155,11 @@ export default class IManageLinksAndFiles extends LightningElement {
       ]
     ];
 
-    if (this.simplifiedMode)
-      this.setSimplifiedMode();
+    console.debug('IManageLinksAndFiles: check settings');
+    this.checkSettings(
+      () => { console.debug('IManageLinksAndFiles: normal mode'); },// this.loadData(),
+      () => { this.setSimplifiedMode(); }  // this.showNotConfiguredMessage()
+    );
   }
 
   getRowActions(row, callback) {
@@ -223,6 +223,9 @@ export default class IManageLinksAndFiles extends LightningElement {
   }
 
   setSimplifiedMode() {
+
+    console.debug('IManageLinksAndFiles: smplified mode');
+
     const colums = ["metadataName", "metadataDocumentNumber", "metadataVersion"];
 
     this.docsGridColumns =  this.docsGridColumns.filter(
