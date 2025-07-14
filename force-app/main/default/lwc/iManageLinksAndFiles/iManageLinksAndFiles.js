@@ -8,7 +8,7 @@ import iManageApi from "@salesforce/resourceUrl/iManageApi";
 
 import iManageDocumentsIFrame from "c/iManageDocumentsIFrame";
 import iManageFolderPickerIFrame from "c/iManageFolderPickerIFrame";
-import GetIFrameFilePicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePicker";
+import GetIFrameFilePickerForEntity from "@salesforce/apex/iManageIFrameDialog.GetIFrameFilePickerForEntity";
 import GetIFrameFolderPicker from "@salesforce/apex/iManageIFrameDialog.GetIFrameFolderPicker";
 import SaveLinkToSalesforce from "@salesforce/apex/iManageFileWorker.SaveLinkToSalesforce";
 import deleteLink from "@salesforce/apex/IManageLinksAndFilesHelper.deleteLink";
@@ -226,7 +226,7 @@ export default class IManageLinksAndFiles extends LightningElement {
 
     console.debug('IManageLinksAndFiles: smplified mode');
 
-    const colums = ["metadataName", "metadataDocumentNumber", "metadataVersion"];
+    const colums = ["fileUrl", "metadataDocumentNumber", "metadataVersion"];
 
     this.docsGridColumns =  this.docsGridColumns.filter(
       (item) =>
@@ -321,7 +321,7 @@ export default class IManageLinksAndFiles extends LightningElement {
   getDocsSortField()
   {
     if (this.docsSortField === "fileUrl")
-      return "fileUrlLabel"
+      return "metadataName"
     return this.docsSortField;
   }
 
@@ -357,7 +357,9 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async loadNewDocumentFromIManage() {
     try {
-      const url = await GetIFrameFilePicker();
+      const url = await GetIFrameFilePickerForEntity({
+        entityId: this.recordId
+      });
 
       const result = await iManageDocumentsIFrame.open({
         size: "large",
@@ -388,7 +390,9 @@ export default class IManageLinksAndFiles extends LightningElement {
 
   async loadNewLinkFromIManage() {
     try {
-      const url = await GetIFrameFilePicker();
+      const url = await GetIFrameFilePickerForEntity({
+        entityId: this.recordId
+      });
 
       const result = await iManageDocumentsIFrame.open({
         size: "large",

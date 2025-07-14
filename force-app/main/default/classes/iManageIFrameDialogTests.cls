@@ -182,6 +182,77 @@ private class iManageIFrameDialogTests {
     );
   }
 
+  // static testMethod void getIFrameFilePickerForEntityTest() {
+  //   iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+
+  //   // Mock responses
+  //   Integer customerId = 333;
+  //   List<HttpResponse> authResponses = new List<HttpResponse>();
+  //   authResponses.add(
+  //     iManageIFrameDialogTests.getMockAuthResponse(
+  //       200,
+  //       'not-authenticated',
+  //       customerId
+  //     )
+  //   );
+  //   authResponses.add(
+  //     iManageIFrameDialogTests.getMockAuthResponse(200, 'authenticated', 333)
+  //   );
+
+  //   String dialogToken = 'f42516d6-acca-4629-a8d3-be63776094ad';
+  //   List<HttpResponse> dialogTokenResponses = new List<HttpResponse>();
+  //   HttpResponse dialogTokenResponse = new HttpResponse();
+  //   dialogTokenResponse.setStatusCode(200);
+  //   dialogTokenResponse.setBody(
+  //     '{"data":{"dialog_token":"' +
+  //     dialogToken +
+  //     '"}}'
+  //   );
+  //   dialogTokenResponses.add(dialogTokenResponse);
+
+  //   List<HttpResponse> dialogTokenResponses2 = new List<HttpResponse>{
+  //     dialogTokenResponse
+  //   };
+
+  //   Organization org = [SELECT Id FROM Organization];
+  //   String orgId = String.valueOf(org.Id);
+  //   String licenseUrl = LicenseService.baseUrl + '/api/License/organization';
+
+  //   Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
+  //     'callout:iManageCreds/api' => authResponses,
+  //     'callout:iManageCreds/work/api/v2/customers/0/dialog-tokens' => dialogTokenResponses,
+  //     'callout:iManageCreds/work/api/v2/customers/' +
+  //     customerId +
+  //     '/dialog-tokens' => dialogTokenResponses2,
+  //     licenseUrl => new List<HttpResponse>{
+  //       TestUtils.getMockLicenseResponse(200, orgId),
+  //       TestUtils.getMockLicenseResponse(200, orgId),
+  //       TestUtils.getMockLicenseResponse(200, orgId)
+  //     }
+  //   };
+  //   HttpCalloutQueueMock.setTestMockResponse(responses);
+
+  //   Test.startTest();
+  //   String result = iManageIFrameDialog.GetIFrameFilePickerForEntity('a0L3i00000F8nv2EAB');
+  //   Test.stopTest();
+  //   String expectedResult =
+  //     mc.Url__c +
+  //     '/work/partner-apps/' +
+  //     mc.Client_Id__c +
+  //     '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+  //     EncodingUtil.urlEncode(dialogToken, 'UTF-8') +
+  //     '&mode=open&multiselect=true';
+  //   System.assert(
+  //     result == expectedResult,
+  //     'The IFrame FilePicker has wrong value = ' +
+  //     result +
+  //     ', expected = ' +
+  //     expectedResult
+  //   );
+  // }
+
+
+
   static testMethod void getIFrameFilePicker401Test() {
     Organization org = [SELECT Id FROM Organization];
     String orgId = String.valueOf(org.Id);

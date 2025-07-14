@@ -249,6 +249,24 @@ public with sharing class IManageMappingHelper {
 
     IManageMapping mapping = IManageMappingHelper.getMappingSettings();
 
+     if (!mapping.EntityType.equals(entityIdSObjName)) {
+          SObject recordRelated = null;
+          String soqlRelated = 'SELECT Id FROM litify_pm__Matter__c WHERE ID IN (SELECT litify_pm__Matter__c FROM ' + entityIdSObjName + ' WHERE Id = :entityId)';
+          try
+          {
+            recordRelated = Database.query(soqlRelated);
+          } 
+          catch (Exception ex) 
+          {
+          } 
+
+          if (recordRelated != null) {
+              entityId = recordRelated.Id;
+              entityIdSObjName = GetSObjectType(entityId);
+          }
+     }
+
+
     if (!mapping.EntityType.equals(entityIdSObjName)) {
       String errorMessage =
         'There is no mapping for the \'' +

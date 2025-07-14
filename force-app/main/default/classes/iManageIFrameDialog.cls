@@ -9,11 +9,11 @@ public class iManageIFrameDialog {
     try {
       String dialogUrl = GetDialogUrl(entityId);
       Logger.getInstance()
-        .info('iManageIFrameDialog::GetIFrameFilePicker, result=' + dialogUrl);
+        .info('iManageIFrameDialog::GetIFrameFolder, result=' + dialogUrl);
       return dialogUrl;
     } catch (IManageExceptions.IManageUnauthorizedException ex) {
       Logger.getInstance()
-        .error(ex, 'iManageIFrameDialog::GetIFrameFilePicker');
+        .error(ex, 'iManageIFrameDialog::GetIFrameFolder');
       throw IManageBaseHelper.BuildException(
         IManageBaseHelper.IManageErrors.UNAUTHORIZED
       );
@@ -89,6 +89,77 @@ public class iManageIFrameDialog {
       Logger.getInstance().Flush();
     }
   }
+
+  @AuraEnabled
+  public static String GetIFrameFilePickerForEntity(String entityId) {
+    Logger.getInstance()
+      .info('iManageIFrameDialog::GetIFrameFilePickerForEntity, start method');
+    // Check licensing
+    LicenseService.CheckOrganizationLicense();
+
+    try {
+      iManageWrapper.ApiInfo apiData = iManageWrapper.GetApiInfo();
+      iManageWrapper.iManageDialogToken dialogTokenResult = iManageWrapper.GetDialogToken(
+        apiData.customerId
+      );
+      iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+
+      String result =
+        mc.Url__c +
+        '/work/partner-apps/' +
+         EncodingUtil.urlEncode(mc.Client_Id__c, 'UTF-8') +
+        '/dialogs/file-picker/?protocol=postmessage&dialogToken=' +
+        EncodingUtil.urlEncode(dialogTokenResult.data.dialog_token, 'UTF-8') +
+        '&mode=open&multiselect=true';
+
+      IManageMappingHelper.IManageIFrameData link = null;
+      
+      try
+      { 
+        link = IManageMappingHelper.getMappingData(
+          entityId
+        );
+      }
+      catch (Exception ex) {
+      }
+
+      if (link == null || link.ClientId == null || link.MatterId == null)
+      {
+        Logger.getInstance()
+          .info('iManageIFrameDialog::GetIFrameFilePickerForEntity, result=' + result);
+        return result;
+      }
+
+      String workspaceId = iManageWorkspacesHelper.SearchWorkspace(
+        mc,
+        apiData,
+        link
+      );
+
+      if (workspaceId == null || workspaceId == '')
+      {
+        Logger.getInstance()
+          .info('iManageIFrameDialog::GetIFrameFilePickerForEntity, result=' + result);
+        return result;
+      }
+
+      result = result + '&start=' + EncodingUtil.urlEncode(workspaceId, 'UTF-8'); 
+
+      Logger.getInstance()
+          .info('iManageIFrameDialog::GetIFrameFilePickerForEntity, result=' + result);
+      return result;
+    
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
+      Logger.getInstance()
+        .error(ex, 'iManageIFrameDialog::GetIFrameFilePickerForEntity');
+      throw IManageBaseHelper.BuildException(
+        IManageBaseHelper.IManageErrors.UNAUTHORIZED
+      );
+    } finally {
+      Logger.getInstance().Flush();
+    }
+  }
+
 
   private static String GetDialogUrl(String entityId) {
     IManageMappingHelper.IManageIFrameData link = IManageMappingHelper.getMappingData(

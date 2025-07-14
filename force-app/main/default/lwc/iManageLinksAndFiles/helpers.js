@@ -8,24 +8,24 @@ export const ROW_ACTIONS = [
 
 export const DOCS_COLUMNS_DEFINITION = [
   {
-    type: "linkOrPreview",
-    fieldName: "fileUrl",
+    fieldName: "fileUrlLabel",
     label: "Salesforce Name",
+    wrapText: true,
+    hideDefaultActions: true,
+    sortable: true
+  },
+  {
+    fieldName: "fileUrl",
+    type: "linkOrPreview",
+    label: "iManage Name",
     wrapText: true,
     hideDefaultActions: true,
     typeAttributes: {
       target: "_blank",
-      label: { fieldName: "fileUrlLabel" },
+      label: { fieldName: "metadataName" },
       preview: { fieldName: "preview" },
       id: { fieldName: "id" }
     },
-    sortable: true
-  },
-  {
-    fieldName: "metadataName",
-    label: "iManage Name",
-    wrapText: true,
-    hideDefaultActions: true,
     sortable: true
   },
   {
