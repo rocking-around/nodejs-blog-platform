@@ -251,7 +251,13 @@ public with sharing class IManageMappingHelper {
 
      if (!mapping.EntityType.equals(entityIdSObjName)) {
           SObject recordRelated = null;
-          String soqlRelated = 'SELECT Id FROM litify_pm__Matter__c WHERE ID IN (SELECT litify_pm__Matter__c FROM ' + entityIdSObjName + ' WHERE Id = :entityId)';
+          String soqlRelated = 'SELECT Id FROM litify_pm__Matter__c WHERE ID IN (SELECT Matter__c FROM ' + entityIdSObjName + ' WHERE Id = :entityId)';
+          
+          Logger.getInstance()
+            .info(
+              logPrefix + ' SOQL: ' +  soqlRelated
+            );
+
           try
           {
             recordRelated = Database.query(soqlRelated);
