@@ -617,7 +617,7 @@ public with sharing class IManageLinksAndFilesHelper {
 
       iManageDocumentMetadata__c md = new iManageDocumentMetadata__c(
         EntityId__c = entityId,
-        Name = String.valueOf(metadata.get('name')),
+        Name = String.valueOf(metadata.get('name')).left(80),
         Document_Version__c = String.valueOf(metadata.get('version')),
         DocNumber__c = String.valueOf(metadata.get('document_number')),
         Document_Author__c = String.valueOf(metadata.get('author')),
