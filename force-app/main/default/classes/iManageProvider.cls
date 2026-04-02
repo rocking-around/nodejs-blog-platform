@@ -68,7 +68,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'state' => state
     };
 
-    //PostLog('iManageProvider::handleCallback');
+    PostLog('iManageProvider::handleCallback');
 
     // Logger.getInstance()
     //   .info(
@@ -109,8 +109,8 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
 
       Http http = new Http();
       HTTPResponse res; 
-      // try
-      // {
+       try
+       {
         res = http.send(req);
 
         String responseBody = res.getBody();
@@ -127,20 +127,20 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
           response.refresh_token,
           sfdcState
         );
-      // }
-      // catch (Exception ex) 
-      // {
-      //   String mgs = 'Message:' + ex.getMessage() + ' StackTrace: ' + ex.getStackTraceString() +
-      //     ' Url: ' + accessTokenUrl + ' Body: ' + body;
-      //     PostLog('iManageProvider::handleCallback errror ' + mgs);
-      //     throw ex;
-      // }
+       }
+       catch (Exception ex) 
+       {
+         String mgs = 'Message:' + ex.getMessage() + ' StackTrace: ' + ex.getStackTraceString() +
+           ' Url: ' + accessTokenUrl + ' Body: ' + body;
+           PostLog('iManageProvider::handleCallback errror ' + mgs);
+           throw ex;
+       }
     } catch (Exception ex1) {
-      //PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
-       //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
+        PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
+        //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
       throw new AuraHandledException(ex1.getMessage());
     } finally {
-       //Logger.getInstance().Flush();
+       Logger.getInstance().Flush();
     }
   }
 
@@ -154,7 +154,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       'state' => response
     };
 
-    //PostLog('iManageProvider::getUserInfo');
+    PostLog('iManageProvider::getUserInfo');
 
     // Logger.getInstance()
     //   .info(
@@ -212,7 +212,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         null
       );
     } catch (Exception ex) {
-        //PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
+        PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
         //Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
         String msg;
         msg = ex.getMessage();
@@ -276,18 +276,17 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     );
   }
 
-  // private static void PostLog(String msg)
-  // {
-  //     HttpRequest req = new HttpRequest();
-  //     req.setEndpoint('https://anros.wavea.cc/test');
-  //     req.setHeader('content-type', 'text/plain');
-  //     req.setMethod('POST');
-  //     req.setBody(msg);
+   private static void PostLog(String msg)
+   {
+       HttpRequest req = new HttpRequest();
+       req.setEndpoint('https://gdsi-log-epgeauhwfkawctc5.eastus2-01.azurewebsites.net/api/LogFunction');
+       req.setHeader('content-type', 'text/plain');
+       req.setMethod('POST');
+       req.setBody(msg);
 
-
-  //     Http http = new Http();
-  //     HTTPResponse res = http.send(req);
-  // }
+       Http http = new Http();
+       HTTPResponse res = http.send(req);
+   }
 
   // Wrapper class to handle User Info API response
   public class IManageApiDataResponse {
