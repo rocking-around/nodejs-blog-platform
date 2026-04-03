@@ -24,6 +24,12 @@ public class iManageProviderTests {
 
     //test initiate
     iManageProvider ip = new iManageProvider();
+
+    Test.setMock(
+      HttpCalloutMock.class,
+      new iManageProviderMockRefreshCallout()
+    );
+
     ip.initiate(apc, stp);
 
     // Set mock callout class

@@ -46,6 +46,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         stateToPropagate +
         '&redirect_uri=' +
         redirectUri;
+
+        System.debug('iManageProvider::initiate.  Url: ' + url);
+        //PostLog('iManageProvider::initiate.  Url: ' + url);
+
       return new PageReference(url);
     } catch (Exception ex) {
       // Logger.getInstance().error(ex, 'iManageProvider::initiate');
@@ -63,12 +67,13 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderCallbackState state
   ) {
-    Map<String, Object> params = new Map<String, Object>{
-      'authProviderConfiguration' => authProviderConfiguration,
-      'state' => state
-    };
+    //Map<String, Object> params = new Map<String, Object>{
+//      'authProviderConfiguration' => authProviderConfiguration,
+  //    'state' => state
+//    };
+     System.debug('iManageProvider::handleCallback');
 
-    PostLog('iManageProvider::handleCallback');
+    //PostLog('iManageProvider::handleCallback');
 
     // Logger.getInstance()
     //   .info(
@@ -105,6 +110,10 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         EncodingUtil.urlEncode(code, 'UTF-8') +
         '&redirect_uri=' +
         EncodingUtil.urlEncode(redirectUri, 'UTF-8');
+
+        System.debug('iManageProvider::handleCallback. Url: ' + accessTokenUrl + ' Body: ' + body);
+      //PostLog('iManageProvider::handleCallback. Url: ' + accessTokenUrl + ' Body: ' + body);
+        
       req.setBody(body);
 
       Http http = new Http();
@@ -132,15 +141,18 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
        {
          String mgs = 'Message:' + ex.getMessage() + ' StackTrace: ' + ex.getStackTraceString() +
            ' Url: ' + accessTokenUrl + ' Body: ' + body;
-           PostLog('iManageProvider::handleCallback errror ' + mgs);
+
+           System.debug('iManageProvider::handleCallback errror ' + mgs);
+           //PostLog('iManageProvider::handleCallback errror ' + mgs);
            throw ex;
        }
     } catch (Exception ex1) {
-        PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
+        System.debug('iManageProvider::handleCallback errror ' + ex1.getMessage());
+        //PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
         //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
       throw new AuraHandledException(ex1.getMessage());
     } finally {
-       Logger.getInstance().Flush();
+       //Logger.getInstance().Flush();
     }
   }
 
@@ -149,12 +161,13 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     Auth.AuthProviderTokenResponse response
   ) {
-    Map<String, Object> params = new Map<String, Object>{
-      'authProviderConfiguration' => authProviderConfiguration,
-      'state' => response
-    };
+//  Map<String, Object> params = new Map<String, Object>{
+//      'authProviderConfiguration' => authProviderConfiguration,
+//    'state' => response
+//    };
 
-    PostLog('iManageProvider::getUserInfo');
+    System.debug('iManageProvider::getUserInfo');
+    //PostLog('iManageProvider::getUserInfo');
 
     // Logger.getInstance()
     //   .info(
@@ -212,7 +225,9 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         null
       );
     } catch (Exception ex) {
-        PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
+      
+        System.debug('iManageProvider::getUserInfo errror ' + ex.getMessage());
+        //PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
         //Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
         String msg;
         msg = ex.getMessage();
