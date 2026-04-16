@@ -47,7 +47,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         '&redirect_uri=' +
         redirectUri;
 
-        System.debug('iManageProvider::initiate.  Url: ' + url);
+        System.debug(LoggingLevel.DEBUG,'iManageProvider::initiate.  Url: ' + url);
         //PostLog('iManageProvider::initiate.  Url: ' + url);
 
       return new PageReference(url);
@@ -71,7 +71,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
 //      'authProviderConfiguration' => authProviderConfiguration,
   //    'state' => state
 //    };
-     System.debug('iManageProvider::handleCallback');
+     System.debug(LoggingLevel.DEBUG, 'iManageProvider::handleCallback');
 
     //PostLog('iManageProvider::handleCallback');
 
@@ -111,7 +111,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
         '&redirect_uri=' +
         EncodingUtil.urlEncode(redirectUri, 'UTF-8');
 
-        System.debug('iManageProvider::handleCallback. Url: ' + accessTokenUrl + ' Body: ' + body);
+        System.debug(LoggingLevel.DEBUG, 'iManageProvider::handleCallback. Url: ' + accessTokenUrl + ' Body: ' + body);
       //PostLog('iManageProvider::handleCallback. Url: ' + accessTokenUrl + ' Body: ' + body);
         
       req.setBody(body);
@@ -142,12 +142,12 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
          String mgs = 'Message:' + ex.getMessage() + ' StackTrace: ' + ex.getStackTraceString() +
            ' Url: ' + accessTokenUrl + ' Body: ' + body;
 
-           System.debug('iManageProvider::handleCallback errror ' + mgs);
+           System.debug(LoggingLevel.DEBUG, 'iManageProvider::handleCallback errror ' + mgs);
            //PostLog('iManageProvider::handleCallback errror ' + mgs);
            throw ex;
        }
     } catch (Exception ex1) {
-        System.debug('iManageProvider::handleCallback errror ' + ex1.getMessage());
+        System.debug(LoggingLevel.DEBUG, 'iManageProvider::handleCallback errror ' + ex1.getMessage());
         //PostLog('iManageProvider::handleCallback errror ' + ex1.getMessage());
         //Logger.getInstance().error(ex, 'iManageProvider::handleCallback');
       throw new AuraHandledException(ex1.getMessage());
@@ -166,7 +166,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
 //    'state' => response
 //    };
 
-    System.debug('iManageProvider::getUserInfo');
+    System.debug(LoggingLevel.DEBUG, 'iManageProvider::getUserInfo');
     //PostLog('iManageProvider::getUserInfo');
 
     // Logger.getInstance()
@@ -226,7 +226,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
       );
     } catch (Exception ex) {
       
-        System.debug('iManageProvider::getUserInfo errror ' + ex.getMessage());
+        System.debug(LoggingLevel.DEBUG, 'iManageProvider::getUserInfo errror ' + ex.getMessage());
         //PostLog('iManageProvider::getUserInfo errror ' + ex.getMessage());
         //Logger.getInstance().error(ex, 'iManageProvider::getUserInfo');
         String msg;
@@ -256,7 +256,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Map<String, String> authProviderConfiguration,
     String refreshToken
   ) {
-    system.debug(authProviderConfiguration);
+    system.debug(LoggingLevel.DEBUG, authProviderConfiguration);
     clientId = authProviderConfiguration.get(PREFIX + 'Consumer_Key__c');
     clientSecret = authProviderConfiguration.get(PREFIX + 'Consumer_Secret__c');
     scope = authProviderConfiguration.get(PREFIX + 'Scope__c');
@@ -279,7 +279,7 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
     Http http = new Http();
     HTTPResponse res = http.send(req);
     String responseBody = res.getBody();
-    system.debug(responseBody);
+    system.debug(LoggingLevel.DEBUG, responseBody);
     IManageResponse response = (IManageResponse) JSON.deserialize(
       responseBody,
       IManageResponse.class
