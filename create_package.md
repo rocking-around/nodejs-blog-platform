@@ -18,6 +18,13 @@ new cli
 sfdx org create scratch  --definition-file config/project-scratch-def.json --duration-days 7 --alias iManageIntegrationPckg --username im.pckg.vers@gdsi-litify.com
 ```
 
+if The username provided to the org:create command is already in use.
+```
+sfdx force org list --clean
+```
+
+
+
 ### Push your changes to the Scratch Org
 
 old cli

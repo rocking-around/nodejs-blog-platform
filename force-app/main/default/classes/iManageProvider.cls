@@ -278,12 +278,36 @@ global class iManageProvider extends Auth.AuthProviderPluginClass {
 
     Http http = new Http();
     HTTPResponse res = http.send(req);
+
     String responseBody = res.getBody();
-    system.debug(LoggingLevel.DEBUG, responseBody);
+    Integer statusCode = res.getStatusCode();
+
+    System.debug(LoggingLevel.DEBUG, 'Refresh response: '  + responseBody);
+
+    if (statusCode != 200) {
+        System.debug(
+          LoggingLevel.ERROR,
+          'Token refresh failed. StatusCode: ' + statusCode
+        );
+
+        throw new Auth.AuthProviderPluginException(
+            'Token refresh failed. StatusCode: ' +
+            statusCode +
+            ' Body: ' +
+            responseBody
+        );
+    }
+    
     IManageResponse response = (IManageResponse) JSON.deserialize(
       responseBody,
       IManageResponse.class
     );
+
+     if (String.isBlank(response.access_token)) {
+        throw new Auth.AuthProviderPluginException(
+            'No access_token returned from refresh endpoint'
+        );
+    }
 
     return new Auth.OAuthRefreshResult(
       response.access_token,
