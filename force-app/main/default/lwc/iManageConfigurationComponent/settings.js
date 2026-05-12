@@ -105,7 +105,8 @@ export const defaultGeneralSettings = {
   "general:Client_Id": undefined,
   "general:ClientField": undefined,
   "general:Enable_CSV_Export": false,
-  "general:Verbose_Logging": false
+  "general:Verbose_Logging": false,
+  "general:Customer_Id": undefined
 };
 
 export const DEFAULT_IMANAGE_MAPPING_ENTITY = "litify_pm__Matter__c";

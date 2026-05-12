@@ -1,9 +1,14 @@
 public class iManageWrapper {
   // iManage api problems
   private static void FakeCallForRefreshToken() {
+
+    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
+    String customerId = mc.Customer_Id__c;
+    customerId =  String.isBlank(customerId)  ? '0' : customerId;
+
     HttpRequest req = new HttpRequest();
     req.setEndpoint(
-      'callout:iManageCreds/work/api/v2/customers/0/dialog-tokens'
+      'callout:iManageCreds/work/api/v2/customers/' + customerId + '/dialog-tokens'
     );
     req.setHeader('content-type', 'application/json');
     req.setHeader('X-Auth-Token', '{!$Credential.AuthorizationHeaderValue}');

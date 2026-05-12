@@ -55,6 +55,16 @@
                   </lightning-input>
                   <lightning-input
                     class="form-item"
+                    type="text"
+                    required
+                    label="iManage Customer ID"
+                    name="Customer_Id"
+                    disabled={saving}
+                    value={generalSettingsEdit.Customer_Id}
+                    onchange={onGeneralSettingChanged}
+                  ></lightning-input>
+                  <lightning-input
+                    class="form-item"
                     type="checkbox"
                     name="Enable_CSV_Export"
                     label="Enable CSV Export"

@@ -85,6 +85,7 @@ private class iManageFileWorkerTests {
     iManageSettings__c mcSetting = new iManageSettings__c();
     mcSetting.Client_Id__c = 'https://cloudimanage.com';
     mcSetting.Url__c = '894a95b7-e904-429a-a37f-467823927648';
+    mcSetting.Customer_Id__c = '0';
     mcSetting.Mapping_EntityType__c = 'Opportunity';
     mcSetting.Mapping_EntityMatterIdObjectField__c = 'Opportunity';
     mcSetting.Mapping_MatterIdField__c = 'Id';
@@ -220,6 +221,7 @@ private class iManageFileWorkerTests {
     iManageSettings__c mcSetting = new iManageSettings__c();
     mcSetting.Client_Id__c = 'https://cloudimanage.com';
     mcSetting.Url__c = 'http://894a95b7-e904-429a-a37f-467823927648';
+    mcSetting.Customer_Id__c = '0';
     mcSetting.Mapping_EntityType__c = 'Opportunity';
     mcSetting.Mapping_EntityMatterIdObjectField__c = 'Opportunity';
     mcSetting.Mapping_MatterIdField__c = 'Id';

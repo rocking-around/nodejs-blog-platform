@@ -9,6 +9,7 @@ public class iManageFileSaverTests {
       ClientField__c = 'custom1',
       MatterField__c = 'custom2',
       Url__c = 'https://imanage.test',
+      Customer_Id__c = '0',
       Enable_CSV_Export__c = false,
       Verbose_Logging__c = false,
       Mapping_EntityType__c = 'Opportunity',

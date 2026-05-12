@@ -9,11 +9,13 @@ public with sharing class ConfigurationHelperTests {
     String clientFieldKey = 'general:ClientField';
     String csvExportKey = 'general:Enable_CSV_Export';
     String loggingKey = 'general:Verbose_Logging';
+    String customerIdKey = 'general:Customer_Id';
     Map<String, Object> data = new Map<String, Object>{
       urlKey => 'http://test.test',
       matterFieldKey => 'f1',
       clientIdKey => 'f2',
       clientFieldKey => 'f3',
+      customerIdKey => 'f4',
       csvExportKey => true,
       loggingKey => true
     };
@@ -36,6 +38,10 @@ public with sharing class ConfigurationHelperTests {
     System.assert(
       (String) result.get(clientFieldKey) == (String) data.get(clientFieldKey),
       'ClientField has wrong value'
+    );
+      System.assert(
+      (String) result.get(customerIdKey) == (String) data.get(customerIdKey),
+      'Client_Id has wrong value'
     );
     System.assert(
       (Boolean) result.get(csvExportKey) == (Boolean) data.get(csvExportKey),
@@ -145,6 +151,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
@@ -193,6 +200,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
@@ -225,6 +233,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
@@ -285,6 +294,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
@@ -363,6 +373,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Verbose_Logging__c = true,
       Mapping_EntityType__c = 'Opportunity',
@@ -411,6 +422,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
@@ -474,6 +486,7 @@ public with sharing class ConfigurationHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',

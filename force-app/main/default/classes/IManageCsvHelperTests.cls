@@ -7,6 +7,7 @@ private class IManageCsvHelperTests {
     mcSetting.ClientField__c = 'val2';
     mcSetting.MatterField__c = 'val3';
     mcSetting.Url__c = 'val4';
+    mcSetting.Customer_Id__c = 'val5';
     mcSetting.Enable_CSV_Export__c = true;
     insert mcSetting;
 
@@ -99,6 +100,7 @@ private class IManageCsvHelperTests {
       ClientField__c = 'val2',
       MatterField__c = 'val3',
       Url__c = 'val4',
+      Customer_Id__c = 'val5',
       Enable_CSV_Export__c = true,
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',

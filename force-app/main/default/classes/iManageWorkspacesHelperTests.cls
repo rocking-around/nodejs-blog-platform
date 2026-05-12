@@ -1461,6 +1461,7 @@ private class iManageWorkspacesHelperTests {
             ClientField__c = 'custom1',
             MatterField__c = 'custom2',
             Url__c = 'val4',
+            Customer_Id__c = 'val6',
             iManage_Default_Folder_Id__c = 'val5',
             Enable_CSV_Export__c = true,
             Mapping_EntityType__c = 'Opportunity',

@@ -111,6 +111,8 @@ export default class IManageConfigurationComponent extends LightningElement {
     this.generalSettings = { ...defaultGeneralSettings, ...settings };
     this.generalSettingsModel = new GeneralSettingsForm(this.generalSettings);
 
+    console.log(settings);
+
     this.generalSettingsEdit = this.generalSettingsModel.selectFields(
       () => true,
       (x) => x.initialValue,
@@ -148,6 +150,7 @@ export default class IManageConfigurationComponent extends LightningElement {
     this.onGeneralSettingsChangedHandler(this.generalSettingsModel.changed);
 
     const changedValues = this.generalSettingsModel.getChanged();
+
     this.generalSettingsEdit = {
       ...this.generalSettingsEdit,
       ...changedValues
@@ -206,7 +209,11 @@ export default class IManageConfigurationComponent extends LightningElement {
           variant: "success"
         })
       );
+
+      console.log(data);
+
       this.loadGeneralSettings();
+
     } catch (error) {
       this.handleErrors(error);
     } finally {
