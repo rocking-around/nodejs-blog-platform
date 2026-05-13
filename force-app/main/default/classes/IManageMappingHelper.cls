@@ -272,37 +272,47 @@ public with sharing class IManageMappingHelper {
           }
      }
 
+    String entityClientIdObjectField = mapping.EntityClientIdObjectField;  
+    String entityMatterIdObjectField = mapping.EntityMatterIdObjectField;
 
     if (!mapping.EntityType.equals(entityIdSObjName)) {
-      String errorMessage =
-        'There is no mapping for the \'' +
-        entityIdSObjName +
-        '\'';
-      Logger.getInstance()
-        .warn(logPrefix + ', ' + errorMessage);
-      throw new IManageExceptions.IManageMappingException(errorMessage);
+      if (entityIdSObjName == 'litify_pm_Intake__c')
+      {
+        entityClientIdObjectField = 'litify_pm_Intake__c';
+        entityMatterIdObjectField = 'litify_pm_Intake__c';
+      }
+      else
+      {
+        String errorMessage =
+          'There is no mapping for the \'' +
+          entityIdSObjName +
+          '\'';
+        Logger.getInstance()
+          .warn(logPrefix + ', ' + errorMessage);
+        throw new IManageExceptions.IManageMappingException(errorMessage);
+      }
     }
 
     // Client fields
     Set<String> recordFields = new Set<String>();
-    if (entityIdSObjName.equals(mapping.EntityClientIdObjectField)) {
+    if (entityIdSObjName.equals(entityClientIdObjectField)) {
       recordFields.add(mapping.ClientIdField);
       if (String.isNotBlank(mapping.ClientNameField)) {
         recordFields.add(mapping.ClientNameField);
       }
     } else {
-      recordFields.add(mapping.EntityClientIdObjectField);
+      recordFields.add(entityClientIdObjectField);
     }
-
+    
 
     // Matter fields
-    if (entityIdSObjName.equals(mapping.EntityMatterIdObjectField)) {
+    if (entityIdSObjName.equals(entityMatterIdObjectField)) {
       recordFields.add(mapping.MatterIdField);
       if (String.isNotBlank(mapping.MatterNameField)) {
         recordFields.add(mapping.MatterNameField);
       }
     } else {
-      recordFields.add(mapping.EntityMatterIdObjectField);
+      recordFields.add(entityMatterIdObjectField);
     }
 
     // Workspace Template
@@ -333,9 +343,9 @@ public with sharing class IManageMappingHelper {
     String library = null;
 
     // Client
-    String clientSObjd = mapping.EntityClientIdObjectField == entityIdSObjName
+    String clientSObjd = entityClientIdObjectField == entityIdSObjName
       ? entityId
-      : (String) record.get(mapping.EntityClientIdObjectField);
+      : (String) record.get(entityClientIdObjectField);
 
     clientId = GetDataFromObject(clientSObjd, mapping.ClientIdField);
     if (String.isNotBlank(mapping.ClientNameField)) {
@@ -343,9 +353,9 @@ public with sharing class IManageMappingHelper {
     }
 
     // Matter
-    String matterSObjd = mapping.EntityMatterIdObjectField == entityIdSObjName
+    String matterSObjd = entityMatterIdObjectField == entityIdSObjName
       ? entityId
-      : (String) record.get(mapping.EntityMatterIdObjectField);
+      : (String) record.get(entityMatterIdObjectField);
 
     matterId = GetDataFromObject(matterSObjd, mapping.MatterIdField);
     if (String.isNotBlank(mapping.MatterNameField)) {
