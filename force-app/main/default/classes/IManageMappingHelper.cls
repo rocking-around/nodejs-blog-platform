@@ -276,10 +276,10 @@ public with sharing class IManageMappingHelper {
     String entityMatterIdObjectField = mapping.EntityMatterIdObjectField;
 
     if (!mapping.EntityType.equals(entityIdSObjName)) {
-      if (entityIdSObjName == 'litify_pm_Intake__c')
+      if (entityIdSObjName == 'litify_pm__Intake__c')
       {
-        entityClientIdObjectField = 'litify_pm_Intake__c';
-        entityMatterIdObjectField = 'litify_pm_Intake__c';
+        entityClientIdObjectField = 'litify_pm__Intake__c';
+        entityMatterIdObjectField = 'litify_pm__Intake__c';
       }
       else
       {

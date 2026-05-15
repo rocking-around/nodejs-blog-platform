@@ -141,4 +141,3 @@ export default class IManageCreateWsModal extends LightningModal {
     return `${library}::${this.imData.wsTemplate}`;
   }
 }
-

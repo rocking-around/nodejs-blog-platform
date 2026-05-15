@@ -1,22 +1,19 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
     <labels>
         <fullName>imanage_message_codes_empty_client_or_matter</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes__empty_client_or_matter</shortDescription>
-        <value
-    >Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.</value>
+        <shortDescription>imanage_message_codes__empty_client_or_matter</shortDescription>
+        <value>Matters and Parties should contains mapping data for the iManage Client and iManage Matter fields.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_empty_custom_resource</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes_empty_custom_resource</shortDescription>
+        <shortDescription>imanage_message_codes_empty_custom_resource</shortDescription>
         <value>Missed required Custom Settings: iManageSettings</value>
     </labels>
     <labels>
@@ -24,39 +21,31 @@
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes_folder_not_found</shortDescription>
-        <value
-    >Folder not found. The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
+        <shortDescription>imanage_message_codes_folder_not_found</shortDescription>
+        <value>Folder not found. The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_incorrect_folder_name</fullName>
         <language>en_US</language>
         <protected>true</protected>
-        <shortDescription
-    >imanage_message_codes_incorrect_folder_name</shortDescription>
-        <value
-    >Incorrect folder name. Please remove all specail characters. Also not available empty sub folders.</value>
+        <shortDescription>imanage_message_codes_incorrect_folder_name</shortDescription>
+        <value>Incorrect folder name. Please remove all specail characters. Also not available empty sub folders.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_license_expired</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes_license_expired</shortDescription>
-        <value
-    >Your Litify/iManage Integration license has expired. Please contact GDSI to renew your license.</value>
+        <shortDescription>imanage_message_codes_license_expired</shortDescription>
+        <value>Your Litify/iManage Integration license has expired. Please contact GDSI to renew your license.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_license_not_found</fullName>
         <categories>iManage</categories>
         <language>en_US</language>
         <protected>false</protected>
-        <shortDescription
-    >imanage_message_codes_license_not_found</shortDescription>
-        <value
-    >The organization haven&apos;t license for the iManage integration system. Please contact with Administrator.</value>
+        <shortDescription>imanage_message_codes_license_not_found</shortDescription>
+        <value>The organization haven&apos;t license for the iManage integration system. Please contact with Administrator.</value>
     </labels>
     <labels>
         <fullName>imanage_message_codes_unauthorized</fullName>
@@ -64,7 +53,6 @@
         <language>en_US</language>
         <protected>false</protected>
         <shortDescription>imanage_message_codes_unauthorized</shortDescription>
-        <value
-    >The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
+        <value>The system haven&apos;t access to the iManage. Please check Named Credentials or contact with Administrator.</value>
     </labels>
 </CustomLabels>

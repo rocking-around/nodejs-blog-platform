@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>iManage_Libraries__c</fullName>
+    <deprecated>false</deprecated>
     <description>List of possible iManage Libraries</description>
     <externalId>false</externalId>
     <label>iManage_Libraries</label>
