@@ -274,12 +274,20 @@ public with sharing class IManageMappingHelper {
 
     String entityClientIdObjectField = mapping.EntityClientIdObjectField;  
     String entityMatterIdObjectField = mapping.EntityMatterIdObjectField;
+    String clientIdField = mapping.ClientIdField;
+    String matterIdField = mapping.MatterIdField;
+    String clientNameField = mapping.ClientNameField;
+    String matterNameField = mapping.MatterNameField;
 
     if (!mapping.EntityType.equals(entityIdSObjName)) {
       if (entityIdSObjName == 'litify_pm__Intake__c')
       {
-        entityClientIdObjectField = 'litify_pm__Intake__c';
-        entityMatterIdObjectField = 'litify_pm__Intake__c';
+        entityClientIdObjectField = entityIdSObjName;
+        entityMatterIdObjectField = entityIdSObjName;
+        clientIdField = 'DMSClientID__c';
+        matterIdField = 'DMSMatterID__c';
+        clientNameField = 'DMSClientName__c';
+        matterNameField = 'DMSMatterName__c';
       }
       else
       {
@@ -296,9 +304,9 @@ public with sharing class IManageMappingHelper {
     // Client fields
     Set<String> recordFields = new Set<String>();
     if (entityIdSObjName.equals(entityClientIdObjectField)) {
-      recordFields.add(mapping.ClientIdField);
-      if (String.isNotBlank(mapping.ClientNameField)) {
-        recordFields.add(mapping.ClientNameField);
+      recordFields.add(clientIdField);
+      if (String.isNotBlank(clientNameField)) {
+        recordFields.add(clientNameField);
       }
     } else {
       recordFields.add(entityClientIdObjectField);
@@ -307,9 +315,9 @@ public with sharing class IManageMappingHelper {
 
     // Matter fields
     if (entityIdSObjName.equals(entityMatterIdObjectField)) {
-      recordFields.add(mapping.MatterIdField);
-      if (String.isNotBlank(mapping.MatterNameField)) {
-        recordFields.add(mapping.MatterNameField);
+      recordFields.add(matterIdField);
+      if (String.isNotBlank(matterNameField)) {
+        recordFields.add(matterNameField);
       }
     } else {
       recordFields.add(entityMatterIdObjectField);
@@ -347,9 +355,9 @@ public with sharing class IManageMappingHelper {
       ? entityId
       : (String) record.get(entityClientIdObjectField);
 
-    clientId = GetDataFromObject(clientSObjd, mapping.ClientIdField);
-    if (String.isNotBlank(mapping.ClientNameField)) {
-      clientName = GetDataFromObject(clientSObjd, mapping.ClientNameField);
+    clientId = GetDataFromObject(clientSObjd, clientIdField);
+    if (String.isNotBlank(clientNameField)) {
+      clientName = GetDataFromObject(clientSObjd, clientNameField);
     }
 
     // Matter
@@ -357,9 +365,9 @@ public with sharing class IManageMappingHelper {
       ? entityId
       : (String) record.get(entityMatterIdObjectField);
 
-    matterId = GetDataFromObject(matterSObjd, mapping.MatterIdField);
-    if (String.isNotBlank(mapping.MatterNameField)) {
-      matterName = GetDataFromObject(matterSObjd, mapping.MatterNameField);
+    matterId = GetDataFromObject(matterSObjd, matterIdField);
+    if (String.isNotBlank(matterNameField)) {
+      matterName = GetDataFromObject(matterSObjd, matterNameField);
     }
 
     // Workspace Template
