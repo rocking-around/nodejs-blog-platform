@@ -513,10 +513,14 @@ public class iManageWorkspacesHelper {
       templateWorkspace.Name = wsName;
       // System.debug('***** templateWorkspace = ' + JSON.serialize(templateWorkspace));
 
+      iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
+      String owner = imSettings.iManage_Ws_Owner__c;
+
       IManageWWorkspace sourceWorkspace = iManageWrapper.createWorkspaceApiCall(
         templateWorkspace,
         apiInfo.customerId,
-        libraryId
+        libraryId,
+        owner
       );
       Logger.getInstance().info('Workspace created.');
 

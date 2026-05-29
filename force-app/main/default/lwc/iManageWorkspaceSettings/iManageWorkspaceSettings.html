@@ -58,7 +58,17 @@
             </div>
           </div>
         </div>
-
+        <div>
+          <lightning-input
+            class="form-item"
+            type="text"
+            label="Workspace Owner"
+            name="Owner_Id"
+            disabled={saving}
+            value={wsSettingsEdt.Owner_Id}
+            onchange={onIManageWsSettingChanged}
+          ></lightning-input>
+        </div>
         <!-- <div class="line">
           <lightning-input
             type="checkbox"

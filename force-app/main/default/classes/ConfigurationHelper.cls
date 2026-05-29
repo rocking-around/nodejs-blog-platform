@@ -722,7 +722,8 @@ public with sharing class ConfigurationHelper {
         'iManageWs:Name_Pattern' => settings.iManage_Ws_Name_Pattern__c,
         'iManageWs:Create_Ws_Enabled' => settings.iManage_Create_Ws_Enabled__c,
         'iManageWs:Auto_Create' => settings.iManage_Ws_Auto_Create__c,
-        'iManageWs:Folder_Template_Id' => settings.iManage_Ws_Folder_Template_Id__c
+        'iManageWs:Folder_Template_Id' => settings.iManage_Ws_Folder_Template_Id__c,
+        'iManageWs:Owner_Id' => settings.iManage_Ws_Owner__c
       };
 
       Logger.getInstance()
@@ -766,6 +767,9 @@ public with sharing class ConfigurationHelper {
           }
           when 'iManageWs:Auto_Create' {
             settings.iManage_Ws_Auto_Create__c = (Boolean) data.get(key);
+          }
+           when 'iManageWs:Owner_Id' {
+            settings.iManage_Ws_Owner__c = (String) data.get(key);
           }
         }
       }

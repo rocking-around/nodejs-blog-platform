@@ -630,7 +630,8 @@ public class iManageWrapper {
   public static IManageWWorkspace createWorkspaceApiCall(
     IManageWWorkspace templateWorkspace,
     String customerId,
-    String libraryId
+    String libraryId,
+    String owner
   ) {
     //POST https://{hostname}/work/api/{version}/customers/{customerId}/libraries/{libraryId}/workspaces
     String query = String.format(
@@ -649,6 +650,10 @@ public class iManageWrapper {
       'retain_days' => templateWorkspace.retain_days,
       'subclass' => templateWorkspace.subclass
     };
+
+    if (!String.isBlank(owner)) {
+      reqBody.put('owner', owner);
+    }
 
     reqBody = IManageUtils.removeNullItemsFromMap(reqBody, null);
 

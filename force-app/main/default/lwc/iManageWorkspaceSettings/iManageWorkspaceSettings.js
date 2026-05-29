@@ -20,7 +20,8 @@ export default class IManageWorkspaceSettings extends LightningElement {
     Name_Pattern: "",
     Folder_Template_Id: "",
     Create_Ws_Enabled: false,
-    Auto_Create: false
+    Auto_Create: false,
+    Owner_Id: ""
   };
 
   wsSettings = undefined;

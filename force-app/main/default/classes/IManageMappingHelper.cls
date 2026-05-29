@@ -284,10 +284,6 @@ public with sharing class IManageMappingHelper {
       {
         entityClientIdObjectField = entityIdSObjName;
         entityMatterIdObjectField = entityIdSObjName;
-        clientIdField = 'DMSClientID__c';
-        matterIdField = 'DMSMatterID__c';
-        clientNameField = 'DMSClientName__c';
-        matterNameField = 'DMSMatterName__c';
       }
       else
       {
@@ -300,7 +296,7 @@ public with sharing class IManageMappingHelper {
         throw new IManageExceptions.IManageMappingException(errorMessage);
       }
     }
-
+    
     // Client fields
     Set<String> recordFields = new Set<String>();
     if (entityIdSObjName.equals(entityClientIdObjectField)) {
