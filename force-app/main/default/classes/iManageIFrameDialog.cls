@@ -22,6 +22,31 @@ public class iManageIFrameDialog {
     }
   }
 
+  @AuraEnabled 
+  public static String GetClientMatterCode(String entityId) {
+    Logger.getInstance()
+      .info('iManageIFrameDialog::GetClientMatterCode, start method');
+
+      IManageMappingHelper.IManageIFrameData link = null;
+      try
+      { 
+        link = IManageMappingHelper.getMappingData(entityId);
+      }
+      catch (Exception ex) {
+      }
+
+      if (link == null || link.ClientId == null || link.MatterId == null)
+      {
+        Logger.getInstance()
+          .info('iManageIFrameDialog::GetClientMatterCode, ClientId or MatterId is null');
+        return '';
+      }
+
+      String result = link.ClientId + '.' + link.MatterId;
+      return result;
+  }
+
+
   @AuraEnabled
   public static String GetIFrameFolderPicker() {
     Logger.getInstance()
