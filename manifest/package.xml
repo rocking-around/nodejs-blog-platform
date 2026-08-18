@@ -8,6 +8,8 @@
         <members>EchoHttpMock</members>
         <members>EntityIManageWorkspaceUpdater</members>
         <members>EntityIManageWorkspaceUpdaterTests</members>
+        <members>WorkspaceSyncBatch</members>
+        <members>WorkspaceSyncBatchLauncher</members>
         <members>HttpCalloutQueueMock</members>
         <members>IManageFolderWrap</members>
         <members>IManageUtils</members>

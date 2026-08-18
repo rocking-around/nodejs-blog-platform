@@ -71,8 +71,14 @@ private class EntityIManageWorkspaceUpdaterTests {
 
         // run
         Test.startTest();
-        EntityIManageWorkspaceUpdater.updateIManageWorkspaces();
+        WorkspaceSyncBatch.enqueue(new Set<Id>{ opp.Id });
         Test.stopTest();
+
+        AsyncApexJob batchJob = getWorkspaceSyncBatchJob();
+        System.assertEquals('Completed', batchJob.Status);
+        System.assertEquals(1, batchJob.TotalJobItems);
+        System.assertEquals(1, batchJob.JobItemsProcessed);
+        System.assertEquals(0, batchJob.NumberOfErrors);
     }
 
     @isTest
@@ -153,12 +159,14 @@ private class EntityIManageWorkspaceUpdaterTests {
 
         // run
         Test.startTest();
-        EntityIManageWorkspaceUpdater.updateIManageWorkspaces();
-
-        EntityIManageWorkspaceUpdater.updateIManageWorkspaceByEntityIds(
-            new Set<Id>{Id.valueOf(opp.Id)}
-        );
+        WorkspaceSyncBatch.enqueue(new Set<Id>{ opp.Id });
         Test.stopTest();
+
+        AsyncApexJob batchJob = getWorkspaceSyncBatchJob();
+        System.assertEquals('Completed', batchJob.Status);
+        System.assertEquals(1, batchJob.TotalJobItems);
+        System.assertEquals(1, batchJob.JobItemsProcessed);
+        System.assertEquals(0, batchJob.NumberOfErrors);
     }
 
     @isTest
@@ -192,6 +200,65 @@ private class EntityIManageWorkspaceUpdaterTests {
         System.assert(result == expectedResult, 'Wrong value =' + result + ', expected = ' + expectedResult);
     }
 
+    @isTest
+    static void workspaceSyncUsesOneRecordPerScopeTest() {
+        System.assertEquals(1, WorkspaceSyncBatch.SCOPE_SIZE);
+    }
+
+    @isTest
+    static void workspaceSyncBatchLauncherTest() {
+        Test.startTest();
+        Id jobId = System.enqueueJob(
+            new WorkspaceSyncBatchLauncher(new Set<Id>())
+        );
+        Test.stopTest();
+
+        AsyncApexJob queueableJob = [
+            SELECT Status
+            FROM AsyncApexJob
+            WHERE Id = :jobId
+        ];
+        System.assertEquals('Completed', queueableJob.Status);
+    }
+
+    @isTest
+    static void updateIManageWorkspacesStartsFutureTest() {
+        createMappingSettings();
+        createOpportunity('Invocable Update');
+        setupMockCallouts(1, 'ACTIVE', null);
+
+        Test.startTest();
+        EntityIManageWorkspaceUpdater.updateIManageWorkspaces();
+        System.assertEquals(1, Limits.getFutureCalls());
+        Test.stopTest();
+    }
+
+    @isTest
+    static void updateByEntityIdsLegacyEntryPointTest() {
+        createMappingSettings();
+        Opportunity opportunity = createOpportunity('Legacy ID Update');
+        setupMockCallouts(1, 'ACTIVE', null);
+
+        Test.startTest();
+        EntityIManageWorkspaceUpdater.updateIManageWorkspaceByEntityIds(
+            new Set<Id>{ opportunity.Id }
+        );
+        System.assertEquals(1, Limits.getFutureCalls());
+        Test.stopTest();
+    }
+
+    @isTest
+    static void processChangedEntitiesLegacyEntryPointTest() {
+        createMappingSettings();
+        createOpportunity('Legacy Changed Entity Update');
+        setupMockCallouts(1, 'ACTIVE', null);
+
+        Test.startTest();
+        EntityIManageWorkspaceUpdater.processChangedEntities();
+        System.assertEquals(1, Limits.getFutureCalls());
+        Test.stopTest();
+    }
+
     private static void setupMockCallouts(Integer customerId, String library, Map<String, List<HttpResponse>> mockCallouts) {
         String licenseUrl = TestUtils.getLicenseApiUrl();
         Organization org = TestUtils.getOrganization();
@@ -209,5 +276,40 @@ private class EntityIManageWorkspaceUpdaterTests {
             responses.putAll(mockCallouts);
         }
         HttpCalloutQueueMock.setTestMockResponse(responses, true);
+    }
+
+    private static AsyncApexJob getWorkspaceSyncBatchJob() {
+        return [
+            SELECT Status, TotalJobItems, JobItemsProcessed, NumberOfErrors
+            FROM AsyncApexJob
+            WHERE ApexClass.Name = 'WorkspaceSyncBatch'
+            ORDER BY CreatedDate DESC
+            LIMIT 1
+        ];
+    }
+
+    private static void createMappingSettings() {
+        upsert new iManageSettings__c(
+            Client_Id__c = 'test-client',
+            Customer_Id__c = '1',
+            Url__c = 'https://example.test',
+            Mapping_EntityType__c = 'Opportunity',
+            Mapping_EntityMatterIdObjectField__c = 'Opportunity',
+            Mapping_MatterIdField__c = 'Id',
+            Mapping_MatterNameField__c = 'Name',
+            Mapping_EntityClientIdObjectField__c = 'Opportunity',
+            Mapping_ClientIdField__c = 'Id',
+            Mapping_ClientNameField__c = 'Name'
+        );
+    }
+
+    private static Opportunity createOpportunity(String name) {
+        Opportunity opportunity = new Opportunity(
+            Name = name,
+            CloseDate = System.today(),
+            StageName = 'Prospecting'
+        );
+        insert opportunity;
+        return opportunity;
     }
 }
