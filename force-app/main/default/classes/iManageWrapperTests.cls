@@ -25,6 +25,141 @@ private class iManageWrapperTests {
     System.assert(result.data.user.id == 'TEST', 'The user.id has wrong value');
   }
 
+  static testMethod void getApiInfoUsesTransactionCacheTest() {
+    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
+      'callout:iManageCreds/api' => iManageWrapperTests.getMockAuthResponse(
+        200,
+        'authenticated',
+        333
+      )
+    };
+    EchoHttpMock.setTestMockResponse(responses);
+    iManageWrapper.invalidateApiInfoCache();
+
+    Test.startTest();
+    iManageWrapper.ApiInfo first = iManageWrapper.GetApiInfo();
+    iManageWrapper.ApiInfo second = iManageWrapper.GetApiInfo();
+    Integer callouts = Limits.getCallouts();
+    Test.stopTest();
+
+    System.assertEquals(1, callouts, 'ApiInfo should be loaded only once');
+    System.assertEquals('333', first.customerId);
+    System.assertEquals('ACTIVE', first.library);
+    System.assertEquals(first.customerId, second.customerId);
+    System.assertEquals(first.library, second.library);
+  }
+
+  static testMethod void getApiInfoDoesNotCacheFallbackTest() {
+    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
+      'callout:iManageCreds/api' => iManageWrapperTests.getMockAuthResponse(
+        200,
+        'authenticated',
+        null
+      )
+    };
+    EchoHttpMock.setTestMockResponse(responses);
+    iManageWrapper.invalidateApiInfoCache();
+
+    Test.startTest();
+    iManageWrapper.ApiInfo first = iManageWrapper.GetApiInfo();
+    iManageWrapper.ApiInfo second = iManageWrapper.GetApiInfo();
+    Integer callouts = Limits.getCallouts();
+    Test.stopTest();
+
+    System.assertEquals('0', first.customerId);
+    System.assertEquals('0', second.customerId);
+    System.assertEquals(2, callouts, 'Fallback ApiInfo should not be cached');
+  }
+
+  static testMethod void getApiInfoDoesNotCacheLibraryFallbackTest() {
+    HttpResponse apiResponse = iManageWrapperTests.getMockAuthResponse(
+      200,
+      'authenticated',
+      333
+    );
+    Map<String, Object> responseBody = (Map<String, Object>) JSON.deserializeUntyped(
+      apiResponse.getBody()
+    );
+    Map<String, Object> data = (Map<String, Object>) responseBody.get('data');
+    Map<String, Object> work = (Map<String, Object>) data.get('work');
+    work.remove('preferred_library');
+    apiResponse.setBody(JSON.serialize(responseBody));
+
+    EchoHttpMock.setTestMockResponse(
+      new Map<String, HttpResponse>{
+        'callout:iManageCreds/api' => apiResponse
+      }
+    );
+    iManageWrapper.invalidateApiInfoCache();
+
+    Test.startTest();
+    iManageWrapper.ApiInfo first = iManageWrapper.GetApiInfo();
+    iManageWrapper.ApiInfo second = iManageWrapper.GetApiInfo();
+    Integer callouts = Limits.getCallouts();
+    Test.stopTest();
+
+    System.assertEquals('333', first.customerId);
+    System.assertEquals('ACTIVE', first.library);
+    System.assertEquals('ACTIVE', second.library);
+    System.assertEquals(2, callouts, 'Library fallback should not be cached');
+  }
+
+  static testMethod void getApiInfoDoesNotCacheUnauthorizedResponseTest() {
+    HttpResponse unauthorizedResponse = new HttpResponse();
+    unauthorizedResponse.setStatusCode(401);
+    EchoHttpMock.setTestMockResponse(
+      new Map<String, HttpResponse>{
+        'callout:iManageCreds/api' => unauthorizedResponse
+      }
+    );
+    iManageWrapper.invalidateApiInfoCache();
+
+    Test.startTest();
+    for (Integer attempt = 0; attempt < 2; attempt++) {
+      try {
+        iManageWrapper.GetApiInfo();
+        System.assert(false, 'Expected an unauthorized exception');
+      } catch (IManageExceptions.IManageUnauthorizedException ex) {
+        // Expected.
+      }
+    }
+    Integer callouts = Limits.getCallouts();
+    Test.stopTest();
+
+    System.assertEquals(2, callouts, 'Unauthorized responses should not be cached');
+  }
+
+  static testMethod void unauthorizedRequestInvalidatesApiInfoCacheTest() {
+    String documentQuery =
+      '/work/api/v2/customers/333/libraries/ACTIVE/documents/doc-1';
+    HttpResponse unauthorizedResponse = new HttpResponse();
+    unauthorizedResponse.setStatusCode(401);
+    Map<String, HttpResponse> responses = new Map<String, HttpResponse>{
+      'callout:iManageCreds/api' => iManageWrapperTests.getMockAuthResponse(
+        200,
+        'authenticated',
+        333
+      ),
+      documentQuery => unauthorizedResponse
+    };
+    EchoHttpMock.setTestMockResponse(responses);
+    iManageWrapper.invalidateApiInfoCache();
+
+    Test.startTest();
+    iManageWrapper.GetApiInfo();
+    try {
+      iManageWrapper.GetDocument('333', 'ACTIVE', 'doc-1');
+      System.assert(false, 'Expected an unauthorized exception');
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
+      // Expected.
+    }
+    iManageWrapper.GetApiInfo();
+    Integer callouts = Limits.getCallouts();
+    Test.stopTest();
+
+    System.assertEquals(3, callouts, 'A 401 response should clear the ApiInfo cache');
+  }
+
   static testMethod void getApi401Test() {
     Organization org = [SELECT Id FROM Organization];
     String orgId = String.valueOf(org.Id);
@@ -38,16 +173,16 @@ private class iManageWrapperTests {
 
     EchoHttpMock.setTestMockResponse(responses);
 
+    Boolean exceptionThrown = false;
+    Test.startTest();
     try {
-      Test.startTest();
-      iManageProvider.IManageApiDataResponse result = iManageWrapper.GetApi();
-      Test.stopTest();
-    } catch (Exception e) {
-      System.assert(
-        e instanceof IManageExceptions.IManageUnauthorizedException,
-        'Unexpected type of Exception'
-      );
+      iManageWrapper.GetApi();
+    } catch (IManageExceptions.IManageUnauthorizedException ex) {
+      exceptionThrown = true;
     }
+    Test.stopTest();
+
+    System.assert(exceptionThrown, 'Expected an unauthorized exception');
   }
 
   static testMethod void getFolderTest() {
