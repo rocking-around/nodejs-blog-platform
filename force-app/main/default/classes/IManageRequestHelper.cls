@@ -114,8 +114,10 @@ public class IManageRequestHelper {
 
     tryLogAsJson(httpRequest, res);
 
-    if (res.getStatusCode() == 401)
+    if (res.getStatusCode() == 401) {
+      iManageWrapper.invalidateApiInfoCache();
       throw new IManageExceptions.IManageUnauthorizedException();
+    }
 
     return res;
   }
@@ -151,8 +153,10 @@ public class IManageRequestHelper {
 
     Http http = new Http();
     HTTPResponse res = http.send(httpRequest);
-    if (res.getStatusCode() == 401)
+    if (res.getStatusCode() == 401) {
+      iManageWrapper.invalidateApiInfoCache();
       throw new IManageExceptions.IManageUnauthorizedException();
+    }
 
     return res.getBody();
   }

@@ -41,16 +41,32 @@ public class iManageWrapper {
     return response;
   }
 
+  // customerId and preferred_library cannot change within a transaction, but
+  // GetApiInfo() is called from ~20 places -- including getWorkspace() below,
+  // which is itself called inside loops -- and every call used to be its own
+  // /api round trip. Memoized for the life of the transaction; each Batchable
+  // execute() and each @AuraEnabled request starts with a clean static.
+  private static ApiInfo cachedApiInfo;
+
+  public static void invalidateApiInfoCache() {
+    cachedApiInfo = null;
+  }
+
   public static ApiInfo GetApiInfo() {
+    if (cachedApiInfo != null) {
+      return cachedApiInfo;
+    }
+
     iManageProvider.IManageApiDataResponse apiData = iManageWrapper.GetApi();
     ApiInfo apiInfo = new ApiInfo();
-    apiInfo.customerId = apiData?.data?.user?.customer_id == null
-      ? '0'
-      : apiData.data.user.customer_id;
-    apiInfo.library = apiData?.data?.work?.preferred_library == null
-      ? 'ACTIVE'
-      : apiData.data.work.preferred_library;
+    String customerId = apiData?.data?.user?.customer_id;
+    String library = apiData?.data?.work?.preferred_library;
+    apiInfo.customerId = customerId == null ? '0' : customerId;
+    apiInfo.library = library == null ? 'ACTIVE' : library;
 
+    if (customerId != null && library != null) {
+      cachedApiInfo = apiInfo;
+    }
     return apiInfo;
   }
 
