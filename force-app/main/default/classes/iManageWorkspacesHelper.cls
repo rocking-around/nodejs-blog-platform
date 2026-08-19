@@ -924,10 +924,6 @@ public class iManageWorkspacesHelper {
     //     JSON.serialize(params)
     //   );
 
-    String clientMatterCode = String.format(
-      '{0}.{1}',
-      new List<Object>{ clientId, matterId }
-    );
     List<IManageFolderWrap> workspaceFolders = mappingWorkspaceWrap.getFlatListAllFolders();
 
     List<Map<String, Object>> mappedTemplateFolders = new List<Map<String, Object>>();
@@ -987,60 +983,14 @@ public class iManageWorkspacesHelper {
         'item1'
       );
 
-      workspaceFolders = mappingWorkspaceWrap.getFlatListAllFolders();
-
-      IManageWFolder parentDestFolder = null;
-      // first or default
-      for (IManageFolderWrap wf : workspaceFolders) {
-        IManageFolderWrap tfwParentFolder = templateFolderWrap.parentFolder;
-        if (
-          wf.folderFullPath.equalsIgnoreCase(
-            tfwParentFolder == null ? null : tfwParentFolder.folderFullPath
-          )
-        ) {
-          parentDestFolder = (IManageWFolder) wf.wrapItem;
-          break;
-        }
-      }
-
-      String folderType = ((IManageWFolder) templateFolderWrap.wrapItem)
-        .folder_type;
-
-      if (folderType == 'regular') {
-        createRegularFolder(
-          customerId,
-          libraryId,
-          clientMatterCode,
-          templateFolderWrap,
-          parentDestFolder,
-          mappingWorkspaceWrap
-        );
-      } else if (folderType == 'tab') {
-        createTabFolder(
-          customerId,
-          libraryId,
-          clientMatterCode,
-          templateFolderWrap,
-          parentDestFolder,
-          mappingWorkspaceWrap
-        );
-      } else if (folderType == 'search') {
-        createSearchFolder(
-          customerId,
-          libraryId,
-          clientMatterCode,
-          templateFolderWrap,
-          parentDestFolder,
-          mappingWorkspaceWrap
-        );
-      } else {
-        throw new IManageExceptions.IManageApplicationException(
-          String.format(
-            'Unknown folder type: {0}',
-            new List<Object>{ folderType }
-          )
-        );
-      }
+      createFolderChunkItem(
+        customerId,
+        libraryId,
+        clientId,
+        matterId,
+        templateFolderWrap,
+        mappingWorkspaceWrap
+      );
     }
 
     Logger.getInstance()
@@ -1091,6 +1041,68 @@ public class iManageWorkspacesHelper {
     return folder;
   }
 
+  public static Boolean createFolderChunkItem(
+    String customerId,
+    String libraryId,
+    String clientId,
+    String matterId,
+    IManageFolderWrap templateFolderWrap,
+    IManageWorkspaceWrap workspaceWrap
+  ) {
+    String clientMatterCode = String.format(
+      '{0}.{1}',
+      new List<Object>{ clientId, matterId }
+    );
+    IManageWFolder parentFolder;
+    for (IManageFolderWrap workspaceFolder : workspaceWrap.getFlatListAllFolders()) {
+      IManageFolderWrap templateParent = templateFolderWrap.parentFolder;
+      if (
+        workspaceFolder.folderFullPath.equalsIgnoreCase(
+          templateParent == null ? null : templateParent.folderFullPath
+        )
+      ) {
+        parentFolder = (IManageWFolder) workspaceFolder.wrapItem;
+        break;
+      }
+    }
+
+    String folderType = ((IManageWFolder) templateFolderWrap.wrapItem)
+      .folder_type;
+    if (folderType == 'regular') {
+      return createRegularFolder(
+        customerId,
+        libraryId,
+        clientMatterCode,
+        templateFolderWrap,
+        parentFolder,
+        workspaceWrap
+      );
+    }
+    if (folderType == 'tab') {
+      return createTabFolder(
+        customerId,
+        libraryId,
+        clientMatterCode,
+        templateFolderWrap,
+        parentFolder,
+        workspaceWrap
+      );
+    }
+    if (folderType == 'search') {
+      return createSearchFolder(
+        customerId,
+        libraryId,
+        clientMatterCode,
+        templateFolderWrap,
+        parentFolder,
+        workspaceWrap
+      );
+    }
+    throw new IManageExceptions.IManageApplicationException(
+      'Unknown folder type: ' + folderType
+    );
+  }
+
   @AuraEnabled
   public static void updateEntityToWsMapping(
     String workspaceId,
@@ -1116,7 +1128,7 @@ public class iManageWorkspacesHelper {
   }
 
   @TestVisible
-  private static void createRegularFolder(
+  private static Boolean createRegularFolder(
     String customerId,
     String libraryId,
     String clientMatterCode,
@@ -1148,7 +1160,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
@@ -1162,7 +1174,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     tf = mappingProfileWorkspaceValues(
@@ -1282,10 +1294,11 @@ public class iManageWorkspacesHelper {
       }
     }
     mappingWorkspaceWrap.addFolderAndResetMapping(newDestFolder);
+    return true;
   }
 
   @TestVisible
-  private static void createTabFolder(
+  private static Boolean createTabFolder(
     String customerId,
     String libraryId,
     String clientMatterCode,
@@ -1309,7 +1322,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
@@ -1323,7 +1336,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     tf = MappingProfileWorkspaceValues(
@@ -1415,10 +1428,11 @@ public class iManageWorkspacesHelper {
     }
 
     mappingWorkspaceWrap.addFolderAndResetMapping(newDestTab);
+    return true;
   }
 
   @TestVisible
-  private static void createSearchFolder(
+  private static Boolean createSearchFolder(
     String customerId,
     String libraryId,
     String clientMatterCode,
@@ -1446,7 +1460,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     if (templateFolderWrap.parentFolder != null && parentDestFolder == null) {
@@ -1460,7 +1474,7 @@ public class iManageWorkspacesHelper {
             }
           )
         );
-      return;
+      return false;
     }
 
     //tf.Name = BuildFolderName(tf.Name, matterRow, folderVariableMatrixRows);
@@ -1551,6 +1565,7 @@ public class iManageWorkspacesHelper {
           }
         )
       );
+    return true;
   }
 
   @TestVisible

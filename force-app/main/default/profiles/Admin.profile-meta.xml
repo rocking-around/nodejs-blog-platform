@@ -97,6 +97,10 @@
         <enabled>true</enabled>
     </classAccesses>
     <classAccesses>
+        <apexClass>IManageWsProvisioningService</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
         <apexClass>IManageRequestHelper</apexClass>
         <enabled>true</enabled>
     </classAccesses>

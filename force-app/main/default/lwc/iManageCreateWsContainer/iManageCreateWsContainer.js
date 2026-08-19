@@ -4,10 +4,14 @@ import getIManageWorkspaceSettings from "@salesforce/apex/ConfigurationHelper.ge
 import getIManageDataFromSObject from "@salesforce/apex/IManageMappingHelper.getIManageDataFromSObject";
 import findEntityWorkspaceInCache from "@salesforce/apex/iManageWorkspacesHelper.findEntityWorkspaceInCache";
 import findEntityWorkspaceInImanageAndPutToCache from "@salesforce/apex/iManageWorkspacesHelper.findEntityWorkspaceInImanageAndPutToCache";
-import createCustomFiledsIfNotExist from "@salesforce/apex/iManageWorkspacesHelper.createCustomFiledsIfNotExist";
-import createWorkspace from "@salesforce/apex/iManageWorkspacesHelper.createWorkspace";
-import updateEntityToWsMapping from "@salesforce/apex/iManageWorkspacesHelper.updateEntityToWsMapping";
+import prepareCustomFields from "@salesforce/apex/IManageWsProvisioningService.prepareCustomFields";
+import getActiveProvisioning from "@salesforce/apex/IManageWsProvisioningService.getActiveProvisioning";
+import startProvisioning from "@salesforce/apex/IManageWsProvisioningService.startProvisioning";
+import getProvisioningStatus from "@salesforce/apex/IManageWsProvisioningService.getProvisioningStatus";
 import iManageCreateWsModal from "c/iManageCreateWsModal";
+
+const POLLING_INTERVAL_MS = 5000;
+
 export default class IManageCreateWsContainer extends LightningElement {
   @api recordId;
   loading = true;
@@ -21,14 +25,30 @@ export default class IManageCreateWsContainer extends LightningElement {
   wsTemplate = undefined;
 
   error = {}; //code, message
+  pollingTimer;
+  pollingCancelled = false;
+  pollingResolve;
 
   async connectedCallback() {
+    this.pollingCancelled = false;
     // check option automatic sync to iManage
     await this.loadData();
     this.loading = false;
 
     // The feature is temporarily disabled.
     // await this.tryAutoCreateWs();
+  }
+
+  disconnectedCallback() {
+    this.pollingCancelled = true;
+    if (this.pollingTimer) {
+      clearTimeout(this.pollingTimer);
+      this.pollingTimer = undefined;
+    }
+    if (this.pollingResolve) {
+      this.pollingResolve(null);
+      this.pollingResolve = undefined;
+    }
   }
 
   async loadData() {
@@ -50,6 +70,12 @@ export default class IManageCreateWsContainer extends LightningElement {
     console.log('*** IManageCreateWsContainer::findEntityWorkspaceInCache: ', dataFromCache);
     let result = !!Object.keys(dataFromCache).length;
     if (!result) {
+      const activeProvisioningJson = await getActiveProvisioning({
+        entityId: this.recordId
+      });
+      if (activeProvisioningJson) {
+        return false;
+      }
       const dataFromImanage = await findEntityWorkspaceInImanageAndPutToCache({
         entityId: this.recordId
       });
@@ -167,7 +193,7 @@ export default class IManageCreateWsContainer extends LightningElement {
   }
 
   async createWs(folderTemplate, autoCreate) {
-    await createCustomFiledsIfNotExist({
+    await prepareCustomFields({
       entityId: this.recordId,
       libraryId: folderTemplate.split('::', 1)[0]
     });
@@ -182,29 +208,60 @@ export default class IManageCreateWsContainer extends LightningElement {
     if (!this.validate(data)) {
       return null;
     }
-    const ws = await createWorkspace(data);
-
-    await this.tryUpdateEntityToWsMapping(ws, autoCreate);
-
-    return {
-      id: ws.id,
-      name: ws.name,
-      database: ws.database
-    };
+    const [libraryId, templateId] = folderTemplate.split("::", 2);
+    const operationId = await startProvisioning({
+      requestJson: JSON.stringify({
+        entityId: this.recordId,
+        workspaceName: this.wsName,
+        clientId: this.clientId,
+        matterId: this.matterId,
+        libraryId,
+        templateId,
+        autoCreated: autoCreate,
+        source: "SF"
+      })
+    });
+    return this.pollProvisioning(operationId);
   }
 
-  async tryUpdateEntityToWsMapping(ws, autoCreate) {
-    try {
-      await updateEntityToWsMapping({
-        entityId: this.recordId,
-        workspaceId: ws.id,
-        libraryId: ws.database,
-        autoCreated: autoCreate,
-        source: 'SF'
-      });
-    } catch (error) {
-      this.handleErrors(error);
-    }
+  pollProvisioning(operationId) {
+    return new Promise((resolve, reject) => {
+      this.pollingResolve = resolve;
+      const poll = async () => {
+        if (this.pollingCancelled) {
+          return;
+        }
+        try {
+          const operationJson = await getProvisioningStatus({ operationId });
+          const operation = JSON.parse(operationJson);
+          if (this.pollingCancelled) {
+            return;
+          }
+          if (operation.status === "Completed") {
+            this.pollingResolve = undefined;
+            resolve({
+              id: operation.workspaceId,
+              name: operation.workspaceName,
+              database: operation.workspaceDatabase
+            });
+            return;
+          }
+          if (operation.status === "Failed") {
+            this.pollingResolve = undefined;
+            reject(
+              new Error(operation.lastError || "Workspace provisioning failed.")
+            );
+            return;
+          }
+          // eslint-disable-next-line @lwc/lwc/no-async-operation
+          this.pollingTimer = setTimeout(poll, POLLING_INTERVAL_MS);
+        } catch (error) {
+          this.pollingResolve = undefined;
+          reject(error);
+        }
+      };
+      poll();
+    });
   }
 
   validate(data) {

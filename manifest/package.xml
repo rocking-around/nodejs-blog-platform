@@ -49,6 +49,8 @@
         <members>iManageFolderPicker</members>
         <members>iManageFolderPickerIFrame</members>
         <members>IManageWorkspaceSettings</members>
+        <members>IManageWsProvisioningService</members>
+        <members>IManageWsProvisioningServiceTests</members>
         <members>iManageWrapper</members>
         <members>iManageWrapperTests</members>
         <members>IManageRequestHelper</members>
@@ -67,6 +69,8 @@
         <members>iManageWorkspacesHelperTests</members>
         <members>IManageDataModelTests</members>
         <members>TestIManageApiResponseHelper</members>
+        <members>WorkspaceProvisioningBatch</members>
+        <members>WorkspaceProvisioningBatchTests</members>
         <name>ApexClass</name>
     </types>
     <types>
@@ -100,6 +104,7 @@
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
         <members>IManage_WS_to_Entity_Mapping__c</members>
+        <members>IManage_Workspace_Provisioning__c</members>
         <members>iManageAuthSetting__mdt</members>
         <members>Log__c</members>
         <name>CustomObject</name>
