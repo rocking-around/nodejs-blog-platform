@@ -234,13 +234,39 @@ global with sharing class EntityIManageWorkspaceUpdater {
         );
     }
 
-    if (String.isNotBlank(wsName) && (wsName != currentWsName)) {
+    String expectedWorkspaceName = wsName;
+    if (String.isNotBlank(wsName) && currentWsName != wsName) {
+      Map<String, String> workspaceValues = iManageWrapper.getNameValuePair(
+        'workspaces',
+        workspaceId,
+        apiInfo.customerId,
+        library
+      );
+      String templateId = workspaceValues.get('templateId');
+      if (String.isNotBlank(templateId)) {
+        iManageWorkspacesHelper.TemplateNameAffixes affixes = iManageWorkspacesHelper.loadTemplateNameAffixes(
+          templateId,
+          apiInfo.customerId,
+          library
+        );
+        expectedWorkspaceName = iManageWorkspacesHelper.applyWorkspaceNameAffix(
+          wsName,
+          affixes.workspaceText,
+          affixes.workspaceToEnd,
+          ws
+        );
+      }
+    }
+    if (
+      String.isNotBlank(expectedWorkspaceName) &&
+      currentWsName != expectedWorkspaceName
+    ) {
       needUpdate = true;
       Logger.getInstance()
         .info(
           String.format(
             ' Need update: iManage Workspace Name = {0}, new Workspace name = {1}',
-            new List<Object>{ currentWsName, wsName }
+            new List<Object>{ currentWsName, expectedWorkspaceName }
           )
         );
     }

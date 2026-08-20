@@ -1,4 +1,16 @@
 public class iManageWorkspacesHelper {
+  private static final Integer MAX_IMANAGE_NAME_LENGTH = 254;
+  private static final Pattern TEMPLATE_NAME_TOKEN_PATTERN = Pattern.compile(
+    '(?i)([#%])C(\\d{1,2})(ALIAS|DESCRIPTION|DESCR)\\1(\\d{0,2})'
+  );
+
+  public class TemplateNameAffixes {
+    public String text { get; set; }
+    public Boolean toEnd { get; set; }
+    public String workspaceText { get; set; }
+    public Boolean workspaceToEnd { get; set; }
+  }
+
   public static String SearchWorkspace(
     iManageSettings__c mc,
     iManageWrapper.ApiInfo apiData,
@@ -480,6 +492,11 @@ public class iManageWorkspacesHelper {
           'Workspace template not found. WS Template Id = ' + wsTemplateId
         );
       }
+      TemplateNameAffixes nameAffixes = loadTemplateNameAffixes(
+        wsTemplateId,
+        apiInfo.customerId,
+        libraryId
+      );
 
       // System.debug('***** templateWorkspaceWrap = ' + JSON.serialize(templateWorkspaceWrap));
 
@@ -510,7 +527,12 @@ public class iManageWorkspacesHelper {
       Logger.getInstance().Info('Create destination workspace...');
       templateWorkspace.custom1 = custom1;
       templateWorkspace.custom2 = custom2;
-      templateWorkspace.Name = wsName;
+      templateWorkspace.Name = getWorkspaceNameForCreate(
+        wsName,
+        nameAffixes.workspaceText,
+        nameAffixes.workspaceToEnd,
+        templateWorkspace
+      );
       // System.debug('***** templateWorkspace = ' + JSON.serialize(templateWorkspace));
 
       iManageSettings__c imSettings = iManageSettings__c.getOrgDefaults();
@@ -521,6 +543,14 @@ public class iManageWorkspacesHelper {
         apiInfo.customerId,
         libraryId,
         owner
+      );
+      sourceWorkspace = applyWorkspaceNameAffixAfterCreate(
+        sourceWorkspace,
+        wsName,
+        nameAffixes.workspaceText,
+        nameAffixes.workspaceToEnd,
+        apiInfo.customerId,
+        libraryId
       );
       Logger.getInstance().info('Workspace created.');
 
@@ -544,6 +574,12 @@ public class iManageWorkspacesHelper {
         libraryId,
         true,
         false
+      );
+      applyTemplateFolderNameAffix(
+        templateFolders,
+        nameAffixes.text,
+        nameAffixes.toEnd,
+        (IManageWWorkspace) sourceWorkspaceWrap.wrapItem
       );
       // System.debug('***** sourceWorkspaceWrap = ' + JSON.serialize(sourceWorkspaceWrap));
 
@@ -627,6 +663,17 @@ public class iManageWorkspacesHelper {
         library
       );
 
+      if (templateWorkspaceWrap == null) {
+        throw new IManageExceptions.IManageApplicationException(
+          'Workspace template not found. WS Template Id = ' + wsTemplateId
+        );
+      }
+      TemplateNameAffixes nameAffixes = loadTemplateNameAffixes(
+        wsTemplateId,
+        customerId,
+        library
+      );
+
       // get list and reverse it
       List<IManageFolderWrap> templateFolders = new List<IManageFolderWrap>();
       List<IManageFolderWrap> tmpTemplateFolders = templateWorkspaceWrap.getFlatListAllFolders();
@@ -638,12 +685,6 @@ public class iManageWorkspacesHelper {
       }
       Logger.getInstance()
         .info('Found ' + templateFolders.size() + ' template folders');
-
-      if (templateWorkspaceWrap == null) {
-        throw new IManageExceptions.IManageApplicationException(
-          'Workspace template not found. WS Template Id = ' + wsTemplateId
-        );
-      }
 
       // clone templateWorkspaceWrap.wrapItem
       IManageWWorkspace templateWorkspace = ((IManageWWorkspace) templateWorkspaceWrap.wrapItem)
@@ -661,10 +702,6 @@ public class iManageWorkspacesHelper {
         return;
       }
 
-      if (String.isNotBlank(wsName) && (sourceWorkspace.name != wsName)) {
-        patchData.put('name', wsName);
-      }
-
       if (
         String.isNotBlank(client) &&
         (wsMap.get(imSettings.ClientField__c) != client)
@@ -679,6 +716,21 @@ public class iManageWorkspacesHelper {
         patchData.put(imSettings.MatterField__c, matter); // custom2
       }
 
+      Boolean workspaceNameHasTokens = containsWorkspaceNameToken(
+        nameAffixes.workspaceText
+      );
+      if (String.isNotBlank(wsName) && !workspaceNameHasTokens) {
+        String resolvedWorkspaceName = applyWorkspaceNameAffix(
+          wsName,
+          nameAffixes.workspaceText,
+          nameAffixes.workspaceToEnd,
+          sourceWorkspace
+        );
+        if (sourceWorkspace.name != resolvedWorkspaceName) {
+          patchData.put('name', resolvedWorkspaceName);
+        }
+      }
+
       Logger.getInstance().info(logPrefix + ', patchData = ' + patchData);
 
       if (patchData.size() > 0) {
@@ -689,12 +741,42 @@ public class iManageWorkspacesHelper {
             workspaceId +
             ')...'
           );
-        sourceWorkspace = iManageWrapper.patchWorkspaceApiCall(
+        IManageWWorkspace patchedWorkspace = iManageWrapper.patchWorkspaceApiCall(
           sourceWorkspace.Id,
           patchData,
           customerId,
           library
         );
+        if (patchedWorkspace != null && String.isNotBlank(patchedWorkspace.name)) {
+          sourceWorkspace.name = patchedWorkspace.name;
+        } else if (patchData.containsKey('name')) {
+          sourceWorkspace.name = String.valueOf(patchData.get('name'));
+        }
+      }
+
+      if (String.isNotBlank(wsName) && workspaceNameHasTokens) {
+        if (patchData.size() > 0) {
+          sourceWorkspace = iManageWrapper.getWorkspace(workspaceId, library);
+        }
+        String resolvedWorkspaceName = applyWorkspaceNameAffix(
+          wsName,
+          nameAffixes.workspaceText,
+          nameAffixes.workspaceToEnd,
+          sourceWorkspace
+        );
+        if (sourceWorkspace.name != resolvedWorkspaceName) {
+          IManageWWorkspace patchedWorkspace = iManageWrapper.patchWorkspaceApiCall(
+            sourceWorkspace.Id,
+            new Map<String, Object>{ 'name' => resolvedWorkspaceName },
+            customerId,
+            library
+          );
+          if (patchedWorkspace != null && String.isNotBlank(patchedWorkspace.name)) {
+            sourceWorkspace.name = patchedWorkspace.name;
+          } else {
+            sourceWorkspace.name = resolvedWorkspaceName;
+          }
+        }
       }
 
       Logger.getInstance().info('Patch workspace name-value-pair');
@@ -750,6 +832,12 @@ public class iManageWorkspacesHelper {
         library,
         true,
         false
+      );
+      applyTemplateFolderNameAffix(
+        templateFolders,
+        nameAffixes.text,
+        nameAffixes.toEnd,
+        (IManageWWorkspace) sourceWorkspaceWrap.wrapItem
       );
       // System.debug('***** sourceWorkspaceWrap = ' + JSON.serialize(sourceWorkspaceWrap));
 
@@ -1041,6 +1129,226 @@ public class iManageWorkspacesHelper {
     return folder;
   }
 
+  public static TemplateNameAffixes parseTemplateNameAffixes(
+    Map<String, String> values
+  ) {
+    TemplateNameAffixes result = new TemplateNameAffixes();
+    result.toEnd = false;
+    result.workspaceToEnd = false;
+    if (values == null) {
+      return result;
+    }
+
+    String text = values.get('IMCC_Name_Prefix');
+    if (text != null) {
+      result.text = text.replace('<pre>', '');
+    }
+    result.toEnd = values.get('IMCC_Allow_Prefix') == '1';
+
+    String workspaceText = values.get('IMCC_Template_PrefixSufix_Value');
+    if (workspaceText != null) {
+      result.workspaceText = workspaceText.replace('<pre>', '');
+    }
+    result.workspaceToEnd = values.get('IMCC_Template_Allow_Prefix') == '1';
+    return result;
+  }
+
+  public static TemplateNameAffixes loadTemplateNameAffixes(
+    String templateId,
+    String customerId,
+    String libraryId
+  ) {
+    // iManage stores workspace and folder name affixes on the template workspace.
+    return parseTemplateNameAffixes(
+      iManageWrapper.getNameValuePair(
+        'workspaces',
+        templateId,
+        customerId,
+        libraryId
+      )
+    );
+  }
+
+  public static void applyTemplateFolderNameAffix(
+    List<IManageFolderWrap> templateFolders,
+    String affixTemplate,
+    Boolean toEnd,
+    IManageWWorkspace workspace
+  ) {
+    if (String.isBlank(affixTemplate) || templateFolders == null) {
+      return;
+    }
+
+    String resolvedAffix = replaceWorkspaceNameTokens(
+      affixTemplate,
+      workspace
+    );
+    for (IManageFolderWrap folder : templateFolders) {
+      IManageWFolder item = (IManageWFolder) folder.wrapItem;
+      item.name = appendNameAffix(item.name, resolvedAffix, toEnd);
+      folder.resetFullPath();
+    }
+  }
+
+  @TestVisible
+  private static Boolean containsWorkspaceNameToken(String source) {
+    return String.isNotBlank(source) &&
+      TEMPLATE_NAME_TOKEN_PATTERN.matcher(source).find();
+  }
+
+  public static String getWorkspaceNameForCreate(
+    String workspaceName,
+    String affixTemplate,
+    Boolean toEnd,
+    IManageWWorkspace workspace
+  ) {
+    if (containsWorkspaceNameToken(affixTemplate)) {
+      return workspaceName;
+    }
+    return applyWorkspaceNameAffix(
+      workspaceName,
+      affixTemplate,
+      toEnd,
+      workspace
+    );
+  }
+
+  public static IManageWWorkspace applyWorkspaceNameAffixAfterCreate(
+    IManageWWorkspace workspace,
+    String workspaceName,
+    String affixTemplate,
+    Boolean toEnd,
+    String customerId,
+    String libraryId
+  ) {
+    if (
+      workspace == null ||
+      String.isBlank(workspaceName) ||
+      !containsWorkspaceNameToken(affixTemplate)
+    ) {
+      return workspace;
+    }
+    String resolvedName = applyWorkspaceNameAffix(
+      workspaceName,
+      affixTemplate,
+      toEnd,
+      workspace
+    );
+    if (workspace.name == resolvedName) {
+      return workspace;
+    }
+    IManageWWorkspace patchedWorkspace = iManageWrapper.patchWorkspaceApiCall(
+      workspace.id,
+      new Map<String, Object>{ 'name' => resolvedName },
+      customerId,
+      libraryId
+    );
+    workspace.name = patchedWorkspace != null && String.isNotBlank(patchedWorkspace.name)
+      ? patchedWorkspace.name
+      : resolvedName;
+    return workspace;
+  }
+
+  public static String applyWorkspaceNameAffix(
+    String workspaceName,
+    String affixTemplate,
+    Boolean toEnd,
+    IManageWWorkspace workspace
+  ) {
+    if (String.isBlank(workspaceName) || String.isBlank(affixTemplate)) {
+      return workspaceName;
+    }
+    return appendNameAffix(
+      workspaceName,
+      replaceWorkspaceNameTokens(affixTemplate, workspace),
+      toEnd
+    );
+  }
+
+  @TestVisible
+  private static String replaceWorkspaceNameTokens(
+    String source,
+    IManageWWorkspace workspace
+  ) {
+    if (String.isBlank(source) || workspace == null) {
+      return source;
+    }
+
+    Map<String, Object> workspaceValues = (Map<String, Object>) JSON.deserializeUntyped(
+      JSON.serialize(workspace)
+    );
+    Matcher matcher = TEMPLATE_NAME_TOKEN_PATTERN.matcher(source);
+    String result = '';
+    Integer sourceOffset = 0;
+    while (matcher.find()) {
+      result += source.substring(sourceOffset, matcher.start());
+      String fieldNumber = matcher.group(2);
+      String tokenType = matcher.group(3).toLowerCase();
+      String fieldName = 'custom' + fieldNumber;
+      if (tokenType != 'alias') {
+        fieldName += '_description';
+      }
+
+      if (!workspaceValues.containsKey(fieldName)) {
+        result += matcher.group(0);
+      } else {
+        Object fieldValue = workspaceValues.get(fieldName);
+        String replacement = fieldValue == null
+          ? ''
+          : String.valueOf(fieldValue);
+        Integer customNumber = Integer.valueOf(fieldNumber);
+        if (
+          tokenType == 'alias' &&
+          customNumber >= 25 &&
+          customNumber <= 28 &&
+          String.isNotBlank(replacement)
+        ) {
+          replacement = replacement.toLowerCase() == 'true' ? 'yes' : 'no';
+        }
+
+        String sizeValue = matcher.group(4);
+        if (String.isNotBlank(sizeValue)) {
+          Integer sizeLimit = Integer.valueOf(sizeValue);
+          if (replacement.length() > sizeLimit) {
+            replacement = replacement.left(sizeLimit);
+          }
+        }
+        result += replacement;
+      }
+      sourceOffset = matcher.end();
+    }
+    result += source.substring(sourceOffset);
+    return result;
+  }
+
+  @TestVisible
+  private static String appendNameAffix(
+    String source,
+    String affix,
+    Boolean toEnd
+  ) {
+    String safeSource = source == null ? '' : source;
+    if (String.isBlank(affix)) {
+      return safeSource;
+    }
+
+    String safeAffix = affix.length() > MAX_IMANAGE_NAME_LENGTH
+      ? affix.left(MAX_IMANAGE_NAME_LENGTH)
+      : affix;
+    if (toEnd == true) {
+      if (safeSource.endsWith(safeAffix)) {
+        return safeSource;
+      }
+      Integer sourceLength = MAX_IMANAGE_NAME_LENGTH - safeAffix.length();
+      return safeSource.left(Math.min(safeSource.length(), sourceLength)) +
+        safeAffix;
+    }
+    if (safeSource.startsWith(safeAffix)) {
+      return safeSource;
+    }
+    return (safeAffix + safeSource).left(MAX_IMANAGE_NAME_LENGTH);
+  }
+
   public static Boolean createFolderChunkItem(
     String customerId,
     String libraryId,
@@ -1148,6 +1456,7 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
+    tf.name = ((IManageWFolder) templateFolderWrap.wrapItem).name;
 
     if (tf.isOptional == true) {
       Logger.getInstance()
@@ -1311,6 +1620,7 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
+    tf.name = ((IManageWFolder) templateFolderWrap.wrapItem).name;
     if (tf.isOptional == true) {
       Logger.getInstance()
         .info(
@@ -1449,6 +1759,7 @@ public class iManageWorkspacesHelper {
       customerId,
       libraryId
     );
+    tf.name = ((IManageWFolder) templateFolderWrap.wrapItem).name;
     if (tf.isOptional == true) {
       Logger.getInstance()
         .info(

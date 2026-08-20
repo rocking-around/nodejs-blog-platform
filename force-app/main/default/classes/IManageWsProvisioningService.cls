@@ -17,6 +17,9 @@ public with sharing class IManageWsProvisioningService {
     @AuraEnabled public String templateId { get; set; }
     @AuraEnabled public Boolean autoCreated { get; set; }
     @AuraEnabled public String source { get; set; }
+    // Bootstrap snapshots the template setting so every chunk uses one name.
+    public String folderNameAffix { get; set; }
+    public Boolean folderNameAffixToEnd { get; set; }
   }
 
   public class ProvisioningStatus {

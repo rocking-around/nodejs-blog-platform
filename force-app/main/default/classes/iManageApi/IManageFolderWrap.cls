@@ -51,5 +51,9 @@ public class IManageFolderWrap extends IManageWrapBase {
     }
   }
 
+  public void resetFullPath() {
+    pFolderFullPath = null;
+  }
+
   public Boolean isMissing { get; set; }
 }

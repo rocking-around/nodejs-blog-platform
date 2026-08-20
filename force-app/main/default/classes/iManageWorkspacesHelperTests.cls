@@ -384,6 +384,10 @@ private class iManageWorkspacesHelperTests {
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
             new List<Object>{ customerId, library, folderTemplate_id }
         );
+        String getFolderTemplateNvpEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, folderTemplate_id }
+        );
 
         String folderTemplateJson = '{"create_date":"2023-10-24T21:13:10.78Z","database":"ACTIVE","default_security":"public","description":"test template","edit_date":"2023-10-24T21:13:11.102Z","effective_security":"full_access","has_subfolders":true,"id":"Active!2615","is_declared":false,"is_external":false,"is_external_as_normal":false,"last_user":"TESTUSER","last_user_description":"testuser","name":"sf_test","owner_description":"testuser","owner":"TESTUSER","create_profile_date":"2023-10-24T21:13:10.78Z","document_number":252502,"is_hipaa":false,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=252502&&ver=1","retain_days":365,"system_edit_date":"2023-10-24T21:13:11.102Z","version":1,"wstype":"workspace"}';
         IManageWWorkspace folderTemplate = (IManageWWorkspace) JSON.deserialize(
@@ -650,6 +654,9 @@ private class iManageWorkspacesHelperTests {
             getFolderTemplateEndpoint => new List<HttpResponse>{
                 respHelper.buildWorkspaceResponse(200, folderTemplate)
             },
+            getFolderTemplateNvpEndpoint => new List<HttpResponse>{
+                respHelper.buildNameValuePairResponse(200, new Map<String, String>())
+            },
             getWorkspaceEndpoint => new List<HttpResponse>{
                 respHelper.buildWorkspaceResponse(200, workspace_get)
             },
@@ -793,6 +800,10 @@ private class iManageWorkspacesHelperTests {
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
             new List<Object>{ customerId, library, folderTemplate_id }
         );
+        String getFolderTemplateNvpEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, folderTemplate_id }
+        );
         String folderTemplateJson = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-28T16:40:50.467Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254932&&ver=1","is_hipaa":false,"document_number":254932,"create_profile_date":"2023-10-28T16:38:36.353Z","name":"sf_test_optional","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2840","has_subfolders":true,"effective_security":"full_access","edit_date":"2023-10-28T16:40:50.467Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-28T16:38:36.353Z"}';
         IManageWWorkspace folderTemplate = (IManageWWorkspace) JSON.deserialize(
             folderTemplateJson,
@@ -917,6 +928,9 @@ private class iManageWorkspacesHelperTests {
             getFolderTemplateEndpoint => new List<HttpResponse>{
                 getFolderTemplateResponse
             },
+            getFolderTemplateNvpEndpoint => new List<HttpResponse>{
+                respHelper.buildNameValuePairResponse(200, new Map<String, String>())
+            },
             getWorkspaceEndpoint => new List<HttpResponse>{
                 getWorkspaceResponse
             },
@@ -987,6 +1001,10 @@ private class iManageWorkspacesHelperTests {
         // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!2844
         String getWorkspaceEndpoint_2844 = TestUtils.buildCalloutUrl(
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
+            new List<Object>{ customerId, library, 'Active!2844' }
+        );
+        String getWorkspaceNvpEndpoint_2844 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
             new List<Object>{ customerId, library, 'Active!2844' }
         );
         String workspace_json_2844 = '{"wstype":"workspace","version":1,"system_edit_date":"2023-10-28T16:42:00.002Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=254933&&ver=1","is_hipaa":false,"document_number":254933,"create_profile_date":"2023-10-28T16:41:19.33Z","name":"sf_test_security","last_user_description":"testuser","last_user":"TESTUSER","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!2844","has_subfolders":true,"effective_security":"full_access","edit_date":"2023-10-28T16:42:00.002Z","description":"test template","default_security":"public","database":"ACTIVE","create_date":"2023-10-28T16:41:19.33Z"}';
@@ -1247,6 +1265,9 @@ private class iManageWorkspacesHelperTests {
             createWorkspaceEndpoint => new List<HttpResponse>{ createWorkspaceResponse },
             patchNameValuePairEndpoint_ws => new List<HttpResponse>{ respHelper.buildEmptyResponse(200) },
             getWorkspaceEndpoint_2844 => new List<HttpResponse>{ getWorkspaceResponse_2844 },
+            getWorkspaceNvpEndpoint_2844 => new List<HttpResponse>{
+                respHelper.buildNameValuePairResponse(200, new Map<String, String>())
+            },
             getWorkspaceEndpoint_2873 => new List<HttpResponse>{ getWorkspaceResponse_2873 },
             getFolderByIdEndpoint_folderTemplate_2845 => new List<HttpResponse>{ getFolderByIdResponse_folderTemplate_2845 },
             getFolderByIdEndpoint_folderTemplate_2846 => new List<HttpResponse>{ getFolderByIdResponse_folderTemplate_2846 },
@@ -1287,7 +1308,7 @@ private class iManageWorkspacesHelperTests {
     }
 
     @isTest
-    static void updateWorkspaceTest() {
+    static void updateWorkspaceRecognizesAffixedFoldersTest() {
         // prepare data
         Integer customerId = 1;
         String library = 'Active';
@@ -1314,13 +1335,6 @@ private class iManageWorkspacesHelperTests {
         );
         HttpResponse getWs_4284_resp = respHelper.buildGetWorkspaceResponse(200, getWs_data_4284);
 
-        String getWs_json_4284_upd = '{"wstype":"workspace","version":1,"system_edit_date":"2024-01-17T16:33:39.06Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=1001828&&ver=1","is_hipaa":false,"document_number":1001828,"custom2_ssid":"100658363605634574","custom2_description":"0-19","custom2":"1B7141919","custom1_description":"1919","custom1":"19","custom1_ssid":"100658363605634013","create_profile_date":"2024-01-11T15:12:31.576Z","owner_description":"test","owner":"TEST","name":"19-1B7141919_0-19","last_user_description":"test","last_user":"TEST","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!4284","has_subfolders":true,"effective_security":"full_access","edit_date":"2024-01-17T16:33:39.06Z","description":"Test","default_security":"public","database":"ACTIVE","create_date":"2024-01-11T15:12:31.576Z"}';
-        IManageWWorkspace getWs_data_4284_upd = (IManageWWorkspace) JSON.deserialize(
-            getWs_json_4284_upd,
-            IManageWWorkspace.class
-        );
-        HttpResponse getWs_4284_resp_upd = respHelper.buildGetWorkspaceResponse(200, getWs_data_4284_upd);
-
         // callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!4284/name-value-pairs
         String getNameValuePairEndpoint_4284 = TestUtils.buildCalloutUrl(
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
@@ -1337,6 +1351,17 @@ private class iManageWorkspacesHelperTests {
         String getWsTemplateEndpoint_3546 = TestUtils.buildCalloutUrl(
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
             new List<Object>{ customerId, library, 'Active!3546' }
+        );
+        String getWsTemplateNvpEndpoint_3546 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, 'Active!3546' }
+        );
+        HttpResponse getWsTemplateNvp_3546_resp = respHelper.buildNameValuePairResponse(
+            200,
+            new Map<String, String>{
+                'IMCC_Name_Prefix' => '<pre>(#C1ALIAS#) <pre>',
+                'IMCC_Allow_Prefix' => '0'
+            }
         );
         String getWsTemplate_3546_json = '{"wstype":"workspace","version":1,"system_edit_date":"2023-12-28T14:16:12.182Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=1001453&&ver=1","is_hipaa":false,"document_number":1001453,"create_profile_date":"2023-12-28T14:16:11.952Z","owner_description":"test","owner":"TEST","name":"SF_TEST","last_user_description":"test","last_user":"TEST","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!3546","has_subfolders":true,"effective_security":"full_access","edit_date":"2023-12-28T14:16:12.182Z","description":"Test","default_security":"public","database":"ACTIVE","create_date":"2023-12-28T14:16:11.952Z"}';
         IManageWWorkspace getWsTemplate_3546_data = (IManageWWorkspace) JSON.deserialize(
@@ -1358,11 +1383,6 @@ private class iManageWorkspacesHelperTests {
 
         HttpResponse getFolders_3546_resp = respHelper.buildFoldersResponse(200, getFolders_3546_data);
         
-        //PATCH callout:iManageCreds/work/api/v2/customers/337/libraries/Active/workspaces/Active!4284
-        String patchWsEndpoint_4284 = TestUtils.buildCalloutUrl(
-            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
-            new List<Object>{ customerId, library, 'Active!4284' }
-        );
         String patchWs_4284_json = '{"wstype":"workspace","version":1,"system_edit_date":"2024-01-17T16:33:38.328Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=1001828&&ver=1","is_hipaa":false,"document_number":1001828,"custom2_ssid":"100658363605634574","custom2":"1B7141919","custom2_description":"0-19","custom1_description":"1919","custom1_ssid":"100658363605634013","custom1":"19","create_profile_date":"2024-01-11T15:12:31.576Z","owner_description":"test","owner":"TEST","name":"19-1B7141919_0-19","last_user_description":"test","last_user":"TEST","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"Active!4284","has_subfolders":true,"effective_security":"full_access","edit_date":"2024-01-17T16:33:38.328Z","description":"Test","default_security":"public","database":"ACTIVE","create_date":"2024-01-11T15:12:31.576Z"}';
         IManageWWorkspace patchWs_4284_data = (IManageWWorkspace) JSON.deserialize(
             patchWs_4284_json,
@@ -1415,7 +1435,7 @@ private class iManageWorkspacesHelperTests {
             '/work/api/v2/customers/{0}/libraries/{1}/folders?total=true&offset=0&limit=200&container_id={2}',
             new List<Object>{ customerId, library, 'Active!4284' }
         );
-        String getFolders_4284_json = '[{"wstype":"folder","workspace_id":"Active!4284","workspace_name":"19-1B7141919_0-19","view_type":"document","parent_id":"Active!4284","owner":"TEST","owner_description":"test","name":"SF Folder 1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"view","id":"Active!4286","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2024-01-11T15:12:33.959Z","default_security":"view","database":"ACTIVE"},{"wstype":"folder","workspace_id":"Active!4284","workspace_name":"19-1B7141919_0-19","view_type":"document","parent_id":"Active!4284","owner":"TEST","owner_description":"test","name":"SF Folder 2","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!4285","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2024-01-11T15:12:32.813Z","default_security":"inherit","database":"ACTIVE"}]';
+        String getFolders_4284_json = '[{"wstype":"folder","workspace_id":"Active!4284","workspace_name":"19-1B7141919_0-19","view_type":"document","parent_id":"Active!4284","owner":"TEST","owner_description":"test","name":"(19) SF Folder 1","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"view","id":"Active!4286","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2024-01-11T15:12:33.959Z","default_security":"view","database":"ACTIVE"},{"wstype":"folder","workspace_id":"Active!4284","workspace_name":"19-1B7141919_0-19","view_type":"document","parent_id":"Active!4284","owner":"TEST","owner_description":"test","name":"(19) SF Folder 2","is_external_as_normal":false,"is_external":false,"is_content_saved_search":false,"is_container_saved_search":false,"inherited_default_security":"public","id":"Active!4285","has_subfolders":false,"has_documents":false,"folder_type":"regular","edit_date":"2024-01-11T15:12:32.813Z","default_security":"inherit","database":"ACTIVE"}]';
         List<IManageWFolder> getFolders_4284_data = (List<IManageWFolder>) JSON.deserialize(
             getFolders_4284_json,
             List<IManageWFolder>.class
@@ -1425,11 +1445,11 @@ private class iManageWorkspacesHelperTests {
         //
 
         Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
-            getWsEndpoint_4284 => new List<HttpResponse>{ getWs_4284_resp, getWs_4284_resp_upd },
+            getWsEndpoint_4284 => new List<HttpResponse>{ getWs_4284_resp, patchWs_4284_resp },
             getNameValuePairEndpoint_4284 => new List<HttpResponse>{ getNameValuePair_4284_resp, patchNameValuePairs_4284_resp },
             getWsTemplateEndpoint_3546 => new List<HttpResponse>{ getWsTemplate_3546_resp },
+            getWsTemplateNvpEndpoint_3546 => new List<HttpResponse>{ getWsTemplateNvp_3546_resp },
             getFoldersEndpoint_3546 => new List<HttpResponse>{ getFolders_3546_resp },
-            patchWsEndpoint_4284 => new List<HttpResponse>{ patchWs_4284_resp },
             getWsSecurityEndpoint_3546 => new List<HttpResponse>{ getWsSecurity_3546_resp },
             getWsSecurityEndpoint_4284 => new List<HttpResponse>{ getWsSecurity_4284_resp },
             postWsSecurityEndpoint_4284 => new List<HttpResponse>{ postWsSecurity_4284_resp },
@@ -1448,7 +1468,6 @@ private class iManageWorkspacesHelperTests {
         );
 
         Test.stopTest();
-        System.assert(true, 'test not passed');
     }
 
     private static iManageSettings__c getIManageSettings(

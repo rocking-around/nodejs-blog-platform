@@ -69,16 +69,13 @@ private class EntityIManageWorkspaceUpdaterTests {
         };
         setupMockCallouts(customerId, library, responses);
 
-        // run
         Test.startTest();
-        WorkspaceSyncBatch.enqueue(new Set<Id>{ opp.Id });
+        Map<String, String> workspaceParameters = EntityIManageWorkspaceUpdater.getWorkspaceParameters(
+            wsMapping,
+            wsNamePattern
+        );
         Test.stopTest();
-
-        AsyncApexJob batchJob = getWorkspaceSyncBatchJob();
-        System.assertEquals('Completed', batchJob.Status);
-        System.assertEquals(1, batchJob.TotalJobItems);
-        System.assertEquals(1, batchJob.JobItemsProcessed);
-        System.assertEquals(0, batchJob.NumberOfErrors);
+        System.assertEquals(null, workspaceParameters);
     }
 
     @isTest
@@ -125,6 +122,7 @@ private class EntityIManageWorkspaceUpdaterTests {
             '{0} - {1} : {0} - {1}',
             new List<Object>{ opp.Id, opp.Name }
         );
+        String currentWsName = 'prefix-' + wsName;
 
         // ins IManage_WS_to_Entity_Mapping__c
         IManage_WS_to_Entity_Mapping__c wsMapping = new IManage_WS_to_Entity_Mapping__c(
@@ -132,7 +130,7 @@ private class EntityIManageWorkspaceUpdaterTests {
             EntityId__c = opp.Id,
             iManage_Workspace_Created_On__c = '2023-10-25T22:21:47.494Z',
             iManage_WS_Id__c = wsId,
-            iManage_WS_Name__c = wsName,
+            iManage_WS_Name__c = currentWsName,
             Source__c = 'SF',
             iManage_Library__c = 'ACTIVE'
         );
@@ -145,28 +143,48 @@ private class EntityIManageWorkspaceUpdaterTests {
             '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}',
             new List<Object>{ customerId, library, 'ACTIVE!7777' }
         );
-        String getWs_7777_json = '{"wstype":"workspace","version":1,"system_edit_date":"2024-01-15T20:26:18.008Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=1001828&&ver=1","is_hipaa":false,"document_number":1001828,"custom2":"' + opp.Id + '","custom2_ssid":"100658363612929491","custom2_description":"Test Mat","custom1_ssid":"100490071102362395","custom1":"' + opp.Id + '","custom1_description":"777","create_profile_date":"2024-01-11T15:12:31.576Z","owner":"TEST","owner_description":"test","name":"' + wsName + '","last_user_description":"test","last_user":"TEST","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"ACTIVE!7777","has_subfolders":true,"effective_security":"full_access","edit_date":"2024-01-15T20:26:18.008Z","description":"Test","default_security":"public","database":"ACTIVE","create_date":"2024-01-11T15:12:31.576Z"}';
+        String getWs_7777_json = '{"wstype":"workspace","version":1,"system_edit_date":"2024-01-15T20:26:18.008Z","retain_days":365,"iwl":"iwl:dms=cloudimanage.com&&lib=Active&&num=1001828&&ver=1","is_hipaa":false,"document_number":1001828,"custom2":"' + opp.Id + '","custom2_ssid":"100658363612929491","custom2_description":"Test Mat","custom1_ssid":"100490071102362395","custom1":"' + opp.Id + '","custom1_description":"777","create_profile_date":"2024-01-11T15:12:31.576Z","owner":"TEST","owner_description":"test","name":"' + currentWsName + '","last_user_description":"test","last_user":"TEST","is_external_as_normal":false,"is_external":false,"is_declared":false,"id":"ACTIVE!7777","has_subfolders":true,"effective_security":"full_access","edit_date":"2024-01-15T20:26:18.008Z","description":"Test","default_security":"public","database":"ACTIVE","create_date":"2024-01-11T15:12:31.576Z"}';
         IManageWWorkspace getWs_7777_data = (IManageWWorkspace) JSON.deserialize(
             getWs_7777_json,
             IManageWWorkspace.class
         );
         HttpResponse getWs_7777_resp = respHelper.buildGetWorkspaceResponse(200, getWs_7777_data);
 
+        String getWsNvpEndpoint_7777 = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, wsId }
+        );
+        String templateId = 'ACTIVE!3333';
+        HttpResponse getWsNvp_7777_resp = respHelper.buildNameValuePairResponse(
+            200,
+            new Map<String, String>{ 'templateId' => templateId }
+        );
+        String getTemplateNvpEndpoint = TestUtils.buildCalloutUrl(
+            '/work/api/v2/customers/{0}/libraries/{1}/workspaces/{2}/name-value-pairs',
+            new List<Object>{ customerId, library, templateId }
+        );
+        HttpResponse getTemplateNvpResponse = respHelper.buildNameValuePairResponse(
+            200,
+            new Map<String, String>{
+                'IMCC_Template_PrefixSufix_Value' => '<pre>prefix-<pre>',
+                'IMCC_Template_Allow_Prefix' => '0'
+            }
+        );
+
         Map<String, List<HttpResponse>> responses = new Map<String, List<HttpResponse>>{
-            getWsEndpoint_7777 => new List<HttpResponse>{ getWs_7777_resp }
+            getWsEndpoint_7777 => new List<HttpResponse>{ getWs_7777_resp },
+            getWsNvpEndpoint_7777 => new List<HttpResponse>{ getWsNvp_7777_resp },
+            getTemplateNvpEndpoint => new List<HttpResponse>{ getTemplateNvpResponse }
         };
         setupMockCallouts(customerId, library, responses);
 
-        // run
         Test.startTest();
-        WorkspaceSyncBatch.enqueue(new Set<Id>{ opp.Id });
+        Map<String, String> workspaceParameters = EntityIManageWorkspaceUpdater.getWorkspaceParameters(
+            wsMapping,
+            wsNamePattern
+        );
         Test.stopTest();
-
-        AsyncApexJob batchJob = getWorkspaceSyncBatchJob();
-        System.assertEquals('Completed', batchJob.Status);
-        System.assertEquals(1, batchJob.TotalJobItems);
-        System.assertEquals(1, batchJob.JobItemsProcessed);
-        System.assertEquals(0, batchJob.NumberOfErrors);
+        System.assertEquals(null, workspaceParameters);
     }
 
     @isTest

@@ -120,6 +120,15 @@ public with sharing class WorkspaceProvisioningBatch
     iManageWrapper.ApiInfo apiInfo = iManageWrapper.GetApiInfo();
     IManageWWorkspace workspace;
 
+    iManageWorkspacesHelper.TemplateNameAffixes nameAffixes = iManageWorkspacesHelper.loadTemplateNameAffixes(
+      request.templateId,
+      apiInfo.customerId,
+      request.libraryId
+    );
+    request.folderNameAffix = nameAffixes.text;
+    request.folderNameAffixToEnd = nameAffixes.toEnd;
+    operation.Request_Payload__c = JSON.serialize(request);
+
     if (String.isBlank(operation.iManage_WS_Id__c)) {
       IManageWorkspaceWrap templateWrap = iManageWorkspacesHelper.getWorkspaceTemplateWrap(
         request.templateId,
@@ -134,13 +143,26 @@ public with sharing class WorkspaceProvisioningBatch
         .cloneThis();
       template.custom1 = request.clientId;
       template.custom2 = request.matterId;
-      template.name = request.workspaceName;
+      template.name = iManageWorkspacesHelper.getWorkspaceNameForCreate(
+        request.workspaceName,
+        nameAffixes.workspaceText,
+        nameAffixes.workspaceToEnd,
+        template
+      );
       iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
       workspace = iManageWrapper.createWorkspaceApiCall(
         template,
         apiInfo.customerId,
         request.libraryId,
         settings.iManage_Ws_Owner__c
+      );
+      workspace = iManageWorkspacesHelper.applyWorkspaceNameAffixAfterCreate(
+        workspace,
+        request.workspaceName,
+        nameAffixes.workspaceText,
+        nameAffixes.workspaceToEnd,
+        apiInfo.customerId,
+        request.libraryId
       );
       operation.iManage_WS_Id__c = workspace.id;
       operation.iManage_WS_Name__c = workspace.name;
@@ -207,6 +229,13 @@ public with sharing class WorkspaceProvisioningBatch
     IManageWorkspaceWrap templateWrap = iManageWorkspacesHelper.getWorkspaceTemplateWrap(
       operation.Template_Id__c,
       operation.iManage_Library__c
+    );
+    // Transform before planning so the live-tree checkpoint uses actual names.
+    iManageWorkspacesHelper.applyTemplateFolderNameAffix(
+      templateWrap.getFlatListAllFolders(),
+      request.folderNameAffix,
+      request.folderNameAffixToEnd,
+      (IManageWWorkspace) workspaceWrap.wrapItem
     );
     // The live destination tree is the checkpoint between transactions.
     Set<String> skippedFolders = deserializeKeys(operation.Skipped_Folders__c);
