@@ -23,6 +23,7 @@ public class iManageFileSaverTests {
       Mapping_LibraryField__c = ''
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
   }
 
   static testMethod void getFolderByStructureTest() {

@@ -14,11 +14,14 @@ private class IManageMappingHelperTests {
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
       Mapping_EntityClientIdObjectField__c = 'CreatedById',
-      Mapping_ClientIdField__c = 'Id'
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
     );
 
     insert testData;
+    IManageMappingMigration.migrateLegacyMapping();
 
     Test.startTest();
     IManageMapping mapping = IManageMappingHelper.getMapping();
@@ -57,10 +60,13 @@ private class IManageMappingHelperTests {
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
       Mapping_EntityClientIdObjectField__c = 'Opportunity',
-      Mapping_ClientIdField__c = 'StageName'
+      Mapping_ClientIdField__c = 'StageName',
+      Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
+    IManageMappingMigration.migrateLegacyMapping();
 
     Test.startTest();
     IManageMappingHelper.IManageIFrameData result = IManageMappingHelper.getMappingData(
@@ -102,10 +108,13 @@ private class IManageMappingHelperTests {
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'StageName',
+      Mapping_MatterNameField__c = 'Name',
       Mapping_EntityClientIdObjectField__c = 'Opportunity',
-      Mapping_ClientIdField__c = 'Id'
+      Mapping_ClientIdField__c = 'Id',
+      Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
+    IManageMappingMigration.migrateLegacyMapping();
 
     Test.startTest();
     IManageMappingHelper.IManageIFrameData result = IManageMappingHelper.getMappingData(
@@ -211,13 +220,16 @@ private class IManageMappingHelperTests {
       iManage_UseOnlyCustom2__c = true
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     Map<String, Object> mapping = new Map<String, Object>{
       'EntityType' => 'Opportunity',
       'EntityMatterIdObjectField' => 'Opportunity',
       'MatterIdField' => 'Id',
+      'MatterNameField' => 'Name',
       'EntityClientIdObjectField' => 'CreatedById',
       'ClientIdField' => 'Id',
+      'ClientNameField' => 'Name',
       'UseOnlyCustom2' => false
     };
 
@@ -226,10 +238,16 @@ private class IManageMappingHelperTests {
     IManageMapping mapping2 = IManageMappingHelper.getMapping();
     Test.stopTest();
     System.assertEquals(
+      1,
+      [SELECT COUNT() FROM IManage_Mapping_Configuration__c],
+      'The legacy save API must update the existing entity mapping.'
+    );
+    System.assertEquals(
       mapping2.EntityType,
       (String) mapping.get('EntityType'),
       'EntityType__c has wrong value'
     );
+    System.assertEquals('CreatedById', mapping2.EntityClientIdObjectField);
   }
 
   //getSObjectMetadata
@@ -286,6 +304,7 @@ private class IManageMappingHelperTests {
       Mapping_ClientNameField__c = 'Name'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     // Create Opportunity
     Opportunity opp = new Opportunity();
@@ -326,6 +345,7 @@ private class IManageMappingHelperTests {
       Mapping_ClientNameField__c = 'Nonexistent_field'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
     // --
     Test.startTest();
     try {
@@ -362,6 +382,7 @@ private class IManageMappingHelperTests {
       Mapping_ClientNameField__c = 'Nonexistent_field'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
     // --
     Test.startTest();
     try {

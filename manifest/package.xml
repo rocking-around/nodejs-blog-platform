@@ -38,8 +38,11 @@
         <members>IManageLinksAndFilesHelper</members>
         <members>IManageLinksAndFilesHelperTests</members>
         <members>IManageMapping</members>
+        <members>IManageMappingConfigurationTests</members>
         <members>IManageMappingHelper</members>
         <members>IManageMappingHelperTests</members>
+        <members>IManageMappingMigration</members>
+        <members>IManageMappingMigrationTests</members>
         <members>iManagePostInstallClass</members>
         <members>iManageProvider</members>
         <members>iManageProviderMockRefreshCallout</members>
@@ -104,6 +107,7 @@
         <members>iManageDocumentSettings__c</members>
         <members>iManageDocumentMetadata__c</members>
         <members>IManage_WS_to_Entity_Mapping__c</members>
+        <members>IManage_Mapping_Configuration__c</members>
         <members>IManage_Workspace_Provisioning__c</members>
         <members>iManageAuthSetting__mdt</members>
         <members>Log__c</members>

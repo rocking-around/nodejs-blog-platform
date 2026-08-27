@@ -1,0 +1,47 @@
+<template>
+  <div class="combobox" onclick={stopPropagation}>
+    <button
+      class={triggerClass}
+      type="button"
+      aria-expanded={isOpen}
+      aria-haspopup="listbox"
+      title={selectedLabel}
+      onclick={toggleDropdown}
+      onkeydown={handleTriggerKeydown}
+    >
+      <span class="selected-value">{displayValue}</span>
+      <lightning-icon
+        icon-name="utility:down"
+        size="xx-small"
+        alternative-text=""
+      ></lightning-icon>
+    </button>
+
+    <div
+      if:true={isOpen}
+      class="dropdown"
+      style={dropdownStyle}
+      role="listbox"
+      onkeydown={handleDropdownKeydown}
+    >
+      <template for:each={decoratedOptions} for:item="option">
+        <button
+          key={option.value}
+          class={option.className}
+          type="button"
+          role="option"
+          aria-selected={option.isSelected}
+          data-value={option.value}
+          title={option.label}
+          onclick={selectOption}
+        >
+          {option.label}
+        </button>
+      </template>
+    </div>
+
+    <div if:true={hasError} class="slds-form-element__help" role="alert">
+      Complete this field.
+    </div>
+  </div>
+</template>

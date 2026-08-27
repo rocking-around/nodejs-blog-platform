@@ -254,18 +254,8 @@
               First populate and save the general settings
             </template>
             <template if:true={areGeneralSettingsHasValuesAndSaved}>
-              <template if:true={iManageMappingEntity}>
-                <c-i-manage-mapping-configuration
-                  entity-api-name={iManageMappingEntity}
-                >
-                </c-i-manage-mapping-configuration>
-              </template>
-              <template if:false={iManageMappingEntity}>
-                <p>
-                  The Salesforce entity type is not specified. Contact the
-                  Administrator.
-                </p>
-              </template>
+              <c-i-manage-mapping-configuration>
+              </c-i-manage-mapping-configuration>
             </template>
           </lightning-tab>
 

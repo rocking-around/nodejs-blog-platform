@@ -34,6 +34,7 @@ private class EntityIManageWorkspaceUpdaterTests {
             iManage_Libraries__c = library
         );
         upsert imSettings;
+        IManageMappingMigration.migrateLegacyMapping();
 
         // ins Entity
         Opportunity opp = new Opportunity();
@@ -110,6 +111,7 @@ private class EntityIManageWorkspaceUpdaterTests {
             iManage_Libraries__c = library
         );
         upsert imSettings;
+        IManageMappingMigration.migrateLegacyMapping();
 
         // ins Entity
         Opportunity opp = new Opportunity();
@@ -277,6 +279,85 @@ private class EntityIManageWorkspaceUpdaterTests {
         Test.stopTest();
     }
 
+    @isTest
+    static void rejectsMissingClientId() {
+        assertMissingMappedField('AccountId', 'Id', 'Name', 'Opportunity', 'Id', 'Name', false, 'Id');
+    }
+
+    @isTest
+    static void rejectsMissingClientName() {
+        assertMissingMappedField('AccountId', 'Id', 'Description', 'Opportunity', 'Id', 'Name', true, 'Description');
+    }
+
+    @isTest
+    static void rejectsMissingMatterId() {
+        assertMissingMappedField('Opportunity', 'Id', 'Name', 'Opportunity', 'Description', 'Name', false, 'Description');
+    }
+
+    @isTest
+    static void rejectsMissingMatterName() {
+        assertMissingMappedField('Opportunity', 'Id', 'Name', 'Opportunity', 'Id', 'Description', false, 'Description');
+    }
+
+    private static void assertMissingMappedField(
+        String clientObjectField,
+        String clientIdField,
+        String clientNameField,
+        String matterObjectField,
+        String matterIdField,
+        String matterNameField,
+        Boolean createAccount,
+        String expectedField
+    ) {
+        setupMockCallouts(1, 'ACTIVE', null);
+        LicenseService.CheckOrganizationLicense();
+        iManageWrapper.invalidateApiInfoCache();
+        iManageWrapper.GetApiInfo();
+        upsert new iManageSettings__c(
+            Client_Id__c = 'test-client',
+            ClientField__c = 'custom1',
+            MatterField__c = 'custom2',
+            Customer_Id__c = '1',
+            Url__c = 'https://example.test'
+        );
+        insert new IManage_Mapping_Configuration__c(
+            Entity_Type__c = 'Opportunity',
+            Entity_Client_Id_Object_Field__c = clientObjectField,
+            Client_Id_Field__c = clientIdField,
+            Client_Name_Field__c = clientNameField,
+            Entity_Matter_Id_Object_Field__c = matterObjectField,
+            Matter_Id_Field__c = matterIdField,
+            Matter_Name_Field__c = matterNameField
+        );
+        Account account;
+        if (createAccount) {
+            account = new Account(Name = 'Mapped Account');
+            insert account;
+        }
+        Opportunity opportunity = new Opportunity(
+            Name = 'Missing mapped value',
+            AccountId = account?.Id,
+            CloseDate = System.today(),
+            StageName = 'Prospecting'
+        );
+        insert opportunity;
+        IManage_WS_to_Entity_Mapping__c workspaceMapping = new IManage_WS_to_Entity_Mapping__c(
+            EntityId__c = opportunity.Id,
+            iManage_WS_Id__c = 'ACTIVE!MISSING',
+            iManage_Library__c = 'ACTIVE'
+        );
+
+        try {
+            EntityIManageWorkspaceUpdater.getWorkspaceParameters(
+                workspaceMapping,
+                '{CLIENTCODE}-{MATTERCODE}'
+            );
+            System.assert(false, 'A missing mapped field must be rejected.');
+        } catch (IManageExceptions.IManageApplicationException error) {
+            System.assert(error.getMessage().contains(expectedField), error.getMessage());
+        }
+    }
+
     private static void setupMockCallouts(Integer customerId, String library, Map<String, List<HttpResponse>> mockCallouts) {
         String licenseUrl = TestUtils.getLicenseApiUrl();
         Organization org = TestUtils.getOrganization();
@@ -319,6 +400,7 @@ private class EntityIManageWorkspaceUpdaterTests {
             Mapping_ClientIdField__c = 'Id',
             Mapping_ClientNameField__c = 'Name'
         );
+        IManageMappingMigration.migrateLegacyMapping();
     }
 
     private static Opportunity createOpportunity(String name) {

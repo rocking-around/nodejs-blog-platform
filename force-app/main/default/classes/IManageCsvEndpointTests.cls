@@ -20,6 +20,7 @@ public class IManageCsvEndpointTests {
       Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
+    IManageMappingMigration.migrateLegacyMapping();
 
     // Create oppporunity
     Opportunity opp = new Opportunity(
@@ -53,6 +54,7 @@ public class IManageCsvEndpointTests {
 
   @isTest
   static void testGetWithoutRequiredParameter() {
+    insert settings(true);
     RestRequest req = new RestRequest();
     RestResponse res = new RestResponse();
 
@@ -69,5 +71,51 @@ public class IManageCsvEndpointTests {
 
     System.assertEquals('', result);
     System.assertEquals(400, res.statusCode);
+  }
+
+  @isTest
+  static void unmappedObjectReturnsEmptyResponse() {
+    TestUtils.setupMockActiveLicense();
+    insert settings(true);
+
+    RestRequest req = new RestRequest();
+    RestResponse res = new RestResponse();
+    req.requestURI = '/services/apexrest/gdsi_imanage/IManageCsv';
+    req.httpMethod = 'GET';
+    req.addParameter('objectName', 'Account');
+    req.addParameter('separator', ',');
+    req.addParameter('startDate', '2021-12-31 00:00:00.000+0000');
+    RestContext.request = req;
+    RestContext.response = res;
+
+    Test.startTest();
+    String result = IManageCsvEndpoint.doGet();
+    Test.stopTest();
+
+    System.assertEquals('', result);
+    System.assertEquals(null, res.statusCode);
+  }
+
+  @isTest
+  static void disabledExportReturnsEmptyResponse() {
+    insert settings(false);
+    RestContext.request = new RestRequest();
+    RestContext.response = new RestResponse();
+
+    Test.startTest();
+    String result = IManageCsvEndpoint.doGet();
+    Test.stopTest();
+
+    System.assertEquals('', result);
+    System.assertEquals(400, RestContext.response.statusCode);
+  }
+
+  private static iManageSettings__c settings(Boolean exportEnabled) {
+    return new iManageSettings__c(
+      Client_Id__c = 'test-client',
+      Url__c = 'https://example.invalid',
+      Customer_Id__c = 'test-customer',
+      Enable_CSV_Export__c = exportEnabled
+    );
   }
 }

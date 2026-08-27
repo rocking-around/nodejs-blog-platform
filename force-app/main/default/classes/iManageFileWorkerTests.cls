@@ -94,6 +94,7 @@ private class iManageFileWorkerTests {
     mcSetting.Mapping_ClientIdField__c = 'Id';
     mcSetting.Mapping_ClientNameField__c = 'Name';
     insert mcSetting;
+    IManageMappingMigration.migrateLegacyMapping();
 
     //insert parent Object
     Opportunity opp = new Opportunity(
@@ -230,6 +231,7 @@ private class iManageFileWorkerTests {
     mcSetting.Mapping_ClientIdField__c = 'Id';
     mcSetting.Mapping_ClientNameField__c = 'Name';
     insert mcSetting;
+    IManageMappingMigration.migrateLegacyMapping();
 
     //insert parent Object
     Opportunity opp = new Opportunity(

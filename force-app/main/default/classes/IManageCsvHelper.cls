@@ -7,6 +7,32 @@ public with sharing class IManageCsvHelper {
   }
 
   public static List<CsvRow> getData(Datetime dateFrom, DateTime dateTo) {
+    return getData(
+      IManageMappingHelper.getAllMappingSettings(),
+      dateFrom,
+      dateTo
+    );
+  }
+
+  public static List<CsvRow> getData(
+    String objectName,
+    Datetime dateFrom,
+    DateTime dateTo
+  ) {
+    return getData(
+      new List<IManageMapping>{
+        IManageMappingHelper.getMappingSettings(objectName)
+      },
+      dateFrom,
+      dateTo
+    );
+  }
+
+  private static List<CsvRow> getData(
+    List<IManageMapping> mappings,
+    Datetime dateFrom,
+    DateTime dateTo
+  ) {
     Map<String, Object> params = new Map<String, Object>{
       'dateFrom' => dateFrom,
       'dateTo' => dateTo
@@ -20,9 +46,25 @@ public with sharing class IManageCsvHelper {
 
     LicenseService.CheckOrganizationLicense();
     try {
-      IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-      Set<Id> ids = IManageMappingHelper.getChangedEntities(mapping, dateFrom, dateTo, batchSize);
-      List<CsvRow> csvRows = getEntitiesByIds(mapping, ids);
+      List<CsvRow> csvRows = new List<CsvRow>();
+      for (IManageMapping mapping : mappings) {
+        Integer remaining = batchSize - csvRows.size();
+        if (remaining <= 0) {
+          break;
+        }
+        Set<Id> ids = IManageMappingHelper.getChangedEntities(
+          mapping,
+          dateFrom,
+          dateTo,
+          remaining
+        );
+        for (CsvRow row : getEntitiesByIds(mapping, ids)) {
+          csvRows.add(row);
+          if (csvRows.size() == batchSize) {
+            break;
+          }
+        }
+      }
 
       Logger.getInstance()
         .info(

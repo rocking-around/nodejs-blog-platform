@@ -164,6 +164,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Default_Folder_Id__c = defaultFolder
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     Test.startTest();
     String result = ConfigurationHelper.getIManageDefaultFolderId();
@@ -213,6 +214,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Default_Folder_Id__c = 'test-folder'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     String folderPath = 'folder1/folder2';
     Test.startTest();
@@ -246,6 +248,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Default_Folder_Id__c = 'test-folder'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     String customerId = 'cust-1';
     String library = 'lib-1';
@@ -308,6 +311,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Libraries__c = ''
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
 
     TestUtils.setupMockActiveLicense();
 
@@ -387,6 +391,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Libraries__c = ''
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
     String folderTemplate = 'xxx';
     String namePattern = 'yyy';
     Boolean createWsEnabled = false;
@@ -434,6 +439,7 @@ public with sharing class ConfigurationHelperTests {
       iManage_Libraries__c = iManageLib
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
     // mock callouts
     TestUtils.setupMockActiveLicense();
 
@@ -491,13 +497,14 @@ public with sharing class ConfigurationHelperTests {
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
       Mapping_MatterNameField__c = 'Name',
-      Mapping_EntityClientIdObjectField__c = 'Account',
+      Mapping_EntityClientIdObjectField__c = 'Opportunity',
       Mapping_ClientIdField__c = 'Id',
       Mapping_ClientNameField__c = 'Name',
       iManage_Default_Folder_Id__c = 'test-folder',
       iManage_Libraries__c = 'lib1'
     );
     insert settings;
+    IManageMappingMigration.migrateLegacyMapping();
     // mock callouts
     TestUtils.setupMockActiveLicense();
 
@@ -510,6 +517,195 @@ public with sharing class ConfigurationHelperTests {
     System.assert(result == 'Error:Workspace is not found.', 'Find workpace error');
   }
 
+  @IsTest
+  static void deleteFromLitifyListRejectsAmbiguousMatches() {
+    TestUtils.setupMockActiveLicense();
+    String sharedCode = 'Shared Workspace Code';
+    Account account = new Account(Name = sharedCode);
+    Opportunity opportunity = new Opportunity(
+      Name = sharedCode,
+      StageName = 'Prospecting',
+      CloseDate = System.today()
+    );
+    insert account;
+    insert opportunity;
+    insert new List<IManage_Mapping_Configuration__c>{
+      mappingConfiguration('Account'),
+      mappingConfiguration('Opportunity')
+    };
+    insert new List<IManage_WS_to_Entity_Mapping__c>{
+      new IManage_WS_to_Entity_Mapping__c(
+        EntityId__c = account.Id,
+        iManage_WS_Id__c = 'ACTIVE!ACCOUNT'
+      ),
+      new IManage_WS_to_Entity_Mapping__c(
+        EntityId__c = opportunity.Id,
+        iManage_WS_Id__c = 'ACTIVE!OPPORTUNITY'
+      )
+    };
+
+    Test.startTest();
+    String result = ConfigurationHelper.DeleteFromLitifyList(
+      sharedCode,
+      sharedCode
+    );
+    Test.stopTest();
+
+    System.assert(
+      result.contains('entity types: Account, Opportunity'),
+      result
+    );
+    System.assert(result.contains('No workspace mappings were deleted.'), result);
+    System.assertEquals(
+      2,
+      [SELECT COUNT() FROM IManage_WS_to_Entity_Mapping__c]
+    );
+  }
+
+  @IsTest
+  static void deleteFromLitifyListDeletesAllLinksForOneEntity() {
+    TestUtils.setupMockActiveLicense();
+    String sharedCode = 'Single Entity Code';
+    Account account = new Account(Name = sharedCode);
+    insert account;
+    insert mappingConfiguration('Account');
+    insert new List<IManage_WS_to_Entity_Mapping__c>{
+      new IManage_WS_to_Entity_Mapping__c(
+        EntityId__c = account.Id,
+        iManage_WS_Id__c = 'ACTIVE!ONE'
+      ),
+      new IManage_WS_to_Entity_Mapping__c(
+        EntityId__c = account.Id,
+        iManage_WS_Id__c = 'ACTIVE!TWO'
+      )
+    };
+
+    Test.startTest();
+    String result = ConfigurationHelper.DeleteFromLitifyList(
+      sharedCode,
+      sharedCode
+    );
+    Test.stopTest();
+
+    System.assertEquals('Workspace mapping was deleted.', result);
+    System.assertEquals(
+      0,
+      [SELECT COUNT() FROM IManage_WS_to_Entity_Mapping__c]
+    );
+  }
+
+  @IsTest
+  static void deleteFromLitifyListResolvesLookupRelationship() {
+    TestUtils.setupMockActiveLicense();
+    Account account = new Account(Name = 'Related Client');
+    insert account;
+    Opportunity opportunity = new Opportunity(
+      Name = 'Related Matter',
+      AccountId = account.Id,
+      StageName = 'Prospecting',
+      CloseDate = System.today()
+    );
+    insert opportunity;
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Opportunity',
+      Entity_Client_Id_Object_Field__c = 'AccountId',
+      Client_Id_Field__c = 'Name',
+      Client_Name_Field__c = 'Name',
+      Entity_Matter_Id_Object_Field__c = 'Opportunity',
+      Matter_Id_Field__c = 'Name',
+      Matter_Name_Field__c = 'Name'
+    );
+    insert new IManage_WS_to_Entity_Mapping__c(
+      EntityId__c = opportunity.Id,
+      iManage_WS_Id__c = 'ACTIVE!RELATED'
+    );
+
+    Test.startTest();
+    String result = ConfigurationHelper.DeleteFromLitifyList(
+      account.Name,
+      opportunity.Name
+    );
+    Test.stopTest();
+
+    System.assertEquals('Workspace mapping was deleted.', result);
+    System.assertEquals(
+      0,
+      [SELECT COUNT() FROM IManage_WS_to_Entity_Mapping__c]
+    );
+  }
+
+  @IsTest
+  static void deleteFromLitifyListRejectsInvalidRelationship() {
+    TestUtils.setupMockActiveLicense();
+    LicenseService.CheckOrganizationLicense();
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Opportunity',
+      Entity_Client_Id_Object_Field__c = 'MissingField__c',
+      Client_Id_Field__c = 'Name',
+      Client_Name_Field__c = 'Name',
+      Entity_Matter_Id_Object_Field__c = 'Opportunity',
+      Matter_Id_Field__c = 'Name',
+      Matter_Name_Field__c = 'Name'
+    );
+
+    try {
+      ConfigurationHelper.DeleteFromLitifyList('client', 'matter');
+      System.assert(false, 'An invalid relationship must be rejected.');
+    } catch (IManageExceptions.IManageMappingException error) {
+      System.assert(
+        error.getMessage().contains('Opportunity.MissingField__c'),
+        error.getMessage()
+      );
+    }
+  }
+
+  @IsTest
+  static void getIManageDocumentSettingsReturnsDefaults() {
+    TestUtils.setupMockActiveLicense();
+
+    Map<String, Object> settings = ConfigurationHelper.getIManageDocumentSettings();
+
+    System.assertEquals(false, settings.get('iManageDocuments:Calendar'));
+    System.assertEquals(
+      'iManage Class',
+      settings.get('iManageDocuments:ClassCaption')
+    );
+    System.assertEquals(
+      'iManage SubClass',
+      settings.get('iManageDocuments:SubClassCaption')
+    );
+  }
+
+  @IsTest
+  static void getIManageDocumentSettingsRejectsMultipleRows() {
+    TestUtils.setupMockActiveLicense();
+    LicenseService.CheckOrganizationLicense();
+    insert new List<iManageDocumentSettings__c>{
+      new iManageDocumentSettings__c(),
+      new iManageDocumentSettings__c()
+    };
+
+    try {
+      ConfigurationHelper.getIManageDocumentSettings();
+      System.assert(false, 'Multiple document settings must be rejected.');
+    } catch (IManageExceptions.IManageSettingsException error) {
+      System.assert(error.getMessage().contains('more than 1 record'));
+    }
+  }
+
+  private static IManage_Mapping_Configuration__c mappingConfiguration(
+    String entityType
+  ) {
+    return new IManage_Mapping_Configuration__c(
+      Entity_Type__c = entityType,
+      Entity_Client_Id_Object_Field__c = entityType,
+      Client_Id_Field__c = 'Name',
+      Client_Name_Field__c = 'Name',
+      Entity_Matter_Id_Object_Field__c = entityType,
+      Matter_Id_Field__c = 'Name',
+      Matter_Name_Field__c = 'Name'
+    );
+  }
 
   private static HttpResponse getMockFolderResponse(
     Integer statusCode,

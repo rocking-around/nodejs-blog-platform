@@ -16,6 +16,7 @@ private class iManageIFrameDialogTests {
     mcSetting.Mapping_ClientNameField__c = 'Name';
     mcSetting.Mapping_LibraryField__c = '';
     insert mcSetting;
+    IManageMappingMigration.migrateLegacyMapping();
   }
 
   @isTest //(SeeAllData=true)

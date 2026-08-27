@@ -1,736 +1,437 @@
-import { LightningElement, api, track, wire } from "lwc";
+import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import { loadStyle } from "lightning/platformResourceLoader";
-import AppCSS from "@salesforce/resourceUrl/AppCSS";
-import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
+import LightningConfirm from "lightning/confirm";
+import getMappings from "@salesforce/apex/IManageMappingHelper.getMappings";
 import getAllSObjectsMetadata from "@salesforce/apex/IManageMappingHelper.getAllSObjectsMetadata";
 import getFields from "@salesforce/apex/IManageMappingHelper.getFields";
-import saveMapping from "@salesforce/apex/IManageMappingHelper.saveMapping";
-import getSObjectMetadata from "@salesforce/apex/IManageMappingHelper.getSObjectMetadata";
-import editTemplate from "./editTemplate.html";
-import viewTemplate from "./viewTemplate.html";
-import isCsvExportEnabled from "@salesforce/apex/IManageCsvHelper.isCsvExportEnabled";
+import saveMappingConfiguration from "@salesforce/apex/IManageMappingHelper.saveMappingConfiguration";
+import deleteMappingConfiguration from "@salesforce/apex/IManageMappingHelper.deleteMappingConfiguration";
+import gridTemplate from "./iManageMappingConfiguration.html";
+import recordTemplate from "./recordTemplate.html";
 
-const mappingEntityTypeField = { fieldApiName: "EntityType" };
-const mappingMatterIdField = { fieldApiName: "MatterIdField" };
-const mappingMatterNameField = { fieldApiName: "MatterNameField" };
-const mappingEntityMatterIdObjectField = {
-  fieldApiName: "EntityMatterIdObjectField"
-};
-const mappingClientIdField = { fieldApiName: "ClientIdField" };
-const mappingClientNameField = { fieldApiName: "ClientNameField" };
-const mappingEntityClientIdObjectField = {
-  fieldApiName: "EntityClientIdObjectField"
-};
-const mappingWsTemplateField = { fieldApiName: "WsTemplateField" };
-const mappingLibraryField = { fieldApiName: "LibraryField" };
-const mappingUseOnlyCustom2 = { fieldApiName: "UseOnlyCustom2" };
+const VALUE_FIELD_TYPES = [
+  "ID",
+  "STRING",
+  "INTEGER",
+  "DOUBLE",
+  "LONG",
+  "PICKLIST"
+];
+const METADATA_FIELD_TYPES = [...VALUE_FIELD_TYPES, "REFERENCE"];
 
-export default class IManageMappingEditor extends LightningElement {
-  isDebug = false;
+const EMPTY_MAPPING = {
+  MappingId: null,
+  EntityType: "",
+  EntityClientIdObjectField: "",
+  ClientIdField: "",
+  ClientNameField: "",
+  EntityMatterIdObjectField: "",
+  MatterIdField: "",
+  MatterNameField: "",
+  WsTemplateField: "",
+  LibraryField: "",
+  UseOnlyCustom2: false
+};
+
+export default class IManageMappingConfiguration extends LightningElement {
+  @api entityApiName;
+
+  rows = [];
+  entityOptions = [];
+  entityLabels = new Map();
+  fieldCache = new Map();
   isLoading = true;
-  isSaving = false;
-  isInitialized = false;
-  changed = false;
-
-  defaultIManageMapping = {
-    [mappingEntityTypeField.fieldApiName]: null,
-    [mappingMatterIdField.fieldApiName]: null,
-    [mappingMatterNameField.fieldApiName]: null,
-    [mappingEntityMatterIdObjectField.fieldApiName]: null,
-    [mappingClientIdField.fieldApiName]: null,
-    [mappingClientNameField.fieldApiName]: null,
-    [mappingEntityClientIdObjectField.fieldApiName]: null,
-    [mappingWsTemplateField.fieldApiName]: null,
-    [mappingLibraryField.fieldApiName]: null,
-    [mappingUseOnlyCustom2.fieldApiName]: null,
-  };
-
-  @track iManageMapping;
-  @track iManageMappingEdit = {};
-
-  @track isEdit = false;
-  _entityType;
-  @track entityId;
-
-  entityTypeFieldOptionsExt;
-  @track entityTypeFieldOptions;
-
-  matterIdObjectOptionsExt;
-  @track matterIdObjectOptions;
-  clientIdObjectOptionsExt;
-  @track clientIdObjectOptions;
-  @track matterIdObjectFieldOptions;
-  @track matterNameObjectFieldOptions;
-  @track clientIdObjectFieldOptions;
-  @track clientNameObjectFieldOptions;
-  @track wsTemplateObjectFieldOptions;
-  @track libraryObjectFieldOptions;
-  
-  entityType = {};
-
-  @wire(isCsvExportEnabled)
-  _isCsvExportEnabled;
-
-  @api set entityApiName(value) {
-    if (value !== this._entityType) {
-      this.setEntityApiName(value);
-    }
-  }
-  get entityApiName() {
-    return this._entityType;
-  }
-
-  get csvExportEnabled() {
-    return !!(this._isCsvExportEnabled || {}).data;
-  }
+  isPreparingRow = false;
+  nextKey = 1;
+  optionLoadVersions = new Map();
 
   connectedCallback() {
-    this.initComponent();
-  }
-
-  async renderedCallback() {
-    if (this.isInitialized) {
-      return;
-    }
-    try {
-      await loadStyle(this, AppCSS);
-    } catch (err) {
-      console.log(`Can't load AppCSS`, err);
-    }
+    this.initialize();
   }
 
   render() {
-    return this.isEdit ? editTemplate : viewTemplate;
+    return this.entityApiName ? recordTemplate : gridTemplate;
   }
 
-  setEntityApiName(value) {
-    this._entityType = value;
-    this.writeDebug(
-      `IManageMappingEditor. Set objectApiName: ${this._entityType}`
+  get hasRows() {
+    return this.rows.length > 0;
+  }
+
+  get disableAdd() {
+    return (
+      this.isPreparingRow ||
+      this.rows.some((row) => row.isEditing) ||
+      (this.entityApiName && this.rows.length > 0)
     );
-
-    this.defaultIManageMapping[mappingEntityTypeField.fieldApiName] =
-      this._entityType;
-
-    this.loadEntityTypeMetadata(value, () => this.initComponent());
   }
 
-  initComponent() {
-    this.writeDebug("*********** IManageMappingEditor. initComponent:");
-    if (!this.isEdit) {
-      this.getIManageMapping();
-    } else {
-      this.initEditor(this.iManageMapping).finally(() => {
-        this.isLoading = false;
-      });
+  async initialize() {
+    this.isLoading = true;
+    try {
+      const [mappings, entities] = await Promise.all([
+        getMappings(),
+        getAllSObjectsMetadata()
+      ]);
+      this.entityOptions = (entities || [])
+        .map((entity) => ({ label: entity.label, value: entity.name }))
+        .sort(this.sortOptions);
+      this.entityLabels = new Map(
+        this.entityOptions.map((option) => [option.value, option.label])
+      );
+      const visibleMappings = this.entityApiName
+        ? (mappings || []).filter(
+            (mapping) => mapping.EntityType === this.entityApiName
+          )
+        : mappings || [];
+      this.rows = await Promise.all(
+        visibleMappings.map((mapping) => this.prepareRow(mapping, false))
+      );
+    } catch (error) {
+      this.showError(error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  get loading() {
-    return this.isLoading || !this.entityApiName;
+  async prepareRow(mapping, isEditing) {
+    const row = {
+      ...EMPTY_MAPPING,
+      ...mapping,
+      key: mapping.MappingId || `new-${this.nextKey++}`,
+      isEditing,
+      isPersisted: !!mapping.MappingId,
+      isSaving: false,
+      clientObjectOptions: [],
+      matterObjectOptions: [],
+      clientFieldOptions: [],
+      matterFieldOptions: [],
+      entityFieldOptions: []
+    };
+    await this.loadRowOptions(row);
+    row.entityOptions = this.availableEntityOptions(row.EntityType);
+    return this.decorateRow(row);
   }
 
-  get entityTypeField() {
-    //mappingEntityTypeField
-    let val = this.iManageMapping[mappingEntityTypeField.fieldApiName];
-    //TODO: entityTypeFieldOptions
-    let opt = (this.entityTypeFieldOptions || []).find((x) => x.value === val);
-    return opt ? opt.label : val;
-  }
-
-  get matterIdObject() {
-    let val =
-      this.iManageMapping[mappingEntityMatterIdObjectField.fieldApiName];
-    let opt = (this.matterIdObjectOptions || []).find((x) => x.value === val);
-    return opt ? opt.label : val;
-  }
-
-  get matterIdField() {
-    let val = this.iManageMapping[mappingMatterIdField.fieldApiName];
-    let opt = (this.matterIdObjectFieldOptions || []).find(
-      (x) => x.value === val
+  availableEntityOptions(currentEntityType) {
+    const usedEntityTypes = new Set(
+      this.rows
+        .map((row) => row.EntityType)
+        .filter((entityType) => entityType && entityType !== currentEntityType)
     );
-    return opt ? opt.label : val;
-  }
-
-  get matterNameField() {
-    let val = this.iManageMapping[mappingMatterNameField.fieldApiName];
-    let opt = (this.matterNameObjectFieldOptions || []).find(
-      (x) => x.value === val
+    return this.entityOptions.filter(
+      (option) =>
+        (!this.entityApiName || option.value === this.entityApiName) &&
+        !usedEntityTypes.has(option.value)
     );
-    return opt ? opt.label : val;
   }
 
-  get clientIdObject() {
-    let val =
-      this.iManageMapping[mappingEntityClientIdObjectField.fieldApiName];
-    let opt = (this.clientIdObjectOptions || []).find((x) => x.value === val);
-    return opt ? opt.label : val;
-  }
-
-  get clientIdField() {
-    let val = this.iManageMapping[mappingClientIdField.fieldApiName];
-    let opt = (this.clientIdObjectFieldOptions || []).find(
-      (x) => x.value === val
-    );
-    return opt ? opt.label : val;
-  }
-
-  get clientNameField() {
-    let val = this.iManageMapping[mappingClientNameField.fieldApiName];
-    let opt = (this.clientNameObjectFieldOptions || []).find(
-      (x) => x.value === val
-    );
-    return opt ? opt.label : val;
-  }
-
-  get wsTemplateIdField() {
-    let val = this.iManageMapping[mappingWsTemplateField.fieldApiName];
-    let opt = (this.wsTemplateObjectFieldOptions || []).find(
-      (x) => x.value === val
-    );
-    return opt ? opt.label : val;
-  }
-
-  get libraryField() {
-    let val = this.iManageMapping[mappingLibraryField.fieldApiName];
-    let opt = (this.libraryObjectFieldOptions || []).find(
-      (x) => x.value === val
-    );
-    return opt ? opt.label : val;
-  }
-
-  get useOnlyCustom2() {
-    return  this.iManageMapping[mappingUseOnlyCustom2.fieldApiName];
-  }
-
-  get editEntityTypeField() {
-    return this.iManageMappingEdit[mappingEntityTypeField.fieldApiName];
-  }
-  get editMatterIdField() {
-    return this.iManageMappingEdit[mappingMatterIdField.fieldApiName];
-  }
-  get editMatterNameField() {
-    return this.iManageMappingEdit[mappingMatterNameField.fieldApiName];
-  }
-  get editEntityMatterIdObjectField() {
-    return this.iManageMappingEdit[
-      mappingEntityMatterIdObjectField.fieldApiName
-    ];
-  }
-  get editClientIdField() {
-    return this.iManageMappingEdit[mappingClientIdField.fieldApiName];
-  }
-  get editClientNameField() {
-    return this.iManageMappingEdit[mappingClientNameField.fieldApiName];
-  }
-  get editEntityClientIdObjectField() {
-    return this.iManageMappingEdit[
-      mappingEntityClientIdObjectField.fieldApiName
-    ];
-  }
-  get editWsTemplateField() {
-    return this.iManageMappingEdit[mappingWsTemplateField.fieldApiName];
-  }
-  get editLibraryField() {
-    return this.iManageMappingEdit[mappingLibraryField.fieldApiName];
-  }
-
-  get editUseOnlyCustom2() {
-    return this.iManageMappingEdit[mappingUseOnlyCustom2.fieldApiName];
-  }
-
-getIManageMapping() {
-    if (!this.entityApiName) {
+  async loadRowOptions(row) {
+    if (!row.EntityType) {
       return;
     }
-    getMapping({ objectApiName: this.entityApiName })
-      .then((resp) => {
-        this.writeDebug(
-          "*********** IManageMappingEditor. getIManageMapping:",
-          resp
-        );
-        console.log("getIManageMapping");
-        console.log(resp);
-        if (resp === null) {
-          this.isEdit = true;
-          this.iManageMapping = { ...this.defaultIManageMapping };
-        } else {
-          this.iManageMapping = resp;
-        }
-        return this.initEditor(this.iManageMapping);
-      })
-      .catch((err) => {
-        this.error = err.body ? err.body.message || err : err;
-        console.error(err);
-      })
-      .finally(() => {
-        this.isLoading = false;
-      });
-  }
 
-  loadEntityTypeMetadata(objectApiName, callback) {
-    getSObjectMetadata({
-      objApiName: objectApiName
-    })
-      .then((objMetadata) => {
-        this.writeDebug(
-          "*********** IManageMappingEditor. getSObjectMetadata. Result: ",
-          JSON.parse(JSON.stringify(objMetadata))
-        );
-        this.entityType = {
-          fieldLabel: objMetadata.label,
-          fieldName: this._entityType,
-          fieldType: "REFERENCE",
-          referenceTo: [this._entityType]
-        };
-        callback();
-      })
-      .catch(this.handleErrors);
-  }
+    const entityFields = await this.loadFields(row.EntityType);
+    const objectOptions = [
+      {
+        label: this.entityLabels.get(row.EntityType) || row.EntityType,
+        value: row.EntityType,
+        objectApiName: row.EntityType
+      },
+      ...entityFields
+        .filter((field) => field.referenceTo?.length === 1)
+        .map((field) => ({
+          label: field.fieldLabel,
+          value: field.fieldName,
+          objectApiName: field.referenceTo[0]
+        }))
+    ].sort(this.sortOptions);
 
-  initEditor(mapping = {}) {
-    this.writeDebug(
-      "*********** IManageMappingEditor. initEditor: ",
-      JSON.parse(JSON.stringify(mapping))
+    row.clientObjectOptions = objectOptions;
+    row.matterObjectOptions = objectOptions;
+    row.entityFieldOptions = this.toFieldOptions(entityFields, false);
+
+    const clientObject = this.resolveObjectApiName(
+      row.EntityClientIdObjectField,
+      objectOptions
+    );
+    const matterObject = this.resolveObjectApiName(
+      row.EntityMatterIdObjectField,
+      objectOptions
     );
 
-    return new Promise((resolve, reject) => {
-      let entityMatterIdObjectField = this.getValueOrDefault(
-        mapping[mappingEntityMatterIdObjectField.fieldApiName],
-        this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
-      );
-      let entityClientIdObjectField = this.getValueOrDefault(
-        mapping[mappingEntityClientIdObjectField.fieldApiName],
-        this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
-      );
+    row.clientFieldOptions = clientObject
+      ? this.toFieldOptions(await this.loadFields(clientObject), false)
+      : [];
+    row.matterFieldOptions = matterObject
+      ? this.toFieldOptions(await this.loadFields(matterObject), false)
+      : [];
+  }
 
-      Promise.all([
-        this.loadEntityTypeFieldOptions(),
-        this.loadIdObjectOptions(
-          "matterIdObjectOptions",
-          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
-        ),
-        this.loadIdObjectOptions(
-          "clientIdObjectOptions",
-          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName]
-        ),
-        this.loadIdObjFieldOptions(
-          [{name: "wsTemplateObjectFieldOptions", required: false}],
-          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName],
-          ['STRING']
-        ),
-        this.loadIdObjFieldOptions(
-          [{name: "libraryObjectFieldOptions", required: false}],
-          this.defaultIManageMapping[mappingEntityTypeField.fieldApiName],
-          ['STRING']
+  loadFields(objectName) {
+    if (!this.fieldCache.has(objectName)) {
+      this.fieldCache.set(
+        objectName,
+        getFields({ objectName, fieldTypes: METADATA_FIELD_TYPES }).catch(
+          (error) => {
+            this.fieldCache.delete(objectName);
+            throw error;
+          }
         )
-      ])
-        .then(([entityTypeResponse, matterResponse, clientResponse]) => {
-          if (entityTypeResponse) {
-            //debugger;
-          }
-
-          if (matterResponse) {
-            let objType = matterResponse.find(
-              (x) => x.fieldName === entityMatterIdObjectField
-            );
-            if (objType && objType.referenceTo) {
-              this.loadIdObjFieldOptions(
-                [
-                  {name: "matterIdObjectFieldOptions", required: true},
-                  {name: "matterNameObjectFieldOptions", required: true}
-                ],
-                objType.referenceTo[0]
-              );
-            }
-          }
-          if (clientResponse) {
-            let objType = clientResponse.find(
-              (x) => x.fieldName === entityClientIdObjectField
-            );
-            if (objType && objType.referenceTo) {
-              this.loadIdObjFieldOptions(
-                [
-                  {name: "clientIdObjectFieldOptions", required: true},
-                  {name: "clientNameObjectFieldOptions", required: true}
-                ],
-                objType.referenceTo[0]
-              );
-            }
-          }
-          resolve();
-        })
-        .catch((error) => reject(error));
-    });
+      );
+    }
+    return this.fieldCache.get(objectName);
   }
 
-  save() {
-    this.writeDebug(
-      "*********** IManageMappingEditor. save:",
-      this.iManageMappingEdit
-    );
-    this.isSaving = true;
-    saveMapping({
-      mapping: this.iManageMappingEdit
-    })
-      .then((resp) => {
-        this.writeDebug("*********** IManageMappingEditor. save:", resp);
-        this.changed = false;
-        this.iManageMapping = { ...this.iManageMappingEdit };
-
-        this.dispatchEvent(
-          new ShowToastEvent({
-            title: "Save...",
-            message: "iManage mapping saved successfuly",
-            variant: "success"
-          })
-        );
-      })
-      .catch((err) => {
-        this.error = err.body.message || err;
-        console.error(err);
-      })
-      .finally(() => {
-        this.isSaving = false;
-      });
+  toFieldOptions(fields, required) {
+    const options = (fields || [])
+      .filter((field) => VALUE_FIELD_TYPES.includes(field.fieldType))
+      .map((field) => ({ label: field.fieldLabel, value: field.fieldName }))
+      .sort(this.sortOptions);
+    return required ? options : [{ label: "--None--", value: "" }, ...options];
   }
 
-  cancel() {
-    this.isEdit = false;
-    this.changed = false;
-    this.iManageMappingEdit = {};
+  resolveObjectApiName(value, options) {
+    return options.find((option) => option.value === value)?.objectApiName;
   }
 
-  async edit() {
-    this.isEdit = true;
-    this.iManageMappingEdit = { ...this.iManageMapping };
+  get tableScrollClass() {
+    return this.rows.some((row) => row.isEditing)
+      ? "table-scroll table-scroll_editing slds-p-horizontal_medium"
+      : "table-scroll slds-p-horizontal_medium";
+  }
+
+  decorateRow(row) {
+    const labelFor = (options, value) =>
+      options.find((option) => option.value === value)?.label || value || "";
+    return {
+      ...row,
+      entityLabel: labelFor(this.entityOptions, row.EntityType),
+      clientObjectLabel: labelFor(
+        row.clientObjectOptions,
+        row.EntityClientIdObjectField
+      ),
+      clientIdLabel: labelFor(row.clientFieldOptions, row.ClientIdField),
+      clientNameLabel: labelFor(row.clientFieldOptions, row.ClientNameField),
+      matterObjectLabel: labelFor(
+        row.matterObjectOptions,
+        row.EntityMatterIdObjectField
+      ),
+      matterIdLabel: labelFor(row.matterFieldOptions, row.MatterIdField),
+      matterNameLabel: labelFor(row.matterFieldOptions, row.MatterNameField),
+      templateLabel: labelFor(row.entityFieldOptions, row.WsTemplateField),
+      libraryLabel: labelFor(row.entityFieldOptions, row.LibraryField),
+      custom2Label: row.UseOnlyCustom2 ? "Yes" : "No"
+    };
+  }
+
+  async addRow() {
+    if (this.disableAdd) {
+      return;
+    }
+    this.isPreparingRow = true;
     try {
-      await this.initEditor(this.iManageMappingEdit);
+      const entityType = this.entityApiName || "";
+      const row = await this.prepareRow(
+        {
+          ...EMPTY_MAPPING,
+          EntityType: entityType,
+          EntityClientIdObjectField: entityType,
+          EntityMatterIdObjectField: entityType
+        },
+        true
+      );
+      this.rows = [...this.rows, row];
+    } finally {
+      this.isPreparingRow = false;
+    }
+  }
+
+  editRow(event) {
+    const key = event.currentTarget.dataset.key;
+    if (this.rows.some((row) => row.isEditing && row.key !== key)) {
+      return;
+    }
+    this.rows = this.rows.map((row) => ({
+      ...row,
+      entityOptions: this.availableEntityOptions(row.EntityType),
+      isEditing: row.key === key
+    }));
+  }
+
+  cancelEdit(event) {
+    const key = event.currentTarget.dataset.key;
+    const row = this.rows.find((item) => item.key === key);
+    if (!row?.isPersisted) {
+      this.rows = this.rows.filter((item) => item.key !== key);
+      return;
+    }
+    this.initialize();
+  }
+
+  async deleteRow(event) {
+    const key = event.currentTarget.dataset.key;
+    if (this.rows.some((row) => row.isEditing && row.key !== key)) {
+      return;
+    }
+    const row = this.rows.find((item) => item.key === key);
+    if (!row) {
+      return;
+    }
+    if (!row.isPersisted) {
+      this.rows = this.rows.filter((item) => item.key !== key);
+      return;
+    }
+
+    const confirmed = await LightningConfirm.open({
+      label: "Delete Mapping",
+      message: `Delete the mapping for ${row.entityLabel}?`,
+      variant: "headerless"
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      await deleteMappingConfiguration({ mappingId: row.MappingId });
+      this.rows = this.rows.filter((item) => item.key !== key);
+      this.showToast("Mapping deleted", "success");
     } catch (error) {
-      if (error?.body?.message.includes(`Invalid sobject provided`)) {
-        this.handleErrors(
-          "Invalid Salesforce entity type provided. Contact the Administrator."
-        );
-      } else {
-        this.handleErrors(error);
-      }
+      this.showError(error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
-  loadIdObjectOptions(name, parentObjName) {
-    this.writeDebug(
-      `*********** IManageMappingEditor.loadIdObjectOptions ('${name}', '${parentObjName}');`
-    );
-    return new Promise((resolve, reject) => {
-      getFields({
-        objectName: parentObjName,
-        fieldTypes: ["REFERENCE"]
-      })
-        .then((resp) => {
-          this.writeDebug(
-            "*********** IManageMappingEditor. loadIdObjectOptions:",
-            resp
-          );
-          let data = [...[this.entityType], ...(resp || [])];
-          this[`${name}Ext`] = data.filter(
-            (x) => x.referenceTo && !(x.referenceTo.length > 1)
-          );
+  async fieldChanged(event) {
+    const key = event.target.dataset.key;
+    const field = event.target.dataset.field;
+    const index = this.rows.findIndex((row) => row.key === key);
+    if (index < 0) {
+      return;
+    }
 
-          const _sortedData = Object.entries(this[`${name}Ext`]).map(
-            ([, { fieldLabel, fieldName }]) => ({
-              label: fieldLabel,
-              value: fieldName
-            })
-          );
-          _sortedData.sort((a, b) => {
-            // entityType should be the first option
-            if (a.label === this.entityType.fieldLabel) {
-              return -1;
-            } else if (b.label === this.entityType.fieldLabel) {
-              return 1;
-            }
-            return a.label.localeCompare(b.label, undefined, {
-              sensitivity: "base"
-            });
-          });
-          this[name] = _sortedData;
-          resolve(this[`${name}Ext`]);
-        })
-        .catch((err) => {
-          reject(err);
-        })
-        .finally(() => {});
+    const row = { ...this.rows[index] };
+    row[field] =
+      event.target.type === "checkbox"
+        ? event.target.checked
+        : event.detail.value;
+
+    const reloadOptions = [
+      "EntityType",
+      "EntityClientIdObjectField",
+      "EntityMatterIdObjectField"
+    ].includes(field);
+
+    if (field === "EntityType") {
+      Object.assign(row, {
+        EntityClientIdObjectField: row.EntityType,
+        ClientIdField: "",
+        ClientNameField: "",
+        EntityMatterIdObjectField: row.EntityType,
+        MatterIdField: "",
+        MatterNameField: "",
+        WsTemplateField: "",
+        LibraryField: "",
+        clientObjectOptions: [],
+        matterObjectOptions: [],
+        clientFieldOptions: [],
+        matterFieldOptions: [],
+        entityFieldOptions: []
+      });
+    } else if (field === "EntityClientIdObjectField") {
+      row.ClientIdField = "";
+      row.ClientNameField = "";
+      row.clientFieldOptions = [];
+    } else if (field === "EntityMatterIdObjectField") {
+      row.MatterIdField = "";
+      row.MatterNameField = "";
+      row.matterFieldOptions = [];
+    }
+
+    this.rows = this.rows.map((item) => {
+      return item.key === key ? this.decorateRow(row) : item;
+    });
+    if (!reloadOptions) {
+      return;
+    }
+
+    const version = (this.optionLoadVersions.get(key) || 0) + 1;
+    this.optionLoadVersions.set(key, version);
+    await this.loadRowOptions(row);
+    if (this.optionLoadVersions.get(key) !== version) {
+      return;
+    }
+
+    const optionFields = [
+      "clientObjectOptions",
+      "matterObjectOptions",
+      "clientFieldOptions",
+      "matterFieldOptions",
+      "entityFieldOptions"
+    ];
+    this.rows = this.rows.map((item) => {
+      if (item.key !== key) {
+        return item;
+      }
+      const updated = { ...item };
+      optionFields.forEach((optionField) => {
+        updated[optionField] = row[optionField];
+      });
+      updated.entityOptions = this.availableEntityOptions(updated.EntityType);
+      return this.decorateRow(updated);
     });
   }
 
-  loadEntityTypeFieldOptions() {
-    this.writeDebug(
-      `*********** IManageMappingEditor.loadEntityTypeFieldOptions();`
-    );
-    return new Promise((resolve, reject) => {
-      getAllSObjectsMetadata()
-        .then((resp) => {
-          this.writeDebug(
-            "*********** IManageMappingEditor. loadEntityTypeFieldOptions:",
-            resp
-          );
-          let data = [...(resp || [])];
-          data.sort((a, b) =>
-            a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
-          );
-          this.entityTypeFieldOptionsExt = data.filter((x) => x);
-          this.entityTypeFieldOptions = Object.entries(
-            this.entityTypeFieldOptionsExt
-          ).map(([, { label, name }]) => ({
-            label,
-            value: name
-          }));
-          resolve(this.entityTypeFieldOptionsExt);
-        })
-        .catch((err) => {
-          reject(err);
-        })
-        .finally(() => {});
-    });
-  }
-
-  loadIdObjFieldOptions(optionsSettings, objName, fieldTypes) {
-    this.writeDebug(
-      `*********** IManageMappingEditor.loadMatterIdObjFields('${optionsSettings}', '${objName}', ${fieldTypes});`
-    );
-    getFields({
-      objectName: objName,
-      fieldTypes: fieldTypes || ["ID", "STRING", "INTEGER", "DOUBLE", "LONG", "PICKLIST"]
-    })
-      .then((resp) => {
-        this.writeDebug(
-          "*********** IManageMappingEditor. loadIdObjFieldOptions:",
-          resp
-        );
-        optionsSettings.forEach(({name, required}) => {
-          let _data = Object.entries(resp).map(
-            ([, { fieldLabel, fieldName }]) => ({
-              label: fieldLabel,
-              value: fieldName
-            })
-          );
-          _data.sort((a, b) =>
-            a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
-          );
-          if (!required) {
-            _data = [...[{label: '--None--', value: ''}], ..._data];
-          }
-          this[name] = _data;
-        });
-      })
-      .catch((err) => {
-        this.error = err.body.message || err;
-        console.error(err);
-      })
-      .finally(() => {});
-  }
-
-  onMatterIdObjectChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onMatterIdObjectChanged: " + value
-    );
-    let objType = this.matterIdObjectOptionsExt.find(
-      (x) => x.fieldName === value
-    );
-    if (objType && objType.referenceTo) {
-      this.iManageMappingEdit = {
-        ...this.iManageMappingEdit,
-        ...{
-          [mappingEntityMatterIdObjectField.fieldApiName]: objType.fieldName
-        }
-      };
-      this.loadIdObjFieldOptions(
-        [
-          {name: "matterIdObjectFieldOptions", required: true},
-          {name: "matterNameObjectFieldOptions", required: true}
-        ],
-        objType.referenceTo[0]
-      );
+  async saveRow(event) {
+    const key = event.currentTarget.dataset.key;
+    const row = this.rows.find((item) => item.key === key);
+    if (!row || !this.validateRow(key)) {
+      return;
     }
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{
-        [mappingMatterIdField.fieldApiName]: undefined,
-        [mappingMatterNameField.fieldApiName]: undefined
-      }
-    };
-    this.changed = true;
-  }
 
-  onClientIdObjectChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onClientIdObjectChanged: " + value
-    );
-    let objType = this.matterIdObjectOptionsExt.find(
-      (x) => x.fieldName === value
-    );
-    if (objType && objType.referenceTo) {
-      this.iManageMappingEdit = {
-        ...this.iManageMappingEdit,
-        ...{
-          [mappingEntityClientIdObjectField.fieldApiName]: objType.fieldName
-        }
-      };
-      this.loadIdObjFieldOptions(
-        [
-          {name: "clientIdObjectFieldOptions", required: true},
-          {name: "clientNameObjectFieldOptions", required: true}
-        ],
-        objType.referenceTo[0]
-      );
-    }
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{
-        [mappingClientIdField.fieldApiName]: undefined,
-        [mappingClientNameField.fieldApiName]: undefined
-      }
-    };
-    this.changed = true;
-  }
-
-  onMatterIdObjectFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onMatterIdObjectFieldChanged: " + value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingMatterIdField.fieldApiName]: value }
-    };
-    this.changed = true;
-  }
-
-  onMatterNameObjectFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onMatterNameObjectFieldChanged: " +
-        value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingMatterNameField.fieldApiName]: value }
-    };
-    this.changed = true;
-  }
-
-  onClientIdObjectFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onClientIdObjectFieldChanged: " + value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingClientIdField.fieldApiName]: value }
-    };
-    this.changed = true;
-  }
-
-  onClientNameObjectFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onClientNameObjectFieldChanged: " +
-        value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingClientNameField.fieldApiName]: value }
-    };
-    this.changed = true;
-  }
-
-  onWsTemplateFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onWsTemplateFieldChanged: " +
-        value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingWsTemplateField.fieldApiName]: (value.length === 0 ? undefined : value) }
-    };
-    this.changed = true;
-  }
-
-  onLlibraryFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onLlibraryFieldChanged: " +
-        value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingLibraryField.fieldApiName]: (value.length === 0 ? undefined : value) }
-    };
-    this.changed = true;
-  }
-
-  
-  onUseOnlyCustom2Changed(evt) {
-    const { checked } = evt.detail;
-    
-    this.writeDebug(
-      "*********** IManageMappingEditor. onUseOnlyCustom2Changed: " +
-        checked
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{ [mappingUseOnlyCustom2.fieldApiName]: checked }
-    };
-    this.changed = true;
-  }
-
-  onEntityTypeFieldChanged(evt) {
-    let value = evt.target.value;
-    this.writeDebug(
-      "*********** IManageMappingEditor. onEntityTypeFieldChanged: " + value
-    );
-    this.iManageMappingEdit = {
-      ...this.iManageMappingEdit,
-      ...{
-        [mappingEntityTypeField.fieldApiName]: value,
-        [mappingMatterIdField.fieldApiName]: undefined,
-        [mappingMatterNameField.fieldApiName]: undefined,
-        [mappingEntityMatterIdObjectField.fieldApiName]: undefined,
-        [mappingClientIdField.fieldApiName]: undefined,
-        [mappingClientNameField.fieldApiName]: undefined,
-        [mappingEntityClientIdObjectField.fieldApiName]: undefined,
-        [mappingWsTemplateField.fieldApiName]: undefined,
-        [mappingLibraryField.fieldApiName]: undefined
-      }
-    };
-    this.changed = true;
-
-    this.setEntityApiName(value);
-  }
-
-  getValueOrDefault(obj, defaultValue) {
-    return obj && obj !== null ? obj : defaultValue;
-  }
-
-  writeDebug() {
-    if (this.isDebug) {
-      console.log.apply(null, arguments);
+    this.rows = this.rows.map((item) => ({
+      ...item,
+      isSaving: item.key === key
+    }));
+    try {
+      const saved = await saveMappingConfiguration({
+        mapping: this.toMapping(row)
+      });
+      const savedRow = await this.prepareRow(saved, false);
+      this.rows = this.rows.map((item) => (item.key === key ? savedRow : item));
+      this.showToast("iManage mapping saved", "success");
+    } catch (error) {
+      this.showError(error);
+      this.rows = this.rows.map((item) => ({ ...item, isSaving: false }));
     }
   }
 
-  handleErrors(err) {
-    console.error(err);
+  validateRow(key) {
+    return [...this.template.querySelectorAll(`[data-key="${key}"]`)]
+      .filter((input) => typeof input.reportValidity === "function")
+      .reduce((valid, input) => input.reportValidity() && valid, true);
+  }
+
+  toMapping(row) {
+    return Object.keys(EMPTY_MAPPING).reduce((mapping, field) => {
+      mapping[field] = row[field];
+      return mapping;
+    }, {});
+  }
+
+  sortOptions(a, b) {
+    return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+  }
+
+  showToast(message, variant) {
     this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Error",
-        message: err.message || err?.body?.message || err,
-        variant: "error"
-      })
+      new ShowToastEvent({ title: "iManage Mapping", message, variant })
     );
+  }
+
+  showError(error) {
+    const message = error?.body?.message || error?.message || String(error);
+    this.showToast(message, "error");
   }
 }

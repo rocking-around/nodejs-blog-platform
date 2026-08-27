@@ -3,6 +3,7 @@
     <fullName>Mapping_EntityType__c</fullName>
     <defaultValue>(&quot;litify_pm__Matter__c&quot;)</defaultValue>
     <deprecated>false</deprecated>
+    <description>Deprecated since 2.81. Runtime mapping configuration is stored in IManage_Mapping_Configuration__c. Retained temporarily for migration and manual rollback or support reference.</description>
     <externalId>false</externalId>
     <label>Salesforce Entity Type</label>
     <length>255</length>

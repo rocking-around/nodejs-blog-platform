@@ -1,5 +1,7 @@
 global class iManagePostInstallClass implements InstallHandler {
   global void onInstall(InstallContext context) {
+    IManageMappingMigration.migrateForUpgrade(context.previousVersion());
+
     if (context.previousVersion() == null) {
       /*if(!PackagesChecker.IsRequiredPackagesExists()) {
                 iManagePostInstallException ex = new iManagePostInstallException();

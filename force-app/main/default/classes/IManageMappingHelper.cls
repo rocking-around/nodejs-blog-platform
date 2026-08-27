@@ -1,4 +1,6 @@
 public with sharing class IManageMappingHelper {
+  private static List<IManageMapping> cachedMappings;
+
   @AuraEnabled
   public static IManageMapping getMapping() {
     Logger.getInstance().info('IManageMappingHelper::getMapping, start method');
@@ -25,18 +27,16 @@ public with sharing class IManageMappingHelper {
     LicenseService.CheckOrganizationLicense();
 
     try {
-      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
-      IManageMapping mapping = new IManageMapping();
-      mapping.EntityType = settings.Mapping_EntityType__c;
-      mapping.EntityMatterIdObjectField = settings.Mapping_EntityMatterIdObjectField__c;
-      mapping.MatterIdField = settings.Mapping_MatterIdField__c;
-      mapping.MatterNameField = settings.Mapping_MatterNameField__c;
-      mapping.EntityClientIdObjectField = settings.Mapping_EntityClientIdObjectField__c;
-      mapping.ClientIdField = settings.Mapping_ClientIdField__c;
-      mapping.ClientNameField = settings.Mapping_ClientNameField__c;
-      mapping.WsTemplateField = settings.Mapping_WSTemplateField__c;
-      mapping.LibraryField = settings.Mapping_LibraryField__c;
-      mapping.UseOnlyCustom2 = settings.iManage_UseOnlyCustom2__c;
+      List<IManageMapping> mappings = getAllMappingSettings();
+      if (mappings.isEmpty()) {
+        return null;
+      }
+      if (mappings.size() > 1) {
+        throw new IManageExceptions.IManageMappingException(
+          'An entity type is required when multiple iManage mappings are configured.'
+        );
+      }
+      IManageMapping mapping = mappings[0];
 
       Logger.getInstance()
         .info(
@@ -48,6 +48,206 @@ public with sharing class IManageMappingHelper {
       Logger.getInstance()
         .error(ex, 'IManageMappingHelper::getMappingSettings');
       throw ex;
+    }
+  }
+
+  @AuraEnabled
+  public static List<IManageMapping> getMappings() {
+    LicenseService.CheckOrganizationLicense();
+    return getAllMappingSettings();
+  }
+
+  public static List<IManageMapping> getAllMappingSettings() {
+    if (cachedMappings == null) {
+      cachedMappings = new List<IManageMapping>();
+      for (IManage_Mapping_Configuration__c row : [
+        SELECT
+          Id,
+          Entity_Type__c,
+          Entity_Client_Id_Object_Field__c,
+          Client_Id_Field__c,
+          Client_Name_Field__c,
+          Entity_Matter_Id_Object_Field__c,
+          Matter_Id_Field__c,
+          Matter_Name_Field__c,
+          Workspace_Template_Field__c,
+          Library_Field__c,
+          Use_Only_Custom2__c
+        FROM IManage_Mapping_Configuration__c
+        ORDER BY Entity_Type__c
+      ]) {
+        cachedMappings.add(toMapping(row));
+      }
+    }
+    return new List<IManageMapping>(cachedMappings);
+  }
+
+  public static IManageMapping getMappingSettings(String entityType) {
+    if (String.isBlank(entityType)) {
+      throw new IManageExceptions.IManageMappingException(
+        'Salesforce entity type is required.'
+      );
+    }
+    IManageMapping mapping = findMappingSettings(entityType);
+    if (mapping != null) {
+      return mapping;
+    }
+    throw new IManageExceptions.IManageMappingException(
+      'There is no mapping for the \'' + entityType + '\'.'
+    );
+  }
+
+  private static IManageMapping findMappingSettings(String entityType) {
+    for (IManageMapping mapping : getAllMappingSettings()) {
+      if (mapping.EntityType.equals(entityType)) {
+        return mapping;
+      }
+    }
+    return null;
+  }
+
+  public static IManageMapping getMappingSettingsForEntityId(Id entityId) {
+    if (entityId == null) {
+      throw new IManageExceptions.IManageMappingException(
+        'Salesforce entity Id is required.'
+      );
+    }
+    return getMappingSettings(
+      entityId.getSObjectType().getDescribe().getName()
+    );
+  }
+
+  private static IManageMapping toMapping(
+    IManage_Mapping_Configuration__c row
+  ) {
+    IManageMapping mapping = new IManageMapping();
+    mapping.MappingId = row.Id;
+    mapping.EntityType = row.Entity_Type__c;
+    mapping.EntityClientIdObjectField = row.Entity_Client_Id_Object_Field__c;
+    mapping.ClientIdField = row.Client_Id_Field__c;
+    mapping.ClientNameField = row.Client_Name_Field__c;
+    mapping.EntityMatterIdObjectField = row.Entity_Matter_Id_Object_Field__c;
+    mapping.MatterIdField = row.Matter_Id_Field__c;
+    mapping.MatterNameField = row.Matter_Name_Field__c;
+    mapping.WsTemplateField = row.Workspace_Template_Field__c;
+    mapping.LibraryField = row.Library_Field__c;
+    mapping.UseOnlyCustom2 = row.Use_Only_Custom2__c;
+    return mapping;
+  }
+
+  private static IManage_Mapping_Configuration__c toRecord(
+    IManageMapping mapping
+  ) {
+    return new IManage_Mapping_Configuration__c(
+      Id = mapping.MappingId,
+      Entity_Type__c = mapping.EntityType,
+      Entity_Client_Id_Object_Field__c = mapping.EntityClientIdObjectField,
+      Client_Id_Field__c = mapping.ClientIdField,
+      Client_Name_Field__c = mapping.ClientNameField,
+      Entity_Matter_Id_Object_Field__c = mapping.EntityMatterIdObjectField,
+      Matter_Id_Field__c = mapping.MatterIdField,
+      Matter_Name_Field__c = mapping.MatterNameField,
+      Workspace_Template_Field__c = mapping.WsTemplateField,
+      Library_Field__c = mapping.LibraryField,
+      Use_Only_Custom2__c = mapping.UseOnlyCustom2 == true
+    );
+  }
+
+  @AuraEnabled
+  public static IManageMapping saveMappingConfiguration(
+    IManageMapping mapping
+  ) {
+    try {
+      LicenseService.CheckOrganizationLicense();
+      validateMapping(mapping);
+
+      IManageMapping existing = findMappingSettings(mapping.EntityType);
+      if (
+        existing != null &&
+        (mapping.MappingId == null ||
+        existing.MappingId != mapping.MappingId)
+      ) {
+        throw new IManageExceptions.IManageMappingException(
+          'A mapping for the selected Salesforce entity type already exists.'
+        );
+      }
+
+      Schema.DescribeSObjectResult mappingDescribe = IManage_Mapping_Configuration__c.SObjectType.getDescribe();
+      if (
+        (mapping.MappingId == null && !mappingDescribe.isCreateable()) ||
+        (mapping.MappingId != null && !mappingDescribe.isUpdateable())
+      ) {
+        throw new IManageExceptions.IManageMappingException(
+          'You do not have permission to save iManage mappings.'
+        );
+      }
+      IManage_Mapping_Configuration__c record = toRecord(mapping);
+      if (mapping.MappingId == null) {
+        insert record;
+      } else {
+        update record;
+      }
+      invalidateMappingCache();
+      return getMappingSettings(mapping.EntityType);
+    } catch (AuraHandledException ex) {
+      throw ex;
+    } catch (DmlException ex) {
+      if (
+        ex.getNumDml() > 0 &&
+        ex.getDmlStatusCode(0) == 'DUPLICATE_VALUE'
+      ) {
+        throw new AuraHandledException(
+          'A mapping for the selected Salesforce entity type already exists.'
+        );
+      }
+      throw new AuraHandledException(ex.getMessage());
+    } catch (Exception ex) {
+      throw new AuraHandledException(ex.getMessage());
+    }
+  }
+
+  @AuraEnabled
+  public static void deleteMappingConfiguration(Id mappingId) {
+    try {
+      LicenseService.CheckOrganizationLicense();
+      if (mappingId == null) {
+        return;
+      }
+      if (
+        !IManage_Mapping_Configuration__c.SObjectType.getDescribe()
+          .isDeletable()
+      ) {
+        throw new IManageExceptions.IManageMappingException(
+          'You do not have permission to delete iManage mappings.'
+        );
+      }
+      delete new IManage_Mapping_Configuration__c(Id = mappingId);
+      invalidateMappingCache();
+    } catch (AuraHandledException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new AuraHandledException(ex.getMessage());
+    }
+  }
+
+  public static void invalidateMappingCache() {
+    cachedMappings = null;
+  }
+
+  private static void validateMapping(IManageMapping mapping) {
+    if (
+      mapping == null ||
+      String.isBlank(mapping.EntityType) ||
+      String.isBlank(mapping.EntityClientIdObjectField) ||
+      String.isBlank(mapping.ClientIdField) ||
+      String.isBlank(mapping.ClientNameField) ||
+      String.isBlank(mapping.EntityMatterIdObjectField) ||
+      String.isBlank(mapping.MatterIdField) ||
+      String.isBlank(mapping.MatterNameField)
+    ) {
+      throw new IManageExceptions.IManageMappingException(
+        'Entity, client, and matter mapping fields are required.'
+      );
     }
   }
 
@@ -147,7 +347,8 @@ public with sharing class IManageMappingHelper {
     result.ClientId = String.valueOf(mappingData.get('clientId'));
     result.MatterId = String.valueOf(mappingData.get('matterId'));
     result.Library = String.valueOf(mappingData.get('library'));
-    
+    result.UseOnlyCustom2 = (Boolean) mappingData.get('useOnlyCustom2');
+    result.HasLibraryField = (Boolean) mappingData.get('hasLibraryField');
 
     Logger.getInstance()
       .info(
@@ -234,6 +435,7 @@ public with sharing class IManageMappingHelper {
   private static Map<String, Object> getMappingDataBySObjectId(
     String entityId
   ) {
+    LicenseService.CheckOrganizationLicense();
     String logPrefix = 'IManageMappingHelper::getMappingDataBySObjectId';
     Map<String, Object> params = new Map<String, Object>{
       'entityId' => entityId
@@ -246,29 +448,39 @@ public with sharing class IManageMappingHelper {
       );
 
     String entityIdSObjName = GetSObjectType(entityId);
+    String requestedEntityType = entityIdSObjName;
 
-    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
-
-     if (!mapping.EntityType.equals(entityIdSObjName)) {
-          SObject recordRelated = null;
-          String soqlRelated = 'SELECT Id FROM litify_pm__Matter__c WHERE ID IN (SELECT Matter__c FROM ' + entityIdSObjName + ' WHERE Id = :entityId)';
-          
+    IManageMapping mapping = findMappingSettings(entityIdSObjName);
+    if (mapping == null) {
+      // Preserve the existing Litify behavior for records related to a Matter.
+      SObject relatedMatter;
+      String relatedMatterQuery =
+        'SELECT Id FROM litify_pm__Matter__c WHERE Id IN ' +
+        '(SELECT Matter__c FROM ' +
+        entityIdSObjName +
+        ' WHERE Id = :entityId)';
+      Logger.getInstance().info(logPrefix + ' SOQL: ' + relatedMatterQuery);
+      try {
+        relatedMatter = Database.query(relatedMatterQuery);
+      } catch (Exception ex) {
           Logger.getInstance()
-            .info(
-              logPrefix + ' SOQL: ' +  soqlRelated
+          .warn(
+            logPrefix + ', related Matter lookup failed: ' + ex.getMessage()
             );
-
-          try
-          {
-            recordRelated = Database.query(soqlRelated);
+        relatedMatter = null;
           } 
-          catch (Exception ex) 
-          {
-          } 
-
-          if (recordRelated != null) {
-              entityId = recordRelated.Id;
+      if (relatedMatter != null) {
+        entityId = relatedMatter.Id;
               entityIdSObjName = GetSObjectType(entityId);
+        mapping = findMappingSettings(entityIdSObjName);
+      } else if (requestedEntityType == 'litify_pm__Intake__c') {
+        List<IManageMapping> mappings = getAllMappingSettings();
+        if (mappings.size() == 1) {
+          mapping = mappings[0];
+        }
+      }
+      if (mapping == null) {
+        throw missingMappingException(requestedEntityType, logPrefix);
           }
      }
 
@@ -280,20 +492,11 @@ public with sharing class IManageMappingHelper {
     String matterNameField = mapping.MatterNameField;
 
     if (!mapping.EntityType.equals(entityIdSObjName)) {
-      if (entityIdSObjName == 'litify_pm__Intake__c')
-      {
+      if (entityIdSObjName == 'litify_pm__Intake__c') {
         entityClientIdObjectField = entityIdSObjName;
         entityMatterIdObjectField = entityIdSObjName;
-      }
-      else
-      {
-        String errorMessage =
-          'There is no mapping for the \'' +
-          entityIdSObjName +
-          '\'';
-        Logger.getInstance()
-          .warn(logPrefix + ', ' + errorMessage);
-        throw new IManageExceptions.IManageMappingException(errorMessage);
+      } else {
+        throw missingMappingException(entityIdSObjName, logPrefix);
       }
     }
     
@@ -381,7 +584,13 @@ public with sharing class IManageMappingHelper {
       'clientName' => clientName,
       'matterName' => matterName,
       'wsTemplate' => wsTemplate,
-      'library' => library
+      'library' => library,
+      'useOnlyCustom2' => mapping.UseOnlyCustom2,
+      'hasLibraryField' => String.isNotBlank(mapping.LibraryField),
+      'clientIdFieldName' => mapping.ClientIdField,
+      'clientNameFieldName' => mapping.ClientNameField,
+      'matterIdFieldName' => mapping.MatterIdField,
+      'matterNameFieldName' => mapping.MatterNameField
     };
 
     Logger.getInstance()
@@ -391,6 +600,15 @@ public with sharing class IManageMappingHelper {
       );
 
     return result;
+  }
+
+  private static IManageExceptions.IManageMappingException missingMappingException(
+    String entityType,
+    String logPrefix
+  ) {
+    String errorMessage = 'There is no mapping for the \'' + entityType + '\'.';
+    Logger.getInstance().warn(logPrefix + ', ' + errorMessage);
+    return new IManageExceptions.IManageMappingException(errorMessage);
   }
 
   @AuraEnabled
@@ -408,25 +626,47 @@ public with sharing class IManageMappingHelper {
     LicenseService.CheckOrganizationLicense();
 
     try {
-      iManageSettings__c s = iManageSettings__c.getOrgDefaults();
-
-      s.Mapping_EntityType__c = (String) mapping.get('EntityType');
-      s.Mapping_MatterIdField__c = (String) mapping.get('MatterIdField');
-      s.Mapping_MatterNameField__c = (String) mapping.get('MatterNameField');
-      s.Mapping_EntityMatterIdObjectField__c = (String) mapping.get(
+      IManageMapping value = new IManageMapping();
+      value.MappingId = (Id) mapping.get('MappingId');
+      value.EntityType = (String) mapping.get('EntityType');
+      value.MatterIdField = (String) mapping.get('MatterIdField');
+      value.MatterNameField = (String) mapping.get('MatterNameField');
+      value.EntityMatterIdObjectField = (String) mapping.get(
         'EntityMatterIdObjectField'
       );
-      s.Mapping_ClientIdField__c = (String) mapping.get('ClientIdField');
-      s.Mapping_ClientNameField__c = (String) mapping.get('ClientNameField');
-      s.Mapping_EntityClientIdObjectField__c = (String) mapping.get(
+      value.ClientIdField = (String) mapping.get('ClientIdField');
+      value.ClientNameField = (String) mapping.get('ClientNameField');
+      value.EntityClientIdObjectField = (String) mapping.get(
         'EntityClientIdObjectField'
       );
-      s.Mapping_WSTemplateField__c = (String) mapping.get('WsTemplateField');
-      s.Mapping_LibraryField__c = (String) mapping.get('LibraryField');
-      s.iManage_UseOnlyCustom2__c = (Boolean) mapping.get('UseOnlyCustom2');
-      upsert s;
+      value.WsTemplateField = (String) mapping.get('WsTemplateField');
+      value.LibraryField = (String) mapping.get('LibraryField');
+      value.UseOnlyCustom2 = (Boolean) mapping.get('UseOnlyCustom2');
+      validateMapping(value);
+      IManageMapping existing = findMappingSettings(value.EntityType);
+      if (value.MappingId == null && existing != null) {
+        value.MappingId = existing.MappingId;
+      }
+      Schema.DescribeSObjectResult mappingDescribe = IManage_Mapping_Configuration__c.SObjectType.getDescribe();
+      if (
+        (value.MappingId == null && !mappingDescribe.isCreateable()) ||
+        (value.MappingId != null && !mappingDescribe.isUpdateable())
+      ) {
+        throw new IManageExceptions.IManageMappingException(
+          'You do not have permission to save iManage mappings.'
+        );
+      }
+      IManage_Mapping_Configuration__c record = toRecord(value);
+      if (value.MappingId == null) {
+        insert record;
+      } else {
+        update record;
+      }
+      invalidateMappingCache();
       Logger.getInstance()
-        .info('IManageMappingHelper::saveMapping, Saved: ' + JSON.serialize(s));
+        .info(
+          'IManageMappingHelper::saveMapping, Saved: ' + JSON.serialize(record)
+        );
     } catch (Exception ex) {
       Logger.getInstance().error(ex, 'IManageMappingHelper::saveMapping');
       throw ex;
@@ -715,5 +955,7 @@ public with sharing class IManageMappingHelper {
     public String ClientId;
     public String MatterId;
     public String Library; 
+    public Boolean UseOnlyCustom2;
+    public Boolean HasLibraryField;
   }
 }

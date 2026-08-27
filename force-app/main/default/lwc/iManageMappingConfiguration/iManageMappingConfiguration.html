@@ -1,0 +1,230 @@
+<template>
+  <section>
+    <div
+      class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-p-horizontal_medium slds-p-vertical_small"
+    >
+      <h2 class="slds-text-heading_small">iManage Mapping</h2>
+      <lightning-button
+        label="Add Mapping"
+        icon-name="utility:add"
+        disabled={disableAdd}
+        onclick={addRow}
+      ></lightning-button>
+    </div>
+
+    <lightning-spinner
+      if:true={isLoading}
+      alternative-text="Loading mappings"
+    ></lightning-spinner>
+
+    <div class={tableScrollClass}>
+      <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+        <thead>
+          <tr>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Entity Type
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Client Id Object
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Client Id Field
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Client Name Field
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Matter Id Object
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Matter Id Field
+            </th>
+            <th scope="col">
+              <abbr class="slds-required" title="required">*</abbr>
+              Salesforce Matter Name Field
+            </th>
+            <th scope="col">iManage Workspace Template Field</th>
+            <th scope="col">Salesforce Library Field</th>
+            <th scope="col">Don't look for Custom1</th>
+            <th class="actions" scope="col">
+              <span class="slds-assistive-text">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <template for:each={rows} for:item="row">
+            <tr key={row.key}>
+              <template if:true={row.isEditing}>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="EntityType"
+                    value={row.EntityType}
+                    options={row.entityOptions}
+                    required
+                    label="Salesforce Entity Type"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="EntityClientIdObjectField"
+                    value={row.EntityClientIdObjectField}
+                    options={row.clientObjectOptions}
+                    required
+                    label="Salesforce Client Id Object"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="ClientIdField"
+                    value={row.ClientIdField}
+                    options={row.clientFieldOptions}
+                    required
+                    label="Salesforce Client Id Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="ClientNameField"
+                    value={row.ClientNameField}
+                    options={row.clientFieldOptions}
+                    required
+                    label="Salesforce Client Name Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="EntityMatterIdObjectField"
+                    value={row.EntityMatterIdObjectField}
+                    options={row.matterObjectOptions}
+                    required
+                    label="Salesforce Matter Id Object"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="MatterIdField"
+                    value={row.MatterIdField}
+                    options={row.matterFieldOptions}
+                    required
+                    label="Salesforce Matter Id Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="MatterNameField"
+                    value={row.MatterNameField}
+                    options={row.matterFieldOptions}
+                    required
+                    label="Salesforce Matter Name Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="WsTemplateField"
+                    value={row.WsTemplateField}
+                    options={row.entityFieldOptions}
+                    label="iManage Workspace Template Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td>
+                  <c-i-manage-mapping-combobox
+                    data-key={row.key}
+                    data-field="LibraryField"
+                    value={row.LibraryField}
+                    options={row.entityFieldOptions}
+                    label="Salesforce Library Field"
+                    onchange={fieldChanged}
+                  ></c-i-manage-mapping-combobox>
+                </td>
+                <td class="checkbox-cell">
+                  <lightning-input
+                    data-key={row.key}
+                    data-field="UseOnlyCustom2"
+                    type="checkbox"
+                    checked={row.UseOnlyCustom2}
+                    variant="label-hidden"
+                    label="Don't look for Custom1"
+                    onchange={fieldChanged}
+                  ></lightning-input>
+                </td>
+                <td class="actions">
+                  <lightning-button-icon
+                    data-key={row.key}
+                    icon-name="utility:save"
+                    alternative-text="Save"
+                    title="Save"
+                    disabled={row.isSaving}
+                    onclick={saveRow}
+                  ></lightning-button-icon>
+                  <lightning-button-icon
+                    class="slds-m-left_x-small"
+                    data-key={row.key}
+                    icon-name="utility:close"
+                    alternative-text="Cancel"
+                    title="Cancel"
+                    disabled={row.isSaving}
+                    onclick={cancelEdit}
+                  ></lightning-button-icon>
+                </td>
+              </template>
+              <template if:false={row.isEditing}>
+                <td>{row.entityLabel}</td>
+                <td>{row.clientObjectLabel}</td>
+                <td>{row.clientIdLabel}</td>
+                <td>{row.clientNameLabel}</td>
+                <td>{row.matterObjectLabel}</td>
+                <td>{row.matterIdLabel}</td>
+                <td>{row.matterNameLabel}</td>
+                <td>{row.templateLabel}</td>
+                <td>{row.libraryLabel}</td>
+                <td>{row.custom2Label}</td>
+                <td class="actions">
+                  <lightning-button-icon
+                    data-key={row.key}
+                    icon-name="utility:edit"
+                    alternative-text="Edit"
+                    title="Edit"
+                    onclick={editRow}
+                  ></lightning-button-icon>
+                  <lightning-button-icon
+                    class="slds-m-left_x-small"
+                    data-key={row.key}
+                    icon-name="utility:delete"
+                    alternative-text="Delete"
+                    title="Delete"
+                    onclick={deleteRow}
+                  ></lightning-button-icon>
+                </td>
+              </template>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+      <div if:false={hasRows} class="empty-state slds-p-vertical_large">
+        No mappings configured.
+      </div>
+    </div>
+  </section>
+</template>

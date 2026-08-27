@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Use_Only_Custom2__c</fullName>
+    <defaultValue>false</defaultValue>
+    <label>Don't look for Custom1</label>
+    <type>Checkbox</type>
+</CustomField>

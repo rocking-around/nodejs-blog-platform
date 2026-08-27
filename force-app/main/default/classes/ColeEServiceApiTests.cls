@@ -16,9 +16,12 @@ private class ColeEServiceApiTests {
       Mapping_EntityType__c = 'Opportunity',
       Mapping_EntityMatterIdObjectField__c = 'Opportunity',
       Mapping_MatterIdField__c = 'Id',
+      Mapping_MatterNameField__c = 'Name',
       Mapping_EntityClientIdObjectField__c = 'Opportunity',
-      Mapping_ClientIdField__c = 'StageName'
+      Mapping_ClientIdField__c = 'StageName',
+      Mapping_ClientNameField__c = 'Name'
     );
+    IManageMappingMigration.migrateLegacyMapping();
 
     Test.startTest();
     Map<String, String> result = ColeEServiceApi.getClientMatterIds(

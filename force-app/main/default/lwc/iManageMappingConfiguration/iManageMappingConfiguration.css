@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.table-scroll {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 20rem;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 82rem;
+  table-layout: fixed;
+}
+
+th,
+td {
+  width: auto;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  vertical-align: top;
+}
+
+th.actions,
+td.actions {
+  width: 6.5rem;
+  white-space: nowrap;
+}
+
+.checkbox-cell {
+  text-align: center;
+}
+
+.empty-state {
+  color: var(--lwc-colorTextWeak, #706e6b);
+  text-align: center;
+}
+
+.imanage-mapping-container {
+  max-width: 48rem;
+  margin: 1.25rem;
+}
+
+.record-empty-state {
+  color: var(--lwc-colorTextWeak, #706e6b);
+  padding: 1.5rem 1.25rem;
+}

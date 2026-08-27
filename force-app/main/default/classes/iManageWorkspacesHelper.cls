@@ -23,7 +23,7 @@ public class iManageWorkspacesHelper {
       ? apiData.library
       : mc.iManage_Libraries__c;
 
-     if (mc.Mapping_LibraryField__c != null && mc.Mapping_LibraryField__c != '' && link.Library != null && link.Library != '' && link.Library != 'Other') 
+     if (link.Library != null && link.Library != '' && link.Library != 'Other')
       libraries = link.Library;
 
     Logger.getInstance()
@@ -32,7 +32,7 @@ public class iManageWorkspacesHelper {
       );
 
     String clientId = link.ClientId;
-    if(mc.iManage_UseOnlyCustom2__c) {
+    if(link.UseOnlyCustom2 == true) {
       clientId = null;
     }
 
@@ -157,7 +157,7 @@ public class iManageWorkspacesHelper {
       );
 
       String clientId = imMapping.ClientId;
-      if(imSettings.Mapping_LibraryField__c != null && imSettings.Mapping_LibraryField__c != '')   {
+      if(imMapping.HasLibraryField == true)   {
         clientId = null;
       }
 
@@ -302,7 +302,7 @@ public class iManageWorkspacesHelper {
       if (String.isBlank(custom1Value)) {
         throw new IManageExceptions.IManageApplicationException(
           'The "' +
-          mSettings.Mapping_ClientIdField__c +
+          (String) mappingData.get('clientIdFieldName') +
           '" field is not populated.'
         );
       }
@@ -310,7 +310,7 @@ public class iManageWorkspacesHelper {
       if (String.isBlank(custom1Desc)) {
         throw new IManageExceptions.IManageApplicationException(
           'The "' +
-          mSettings.Mapping_ClientNameField__c +
+          (String) mappingData.get('clientNameFieldName') +
           '" field is not populated.'
         );
       }
@@ -318,7 +318,7 @@ public class iManageWorkspacesHelper {
       if (String.isBlank(custom2Value)) {
         throw new IManageExceptions.IManageApplicationException(
           'The "' +
-          mSettings.Mapping_MatterIdField__c +
+          (String) mappingData.get('matterIdFieldName') +
           '" field is not populated.'
         );
       }
@@ -326,7 +326,7 @@ public class iManageWorkspacesHelper {
       if (String.isBlank(custom2Desc)) {
         throw new IManageExceptions.IManageApplicationException(
           'The "' +
-          mSettings.Mapping_ClientNameField__c +
+          (String) mappingData.get('matterNameFieldName') +
           '" field is not populated.'
         );
       }

@@ -56,6 +56,7 @@ global class IManageCsvEndpoint {
         );
 
       List<IManageCsvHelper.CsvRow> data = IManageCsvHelper.getData(
+        objectName,
         startDate,
         endDate
       );

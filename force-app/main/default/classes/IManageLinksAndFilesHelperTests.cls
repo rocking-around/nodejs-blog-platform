@@ -383,6 +383,13 @@ private class IManageLinksAndFilesHelperTests {
     docSettings.Matter_Document__c = true;
     docSettings.Matter__c = true;
     insert docSettings;
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Opportunity',
+      Entity_Client_Id_Object_Field__c = 'Opportunity',
+      Client_Id_Field__c = 'Id',
+      Entity_Matter_Id_Object_Field__c = 'AccountId',
+      Matter_Id_Field__c = 'Id'
+    );
 
     Test.startTest();
     // MEETING
@@ -399,6 +406,9 @@ private class IManageLinksAndFilesHelperTests {
     );
     Boolean isIntakeEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
       'litify_pm__Intake__c'
+    );
+    Boolean isAccountEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
+      'Account'
     );
     Boolean isNoteEnabled = IManageLinksAndFilesHelper.isEnabledForRecord(
       'litify_pm__lit_Note__c'
@@ -417,6 +427,10 @@ private class IManageLinksAndFilesHelperTests {
     System.assert(isCalendarEnabled, 'Calendar is enabled');
     System.assert(!isTaskEnabled, 'Task is not enabled');
     System.assert(isMatterEnabled, 'Matter is enabled');
+    System.assert(
+      !isAccountEnabled,
+      'AccountId must not change the historical Account toggle behavior'
+    );
     System.assert(isIntakeEnabled, 'Intake is not enabled');
     System.assert(isNoteEnabled, 'Note is not enabled');
   }

@@ -7,14 +7,12 @@ import getGeneralSettings from "@salesforce/apex/ConfigurationHelper.getGeneralS
 import saveGeneralSettings from "@salesforce/apex/ConfigurationHelper.saveGeneralSettings";
 import getIManageDocumentSettings from "@salesforce/apex/ConfigurationHelper.getIManageDocumentSettings";
 import saveIManageDocumentsSettings from "@salesforce/apex/ConfigurationHelper.saveIManageDocumentsSettings";
-import getMapping from "@salesforce/apex/IManageMappingHelper.getMapping";
 import TestUpload from "@salesforce/apex/iManageWrapper.TestUpload";
 
 import {
   GeneralSettingsForm,
   IManageDocumentSettingsForm,
   defaultGeneralSettings,
-  DEFAULT_IMANAGE_MAPPING_ENTITY
 } from "./settings";
 
 export default class IManageConfigurationComponent extends LightningElement {
@@ -35,8 +33,6 @@ export default class IManageConfigurationComponent extends LightningElement {
     fields: undefined
   };
 
-  iManageMappingEntity = undefined;
-
   @track generalSettingsEdit = {};
   @track iManageDocSettingsEdit = {};
 
@@ -48,7 +44,6 @@ export default class IManageConfigurationComponent extends LightningElement {
       await this.checkLicense();
       await this.loadGeneralSettings();
       await this.loadIManageDocumentsSettings();
-      await this.loadImanageMapping();
     } catch (error) {
       this.handleErrors(error);
     }
@@ -133,12 +128,6 @@ export default class IManageConfigurationComponent extends LightningElement {
       (x) => x.name
     );
     this.onIManageDocSettingsChangedHandler(false);
-  }
-
-  async loadImanageMapping() {
-    const mapping = await getMapping();
-    this.iManageMappingEntity =
-      mapping?.EntityType || DEFAULT_IMANAGE_MAPPING_ENTITY;
   }
 
   onGeneralSettingChanged(e) {

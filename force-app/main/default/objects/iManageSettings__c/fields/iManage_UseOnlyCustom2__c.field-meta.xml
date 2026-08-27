@@ -3,6 +3,7 @@
     <fullName>iManage_UseOnlyCustom2__c</fullName>
     <defaultValue>false</defaultValue>
     <deprecated>false</deprecated>
+    <description>Deprecated since 2.81. Runtime mapping configuration is stored in IManage_Mapping_Configuration__c. Retained temporarily for migration and manual rollback or support reference.</description>
     <externalId>false</externalId>
     <label>Don’t look for Custom1</label>
     <trackTrending>false</trackTrending>

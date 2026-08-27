@@ -111,6 +111,16 @@ private class IManageCsvHelperTests {
       Mapping_ClientNameField__c = 'Name'
     );
     insert mapping;
+    IManageMappingMigration.migrateLegacyMapping();
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Account',
+      Entity_Client_Id_Object_Field__c = 'Account',
+      Client_Id_Field__c = 'Id',
+      Client_Name_Field__c = 'Name',
+      Entity_Matter_Id_Object_Field__c = 'Account',
+      Matter_Id_Field__c = 'Id',
+      Matter_Name_Field__c = 'Name'
+    );
 
     // Create oppporunity
     Opportunity opp = new Opportunity(
@@ -119,6 +129,7 @@ private class IManageCsvHelperTests {
       CloseDate = system.now().addDays(30).date()
     );
     insert opp;
+    insert new Account(Name = 'CSV mapping filter test');
 
     Id oppId = opp.Id;
     opp = [
@@ -132,6 +143,7 @@ private class IManageCsvHelperTests {
 
     Test.startTest();
     List<IManageCsvHelper.CsvRow> csvRows = IManageCsvHelper.getData(
+      'Opportunity',
       System.now().addDays(-10).date(),
       System.now().addDays(10).date()
     );
@@ -140,6 +152,11 @@ private class IManageCsvHelperTests {
     System.assert(
       csvRows.size() > 0,
       'IManageCsvHelper.getData() return empty List'
+    );
+    System.assertEquals(
+      1,
+      csvRows.size(),
+      'CSV export must use only the requested entity mapping.'
     );
 
     IManageCsvHelper.CsvRow row = csvRows.get(0);

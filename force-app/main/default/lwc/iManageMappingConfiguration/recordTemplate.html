@@ -1,0 +1,217 @@
+<template>
+  <lightning-card title="iManage Mapping">
+    <lightning-spinner
+      if:true={isLoading}
+      alternative-text="Loading mappings"
+    ></lightning-spinner>
+
+    <template if:true={hasRows}>
+      <template for:each={rows} for:item="row">
+        <div key={row.key} class="imanage-mapping-container">
+          <template if:true={row.isEditing}>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="EntityType"
+              value={row.EntityType}
+              options={row.entityOptions}
+              label="Salesforce Entity Type"
+              disabled
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="EntityClientIdObjectField"
+              value={row.EntityClientIdObjectField}
+              options={row.clientObjectOptions}
+              label="Salesforce Client Id Object"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="ClientIdField"
+              value={row.ClientIdField}
+              options={row.clientFieldOptions}
+              label="Salesforce Client Id Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="ClientNameField"
+              value={row.ClientNameField}
+              options={row.clientFieldOptions}
+              label="Salesforce Client Name Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="EntityMatterIdObjectField"
+              value={row.EntityMatterIdObjectField}
+              options={row.matterObjectOptions}
+              label="Salesforce Matter Id Object"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="MatterIdField"
+              value={row.MatterIdField}
+              options={row.matterFieldOptions}
+              label="Salesforce Matter Id Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="MatterNameField"
+              value={row.MatterNameField}
+              options={row.matterFieldOptions}
+              label="Salesforce Matter Name Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+              required
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="WsTemplateField"
+              value={row.WsTemplateField}
+              options={row.entityFieldOptions}
+              label="iManage Workspace Template Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+            ></lightning-combobox>
+            <lightning-combobox
+              data-key={row.key}
+              data-field="LibraryField"
+              value={row.LibraryField}
+              options={row.entityFieldOptions}
+              label="Salesforce Library Field"
+              dropdown-alignment="auto"
+              onchange={fieldChanged}
+            ></lightning-combobox>
+            <lightning-input
+              data-key={row.key}
+              data-field="UseOnlyCustom2"
+              type="checkbox"
+              checked={row.UseOnlyCustom2}
+              label="Don't look for Custom1"
+              onchange={fieldChanged}
+            ></lightning-input>
+          </template>
+
+          <template if:false={row.isEditing}>
+            <lightning-input
+              type="text"
+              label="Salesforce Entity Type"
+              value={row.entityLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Client Id Object"
+              value={row.clientObjectLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Client Id Field"
+              value={row.clientIdLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Client Name Field"
+              value={row.clientNameLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Matter Id Object"
+              value={row.matterObjectLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Matter Id Field"
+              value={row.matterIdLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Matter Name Field"
+              value={row.matterNameLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="iManage Workspace Template Field"
+              value={row.templateLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="text"
+              label="Salesforce Library Field"
+              value={row.libraryLabel}
+              disabled
+            ></lightning-input>
+            <lightning-input
+              type="checkbox"
+              label="Don't look for Custom1"
+              checked={row.UseOnlyCustom2}
+              disabled
+            ></lightning-input>
+          </template>
+        </div>
+      </template>
+    </template>
+
+    <div if:false={hasRows} class="record-empty-state">
+      No mapping configured for this Salesforce entity type.
+    </div>
+
+    <div slot="actions">
+      <template if:false={hasRows}>
+        <lightning-button
+          label="Add Mapping"
+          icon-name="utility:add"
+          disabled={disableAdd}
+          onclick={addRow}
+        ></lightning-button>
+      </template>
+      <template for:each={rows} for:item="row">
+        <span key={row.key}>
+          <template if:true={row.isEditing}>
+            <lightning-button
+              data-key={row.key}
+              label="Save"
+              variant="brand"
+              disabled={row.isSaving}
+              onclick={saveRow}
+            ></lightning-button>
+            <lightning-button
+              class="slds-m-left_x-small"
+              data-key={row.key}
+              label="Cancel"
+              disabled={row.isSaving}
+              onclick={cancelEdit}
+            ></lightning-button>
+          </template>
+          <template if:false={row.isEditing}>
+            <lightning-button
+              data-key={row.key}
+              label="Edit"
+              onclick={editRow}
+            ></lightning-button>
+          </template>
+        </span>
+      </template>
+    </div>
+  </lightning-card>
+</template>

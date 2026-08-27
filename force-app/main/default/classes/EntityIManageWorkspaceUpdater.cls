@@ -19,24 +19,21 @@ global with sharing class EntityIManageWorkspaceUpdater {
     String logPrefix = 'EntityIManageWorkspaceUpdater::updateIManageWorkspaceByEntityId';
     try {
       // 0. read settings
-      IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+      LicenseService.CheckOrganizationLicense();
+      Set<Id> entityIds = new Set<Id>();
+      for (
+        IManageMapping mapping : IManageMappingHelper.getAllMappingSettings()
+      ) {
       if (
         String.isBlank(mapping.MatterIdField) ||
         String.isBlank(mapping.ClientIdField)
       ) {
-        Logger.getInstance()
-          .info(
-            logPrefix + '. Settings: MatterIdField or ClientIdField are empty.'
-          );
-        Logger.getInstance().info(logPrefix + '. Finish');
-        return;
+          continue;
       }
-
-      // 1. Get sObjects if they match the configuration
-      Set<Id> entityIds = IManageMappingHelper.getEntitiesByMatterOrClientIds(
-        mapping,
-        ids
+        entityIds.addAll(
+          IManageMappingHelper.getEntitiesByMatterOrClientIds(mapping, ids)
       );
+      }
 
       Logger.getInstance()
         .info(logPrefix + '. getChangedEntities: ' + entityIds);
@@ -77,27 +74,37 @@ global with sharing class EntityIManageWorkspaceUpdater {
   }
 
   private static Set<Id> getChangedEntityIds() {
+    LicenseService.CheckOrganizationLicense();
     Integer batchSize = 1000;
-    IManageMapping mapping = IManageMappingHelper.getMappingSettings();
+    DateTime dateTo = DateTime.now();
+    DateTime dateFrom = dateTo.addDays(-7);
+    Set<Id> entityIds = new Set<Id>();
+    for (
+      IManageMapping mapping : IManageMappingHelper.getAllMappingSettings()
+    ) {
     if (
       String.isBlank(mapping.MatterIdField) ||
       String.isBlank(mapping.ClientIdField)
     ) {
-      Logger.getInstance()
-        .info(
-          'EntityIManageWorkspaceUpdater::getChangedEntityIds. Settings: MatterIdField or ClientIdField are empty.'
-        );
-      return new Set<Id>();
+        continue;
     }
-
-    DateTime dateTo = DateTime.now();
-    DateTime dateFrom = dateTo.addDays(-7);
-    Set<Id> entityIds = IManageMappingHelper.getChangedEntities(
+      Integer remaining = batchSize - entityIds.size();
+      if (remaining <= 0) {
+        break;
+      }
+      Set<Id> changedIds = IManageMappingHelper.getChangedEntities(
       mapping,
       dateFrom,
       dateTo,
-      batchSize
+        remaining
     );
+      for (Id changedId : changedIds) {
+        entityIds.add(changedId);
+        if (entityIds.size() == batchSize) {
+          break;
+        }
+      }
+    }
     Logger.getInstance()
       .info(
         'EntityIManageWorkspaceUpdater::getChangedEntityIds. Changed entities: ' +
@@ -144,7 +151,7 @@ global with sharing class EntityIManageWorkspaceUpdater {
     if (String.isBlank(imClientId)) {
       throw new IManageExceptions.IManageApplicationException(
         'The "' +
-        imSettings.Mapping_ClientIdField__c +
+          (String) mappingData.get('clientIdFieldName') +
         '" field is not populated.'
       );
     }
@@ -152,7 +159,7 @@ global with sharing class EntityIManageWorkspaceUpdater {
     if (String.isBlank(imClientName)) {
       throw new IManageExceptions.IManageApplicationException(
         'The "' +
-        imSettings.Mapping_ClientNameField__c +
+          (String) mappingData.get('clientNameFieldName') +
         '" field is not populated.'
       );
     }
@@ -160,7 +167,7 @@ global with sharing class EntityIManageWorkspaceUpdater {
     if (String.isBlank(imMatterId)) {
       throw new IManageExceptions.IManageApplicationException(
         'The "' +
-        imSettings.Mapping_MatterIdField__c +
+          (String) mappingData.get('matterIdFieldName') +
         '" field is not populated.'
       );
     }
@@ -168,7 +175,7 @@ global with sharing class EntityIManageWorkspaceUpdater {
     if (String.isBlank(imMatterName)) {
       throw new IManageExceptions.IManageApplicationException(
         'The "' +
-        imSettings.Mapping_MatterNameField__c +
+          (String) mappingData.get('matterNameFieldName') +
         '" field is not populated.'
       );
     }

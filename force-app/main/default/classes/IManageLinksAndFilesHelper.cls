@@ -547,22 +547,25 @@ public with sharing class IManageLinksAndFilesHelper {
         JSON.serialize(params)
       );
 
-    iManageSettings__c mc = iManageSettings__c.getOrgDefaults();
     Map<String, Object> config = ConfigurationHelper.getIManageDocumentSettings();
 
+    List<IManageMapping> mappings = IManageMappingHelper.getAllMappingSettings();
     Logger.getInstance()
       .info(
-        'IManageLinksAndFilesHelper::isEnabledForRecord, iManageSettings = ' +
-        JSON.serialize(mc)
+        'IManageLinksAndFilesHelper::isEnabledForRecord, mappings = ' +
+        JSON.serialize(mappings)
       );
-
-    if (sObjName == mc.gdsi_imanage__Mapping_EntityMatterIdObjectField__c)
+    for (IManageMapping mapping : mappings) {
+      if (sObjName == mapping.EntityMatterIdObjectField) {
       return config.containsKey('iManageDocuments:Matter') &&
         (Boolean) config.get('iManageDocuments:Matter');
-
-    if (sObjName == mc.gdsi_imanage__Mapping_EntityClientIdObjectField__c) {
+      }
+    }
+    for (IManageMapping mapping : mappings) {
+      if (sObjName == mapping.EntityClientIdObjectField) {
       return config.containsKey('iManageDocuments:Client') &&
         (Boolean) config.get('iManageDocuments:Client');
+    }
     }
 
     switch on sObjName {

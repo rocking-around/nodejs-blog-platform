@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+.combobox {
+  min-width: 0;
+  width: 100%;
+}
+
+.trigger {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  min-width: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.trigger_error {
+  border-color: var(--lwc-colorBorderError, #ea001e);
+}
+
+.selected-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown {
+  background: var(--lwc-colorBackgroundAlt, #fff);
+  border: 1px solid var(--lwc-colorBorder, #c9c9c9);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 3px 0 rgb(0 0 0 / 16%);
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: fixed;
+  z-index: 10000;
+}
+
+.option {
+  background: transparent;
+  border: 0;
+  color: var(--lwc-colorTextDefault, #181818);
+  cursor: pointer;
+  display: block;
+  min-height: 2rem;
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.option:hover,
+.option:focus {
+  background: var(--lwc-colorBackgroundRowHover, #f3f3f3);
+  outline: 2px solid var(--lwc-brandAccessible, #0176d3);
+  outline-offset: -2px;
+}
+
+.option_selected {
+  background: var(--lwc-colorBackgroundRowSelected, #e5f3ff);
+  font-weight: 700;
+}

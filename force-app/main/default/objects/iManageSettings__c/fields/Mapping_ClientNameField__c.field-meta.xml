@@ -2,6 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Mapping_ClientNameField__c</fullName>
     <deprecated>false</deprecated>
+    <description>Deprecated since 2.81. Runtime mapping configuration is stored in IManage_Mapping_Configuration__c. Retained temporarily for migration and manual rollback or support reference.</description>
     <externalId>false</externalId>
     <label>Salesforce Client Name Field</label>
     <length>255</length>

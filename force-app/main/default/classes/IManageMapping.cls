@@ -1,22 +1,24 @@
 public with sharing class IManageMapping {
   @AuraEnabled
-  public String EntityType;
+  public Id MappingId { get; set; }
   @AuraEnabled
-  public String EntityMatterIdObjectField;
+  public String EntityType { get; set; }
   @AuraEnabled
-  public String MatterIdField;
+  public String EntityMatterIdObjectField { get; set; }
   @AuraEnabled
-  public String MatterNameField;
+  public String MatterIdField { get; set; }
   @AuraEnabled
-  public String EntityClientIdObjectField;
+  public String MatterNameField { get; set; }
   @AuraEnabled
-  public String ClientIdField;
+  public String EntityClientIdObjectField { get; set; }
   @AuraEnabled
-  public String ClientNameField;
+  public String ClientIdField { get; set; }
   @AuraEnabled
-  public String WsTemplateField;
+  public String ClientNameField { get; set; }
   @AuraEnabled
-  public String LibraryField;
+  public String WsTemplateField { get; set; }
   @AuraEnabled
-  public Boolean UseOnlyCustom2;
+  public String LibraryField { get; set; }
+  @AuraEnabled
+  public Boolean UseOnlyCustom2 { get; set; }
 }

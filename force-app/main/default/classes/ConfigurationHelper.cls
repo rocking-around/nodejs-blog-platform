@@ -798,54 +798,52 @@ public with sharing class ConfigurationHelper {
     String query = '';
 
     try {
-      iManageSettings__c settings = iManageSettings__c.getOrgDefaults();
-
-      String clientEntityName = '';
-
-      if (settings.Mapping_EntityType__c != settings.Mapping_EntityClientIdObjectField__c)
-      {
-        if (settings.Mapping_EntityClientIdObjectField__c.endsWith('__c'))
-        {
-          clientEntityName = settings.Mapping_EntityClientIdObjectField__c.replace('__c', '__r');
-        }
-        else
-        {
-          List<IManageMappingHelper.GetFieldResult> results = IManageMappingHelper.getFields(
-            settings.Mapping_EntityType__c,
-            new List<String>{ 'REFERENCE' }
+      List<SObject> records = new List<SObject>();
+      for (
+        IManageMapping mapping : IManageMappingHelper.getAllMappingSettings()
+      ) {
+        String clientPrefix = getRelationshipPrefix(
+          mapping.EntityType,
+          mapping.EntityClientIdObjectField
+        );
+        String matterPrefix = getRelationshipPrefix(
+          mapping.EntityType,
+          mapping.EntityMatterIdObjectField
           );
 
-          for (IManageMappingHelper.GetFieldResult item : results) {
-            if (item.getFieldName() == settings.Mapping_EntityClientIdObjectField__c)
-            {
-                clientEntityName = item.getReferenceTo()[0];
-                break;
-            }
-          }
-        }
-      }
-
-      if (clientEntityName != '')
-        clientEntityName = clientEntityName + '.';
-
-      query = 'SELECT Id FROM ' +
-        settings.Mapping_EntityType__c +
+        query =
+          'SELECT Id FROM ' +
+          mapping.EntityType +
         ' WHERE ' +
-        settings.Mapping_MatterIdField__c + ' = \''  + matterCode + '\' AND ' +
-        clientEntityName + settings.Mapping_ClientIdField__c  + ' = \''  + clientCode + '\'';
-
-      List<SObject> records = Database.query(query);
+          matterPrefix +
+          mapping.MatterIdField +
+          ' = :matterCode AND ' +
+          clientPrefix +
+          mapping.ClientIdField +
+          ' = :clientCode';
+        records.addAll(Database.query(query));
+      }
 
       if (records.size() == 0)
         return 'Error:Workspace is not found.';
 
-      if (records.size() > 1)  
-        return 'Error:Multiple Workspaces were found by this Client and Matter Code. Please contact Administrator.';
+      if (records.size() > 1) {
+        Set<String> entityTypes = new Set<String>();
+        for (SObject record : records) {
+          entityTypes.add(record.getSObjectType().getDescribe().getName());
+        }
+        List<String> sortedEntityTypes = new List<String>(entityTypes);
+        sortedEntityTypes.sort();
+        return 'Error:Multiple Salesforce records were found by this Client and Matter Code (entity types: ' +
+          String.join(sortedEntityTypes, ', ') +
+          '). No workspace mappings were deleted.';
+      }
 
       String entityId = records[0].Id;
 
-      query = 'SELECT Id FROM gdsi_imanage__IManage_WS_to_Entity_Mapping__c WHERE gdsi_imanage__EntityId__c = \'' +
-        entityId + '\'';
+      query =
+        'SELECT Id FROM gdsi_imanage__IManage_WS_to_Entity_Mapping__c ' +
+        'WHERE gdsi_imanage__EntityId__c = :entityId';
 
       records = Database.query(query);
 
@@ -864,5 +862,44 @@ public with sharing class ConfigurationHelper {
       Logger.getInstance().Flush();
     }
   }
-  
+
+  /**
+   * Builds the SOQL prefix for an ID field configured in the mapping grid.
+   *
+   * objectField can be the mapped entity API name or a lookup/reference field
+   * on that entity. When it is the entity API name, the configured ID field is
+   * read directly from the entity and no prefix is required. For a reference
+   * field, Salesforce metadata provides the relationship name used by SOQL.
+   *
+   * Examples:
+   * - (Opportunity, Opportunity) returns an empty string.
+   * - (Opportunity, AccountId) returns "Account."
+   * - (Opportunity, Client__c) can return "Client__r."
+   *
+   * The method only builds a field path and does not query records.
+   */
+  private static String getRelationshipPrefix(
+    String entityType,
+    String objectField
+  ) {
+    if (entityType.equals(objectField)) {
+      return '';
+    }
+    Schema.SObjectType sObjectType = Schema.getGlobalDescribe().get(entityType);
+    Schema.SObjectField field = sObjectType == null
+      ? null
+      : sObjectType.getDescribe().fields.getMap().get(objectField);
+    String relationshipName = field == null
+      ? null
+      : field.getDescribe().getRelationshipName();
+    if (String.isBlank(relationshipName)) {
+      throw new IManageExceptions.IManageMappingException(
+        'The configured relationship field does not exist: ' +
+          entityType +
+          '.' +
+          objectField
+      );
+    }
+    return relationshipName + '.';
+  }
 }

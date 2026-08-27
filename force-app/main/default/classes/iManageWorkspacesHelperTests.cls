@@ -71,6 +71,7 @@ private class iManageWorkspacesHelperTests {
             null
         );
         upsert mc;
+        IManageMappingMigration.migrateLegacyMapping();
 
         iManageWrapper.ApiInfo apiData = getApiInfo(1, library);
 
@@ -150,6 +151,7 @@ private class iManageWorkspacesHelperTests {
 
         iManageSettings__c mc = getIManageSettings(null, null, null);
         upsert mc;
+        IManageMappingMigration.migrateLegacyMapping();
 
         iManageWrapper.ApiInfo apiData = getApiInfo(1, library);
 
@@ -262,6 +264,7 @@ private class iManageWorkspacesHelperTests {
             settingsLibs
         );
         upsert mc;
+        IManageMappingMigration.migrateLegacyMapping();
 
         iManageWrapper.ApiInfo apiData = getApiInfo(1, library);
         IManageMappingHelper.IManageIFrameData ifData = new IManageMappingHelper.IManageIFrameData();
@@ -1319,6 +1322,7 @@ private class iManageWorkspacesHelperTests {
 
         iManageSettings__c mc = getIManageSettings(null, null, null);
         upsert mc;
+        IManageMappingMigration.migrateLegacyMapping();
 
         //-- mock callouts
         TestIManageApiResponseHelper respHelper = new TestIManageApiResponseHelper();
