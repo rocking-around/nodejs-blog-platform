@@ -246,7 +246,7 @@ public with sharing class IManageMappingHelper {
       String.isBlank(mapping.MatterNameField)
     ) {
       throw new IManageExceptions.IManageMappingException(
-        'Entity, client, and matter mapping fields are required.'
+        'Entity, parent, and child mapping fields are required.'
       );
     }
   }

@@ -27,27 +27,27 @@
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Client Id Object
+              Salesforce Parent ID Object
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Client Id Field
+              Salesforce Parent ID Field
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Client Name Field
+              Salesforce Parent Name Field
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Matter Id Object
+              Salesforce Child ID Object
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Matter Id Field
+              Salesforce Child ID Field
             </th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Matter Name Field
+              Salesforce Child Name Field
             </th>
             <th scope="col">iManage Workspace Template Field</th>
             <th scope="col">Salesforce Library Field</th>
@@ -79,7 +79,7 @@
                     value={row.EntityClientIdObjectField}
                     options={row.clientObjectOptions}
                     required
-                    label="Salesforce Client Id Object"
+                    label="Salesforce Parent ID Object"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>
@@ -90,7 +90,7 @@
                     value={row.ClientIdField}
                     options={row.clientFieldOptions}
                     required
-                    label="Salesforce Client Id Field"
+                    label="Salesforce Parent ID Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>
@@ -101,7 +101,7 @@
                     value={row.ClientNameField}
                     options={row.clientFieldOptions}
                     required
-                    label="Salesforce Client Name Field"
+                    label="Salesforce Parent Name Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>
@@ -112,7 +112,7 @@
                     value={row.EntityMatterIdObjectField}
                     options={row.matterObjectOptions}
                     required
-                    label="Salesforce Matter Id Object"
+                    label="Salesforce Child ID Object"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>
@@ -123,7 +123,7 @@
                     value={row.MatterIdField}
                     options={row.matterFieldOptions}
                     required
-                    label="Salesforce Matter Id Field"
+                    label="Salesforce Child ID Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>
@@ -134,7 +134,7 @@
                     value={row.MatterNameField}
                     options={row.matterFieldOptions}
                     required
-                    label="Salesforce Matter Name Field"
+                    label="Salesforce Child Name Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
                 </td>

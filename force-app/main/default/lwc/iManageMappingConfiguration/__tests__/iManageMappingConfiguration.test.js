@@ -156,6 +156,21 @@ describe("c-i-manage-mapping-configuration", () => {
     expect(element.shadowRoot.querySelectorAll("thead .slds-required")).toHaveLength(
       7
     );
+    const headings = [
+      ...element.shadowRoot.querySelectorAll("thead th")
+    ].map((heading) =>
+      heading.textContent.replace("*", "").replace(/\s+/g, " ").trim()
+    );
+    expect(headings).toEqual(
+      expect.arrayContaining([
+        "Salesforce Parent ID Object",
+        "Salesforce Parent ID Field",
+        "Salesforce Parent Name Field",
+        "Salesforce Child ID Object",
+        "Salesforce Child ID Field",
+        "Salesforce Child Name Field"
+      ])
+    );
     expect(row.textContent).toContain("Opportunity");
     expect(row.textContent).toContain("Account");
     expect(row.textContent).toContain("Account ID");

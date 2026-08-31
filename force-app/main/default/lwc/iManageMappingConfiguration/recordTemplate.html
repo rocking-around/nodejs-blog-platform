@@ -23,7 +23,7 @@
               data-field="EntityClientIdObjectField"
               value={row.EntityClientIdObjectField}
               options={row.clientObjectOptions}
-              label="Salesforce Client Id Object"
+              label="Salesforce Parent ID Object"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -33,7 +33,7 @@
               data-field="ClientIdField"
               value={row.ClientIdField}
               options={row.clientFieldOptions}
-              label="Salesforce Client Id Field"
+              label="Salesforce Parent ID Field"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -43,7 +43,7 @@
               data-field="ClientNameField"
               value={row.ClientNameField}
               options={row.clientFieldOptions}
-              label="Salesforce Client Name Field"
+              label="Salesforce Parent Name Field"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -53,7 +53,7 @@
               data-field="EntityMatterIdObjectField"
               value={row.EntityMatterIdObjectField}
               options={row.matterObjectOptions}
-              label="Salesforce Matter Id Object"
+              label="Salesforce Child ID Object"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -63,7 +63,7 @@
               data-field="MatterIdField"
               value={row.MatterIdField}
               options={row.matterFieldOptions}
-              label="Salesforce Matter Id Field"
+              label="Salesforce Child ID Field"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -73,7 +73,7 @@
               data-field="MatterNameField"
               value={row.MatterNameField}
               options={row.matterFieldOptions}
-              label="Salesforce Matter Name Field"
+              label="Salesforce Child Name Field"
               dropdown-alignment="auto"
               onchange={fieldChanged}
               required
@@ -115,37 +115,37 @@
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Client Id Object"
+              label="Salesforce Parent ID Object"
               value={row.clientObjectLabel}
               disabled
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Client Id Field"
+              label="Salesforce Parent ID Field"
               value={row.clientIdLabel}
               disabled
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Client Name Field"
+              label="Salesforce Parent Name Field"
               value={row.clientNameLabel}
               disabled
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Matter Id Object"
+              label="Salesforce Child ID Object"
               value={row.matterObjectLabel}
               disabled
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Matter Id Field"
+              label="Salesforce Child ID Field"
               value={row.matterIdLabel}
               disabled
             ></lightning-input>
             <lightning-input
               type="text"
-              label="Salesforce Matter Name Field"
+              label="Salesforce Child Name Field"
               value={row.matterNameLabel}
               disabled
             ></lightning-input>
