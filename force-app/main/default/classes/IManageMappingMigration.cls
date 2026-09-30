@@ -31,15 +31,24 @@ public with sharing class IManageMappingMigration {
     if (!hasLegacyMappingValues(settings)) {
       return;
     }
-    List<String> missingFields = getMissingRequiredFields(settings);
-    if (!missingFields.isEmpty()) {
-      throw new IManageExceptions.IManageMappingException(
-        'Cannot migrate the legacy iManage mapping. Required fields are missing: ' +
-          String.join(missingFields, ', ') +
-          '. Before retrying the upgrade, go to Setup > Custom Settings > iManage Settings > Manage > Edit and populate these fields.'
+
+    // Without an entity type there is no row to identify, and
+    // Entity_Type__c is required on the object. The legacy values stay
+    // untouched so support can inspect and reconfigure them afterwards.
+    if (String.isBlank(settings.Mapping_EntityType__c)) {
+      writeDiagnostic(
+        'iManage mapping migration skipped: Mapping_EntityType__c is blank ' +
+        'while other legacy mapping values are set. No mapping row was ' +
+        'created and the legacy iManageSettings__c values were left ' +
+        'unchanged. Configure the mapping in the iManage Mapping grid ' +
+        'after the upgrade completes.'
       );
+      return;
     }
 
+    // The legacy configuration is transferred as-is. Completeness is not
+    // judged here: an upgrade must not fail over data the previous version
+    // accepted. Operations that need a given field validate it themselves.
     insert new IManage_Mapping_Configuration__c(
       Entity_Type__c = settings.Mapping_EntityType__c,
       Entity_Client_Id_Object_Field__c = settings.Mapping_EntityClientIdObjectField__c,
@@ -72,31 +81,16 @@ public with sharing class IManageMappingMigration {
       settings.iManage_UseOnlyCustom2__c == true);
   }
 
-  private static List<String> getMissingRequiredFields(
-    iManageSettings__c settings
-  ) {
-    List<String> missingFields = new List<String>();
-    if (String.isBlank(settings.Mapping_EntityType__c)) {
-      missingFields.add('Mapping_EntityType__c');
+  // Written independently of Verbose Logging: a skipped migration leaves no
+  // other trace, and the post install script has no way to reach the admin.
+  // Kept to a single DML with no queries, because a governor limit failure
+  // cannot be caught and must not be provoked here.
+  private static void writeDiagnostic(String message) {
+    try {
+      insert new Log__c(Value__c = message);
+    } catch (Exception diagnosticFailure) {
+      System.debug(LoggingLevel.ERROR, message);
+      System.debug(LoggingLevel.ERROR, diagnosticFailure);
     }
-    if (String.isBlank(settings.Mapping_EntityClientIdObjectField__c)) {
-      missingFields.add('Mapping_EntityClientIdObjectField__c');
-    }
-    if (String.isBlank(settings.Mapping_ClientIdField__c)) {
-      missingFields.add('Mapping_ClientIdField__c');
-    }
-    if (String.isBlank(settings.Mapping_ClientNameField__c)) {
-      missingFields.add('Mapping_ClientNameField__c');
-    }
-    if (String.isBlank(settings.Mapping_EntityMatterIdObjectField__c)) {
-      missingFields.add('Mapping_EntityMatterIdObjectField__c');
-    }
-    if (String.isBlank(settings.Mapping_MatterIdField__c)) {
-      missingFields.add('Mapping_MatterIdField__c');
-    }
-    if (String.isBlank(settings.Mapping_MatterNameField__c)) {
-      missingFields.add('Mapping_MatterNameField__c');
-    }
-    return missingFields;
   }
 }

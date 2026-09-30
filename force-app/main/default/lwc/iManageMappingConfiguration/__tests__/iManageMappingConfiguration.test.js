@@ -154,7 +154,7 @@ describe("c-i-manage-mapping-configuration", () => {
     const row = element.shadowRoot.querySelector("tbody tr");
     expect(row).not.toBeNull();
     expect(element.shadowRoot.querySelectorAll("thead .slds-required")).toHaveLength(
-      7
+      5
     );
     const headings = [
       ...element.shadowRoot.querySelectorAll("thead th")
@@ -476,5 +476,94 @@ describe("c-i-manage-mapping-configuration", () => {
     expect(
       element.shadowRoot.querySelector('lightning-button-icon[title="Edit"]')
     ).not.toBeNull();
+  });
+
+  it("saves a grid row whose name fields are empty", async () => {
+    const mappingWithoutNames = {
+      ...opportunityMapping,
+      ClientNameField: "",
+      MatterNameField: ""
+    };
+    getMappings.mockResolvedValue([mappingWithoutNames]);
+    saveMappingConfiguration.mockResolvedValue(mappingWithoutNames);
+    const element = createElement("c-i-manage-mapping-configuration", {
+      is: IManageMappingConfiguration
+    });
+    document.body.appendChild(element);
+    await flushPromises();
+    await flushPromises();
+
+    element.shadowRoot
+      .querySelector('lightning-button-icon[title="Edit"]')
+      .click();
+    await flushPromises();
+    // The lightning-input jest stub returns undefined from reportValidity,
+    // which would fail validateRow regardless of the comboboxes under test.
+    element.shadowRoot
+      .querySelectorAll("lightning-input")
+      .forEach((input) => {
+        input.reportValidity = jest.fn(() => true);
+      });
+    element.shadowRoot
+      .querySelector('lightning-button-icon[title="Save"]')
+      .click();
+    await flushPromises();
+    await flushPromises();
+
+    expect(saveMappingConfiguration).toHaveBeenCalledWith({
+      mapping: mappingWithoutNames
+    });
+  });
+
+  it("marks only the mandatory columns as required", async () => {
+    getMappings.mockResolvedValue([opportunityMapping]);
+    const element = createElement("c-i-manage-mapping-configuration", {
+      is: IManageMappingConfiguration
+    });
+    document.body.appendChild(element);
+    await flushPromises();
+    await flushPromises();
+
+    const requiredHeadings = [
+      ...element.shadowRoot.querySelectorAll("thead th")
+    ]
+      .filter((heading) => heading.querySelector(".slds-required"))
+      .map((heading) =>
+        heading.textContent.replace("*", "").replace(/\s+/g, " ").trim()
+      );
+    expect(requiredHeadings).toEqual([
+      "Salesforce Entity Type",
+      "Salesforce Parent ID Object",
+      "Salesforce Parent ID Field",
+      "Salesforce Child ID Object",
+      "Salesforce Child ID Field"
+    ]);
+  });
+
+  it("does not require the name fields in record context", async () => {
+    getMappings.mockResolvedValue([opportunityMapping]);
+    const element = createElement("c-i-manage-mapping-configuration", {
+      is: IManageMappingConfiguration
+    });
+    element.entityApiName = "Opportunity";
+    document.body.appendChild(element);
+    await flushPromises();
+    await flushPromises();
+
+    element.shadowRoot.querySelector("lightning-button").click();
+    await flushPromises();
+
+    const requiredFields = [
+      ...element.shadowRoot.querySelectorAll("lightning-combobox")
+    ]
+      .filter((combobox) => combobox.required)
+      .map((combobox) => combobox.dataset.field);
+    expect(requiredFields).toEqual([
+      "EntityType",
+      "EntityClientIdObjectField",
+      "ClientIdField",
+      "EntityMatterIdObjectField",
+      "MatterIdField"
+    ]);
   });
 });

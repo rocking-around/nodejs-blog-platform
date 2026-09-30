@@ -85,15 +85,36 @@ private class IManageMappingConfigurationTests {
   }
 
   @IsTest
-  static void rejectsMappingWithoutRequiredNameFields() {
+  static void savesMappingWithoutOptionalNameFields() {
     TestUtils.setupMockActiveLicense();
     IManageMapping mapping = mappingDto('Opportunity');
     mapping.ClientNameField = null;
     mapping.MatterNameField = null;
 
+    IManageMappingHelper.saveMappingConfiguration(mapping);
+
+    List<IManage_Mapping_Configuration__c> rows = [
+      SELECT Entity_Type__c, Client_Name_Field__c, Matter_Name_Field__c
+      FROM IManage_Mapping_Configuration__c
+    ];
+    System.assertEquals(
+      1,
+      rows.size(),
+      'Name fields are optional and must not block a save.'
+    );
+    System.assertEquals(null, rows[0].Client_Name_Field__c);
+    System.assertEquals(null, rows[0].Matter_Name_Field__c);
+  }
+
+  @IsTest
+  static void rejectsMappingWithoutIdentifierFields() {
+    TestUtils.setupMockActiveLicense();
+    IManageMapping mapping = mappingDto('Opportunity');
+    mapping.ClientIdField = null;
+
     try {
       IManageMappingHelper.saveMappingConfiguration(mapping);
-      System.assert(false, 'Missing name fields must be rejected.');
+      System.assert(false, 'A missing identifier field must be rejected.');
     } catch (AuraHandledException error) {
       System.assertNotEquals(null, error);
     }

@@ -33,10 +33,7 @@
               <abbr class="slds-required" title="required">*</abbr>
               Salesforce Parent ID Field
             </th>
-            <th scope="col">
-              <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Parent Name Field
-            </th>
+            <th scope="col">Salesforce Parent Name Field</th>
             <th scope="col">
               <abbr class="slds-required" title="required">*</abbr>
               Salesforce Child ID Object
@@ -45,10 +42,7 @@
               <abbr class="slds-required" title="required">*</abbr>
               Salesforce Child ID Field
             </th>
-            <th scope="col">
-              <abbr class="slds-required" title="required">*</abbr>
-              Salesforce Child Name Field
-            </th>
+            <th scope="col">Salesforce Child Name Field</th>
             <th scope="col">iManage Workspace Template Field</th>
             <th scope="col">Salesforce Library Field</th>
             <th scope="col">Don't look for Custom1</th>
@@ -100,7 +94,6 @@
                     data-field="ClientNameField"
                     value={row.ClientNameField}
                     options={row.clientFieldOptions}
-                    required
                     label="Salesforce Parent Name Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>
@@ -133,7 +126,6 @@
                     data-field="MatterNameField"
                     value={row.MatterNameField}
                     options={row.matterFieldOptions}
-                    required
                     label="Salesforce Child Name Field"
                     onchange={fieldChanged}
                   ></c-i-manage-mapping-combobox>

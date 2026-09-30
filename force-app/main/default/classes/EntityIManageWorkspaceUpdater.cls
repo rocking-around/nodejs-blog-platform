@@ -148,37 +148,33 @@ global with sharing class EntityIManageWorkspaceUpdater {
     String imMatterId = String.valueOf(mappingData.get('matterId'));
     String imMatterName = String.valueOf(mappingData.get('matterName'));
 
-    if (String.isBlank(imClientId)) {
-      throw new IManageExceptions.IManageApplicationException(
-        'The "' +
-          (String) mappingData.get('clientIdFieldName') +
-        '" field is not populated.'
-      );
-    }
+    IManageMappingHelper.requireMappedValue(
+      mappingData,
+      'Parent ID Field',
+      'clientIdFieldName',
+      'clientId'
+    );
 
-    if (String.isBlank(imClientName)) {
-      throw new IManageExceptions.IManageApplicationException(
-        'The "' +
-          (String) mappingData.get('clientNameFieldName') +
-        '" field is not populated.'
-      );
-    }
+    IManageMappingHelper.requireMappedValue(
+      mappingData,
+      'Parent Name Field',
+      'clientNameFieldName',
+      'clientName'
+    );
 
-    if (String.isBlank(imMatterId)) {
-      throw new IManageExceptions.IManageApplicationException(
-        'The "' +
-          (String) mappingData.get('matterIdFieldName') +
-        '" field is not populated.'
-      );
-    }
+    IManageMappingHelper.requireMappedValue(
+      mappingData,
+      'Child ID Field',
+      'matterIdFieldName',
+      'matterId'
+    );
 
-    if (String.isBlank(imMatterName)) {
-      throw new IManageExceptions.IManageApplicationException(
-        'The "' +
-          (String) mappingData.get('matterNameFieldName') +
-        '" field is not populated.'
-      );
-    }
+    IManageMappingHelper.requireMappedValue(
+      mappingData,
+      'Child Name Field',
+      'matterNameFieldName',
+      'matterName'
+    );
 
     String wsName = buildWorkspaceName(
       wsNamePattern,

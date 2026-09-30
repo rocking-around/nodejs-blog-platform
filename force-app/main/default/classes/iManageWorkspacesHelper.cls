@@ -299,37 +299,33 @@ public class iManageWorkspacesHelper {
       String custom2Value = String.valueOf(mappingData.get('matterId'));
       String custom2Desc = String.valueOf(mappingData.get('matterName'));
 
-      if (String.isBlank(custom1Value)) {
-        throw new IManageExceptions.IManageApplicationException(
-          'The "' +
-          (String) mappingData.get('clientIdFieldName') +
-          '" field is not populated.'
-        );
-      }
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Parent ID Field',
+        'clientIdFieldName',
+        'clientId'
+      );
 
-      if (String.isBlank(custom1Desc)) {
-        throw new IManageExceptions.IManageApplicationException(
-          'The "' +
-          (String) mappingData.get('clientNameFieldName') +
-          '" field is not populated.'
-        );
-      }
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Parent Name Field',
+        'clientNameFieldName',
+        'clientName'
+      );
 
-      if (String.isBlank(custom2Value)) {
-        throw new IManageExceptions.IManageApplicationException(
-          'The "' +
-          (String) mappingData.get('matterIdFieldName') +
-          '" field is not populated.'
-        );
-      }
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Child ID Field',
+        'matterIdFieldName',
+        'matterId'
+      );
 
-      if (String.isBlank(custom2Desc)) {
-        throw new IManageExceptions.IManageApplicationException(
-          'The "' +
-          (String) mappingData.get('matterNameFieldName') +
-          '" field is not populated.'
-        );
-      }
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Child Name Field',
+        'matterNameFieldName',
+        'matterName'
+      );
       // Custom 1
 
       Map<String, Object> cust1GetResponse = iManageWrapper.getCustomProperty(

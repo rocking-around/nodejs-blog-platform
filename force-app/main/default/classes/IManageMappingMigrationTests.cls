@@ -117,7 +117,7 @@ private class IManageMappingMigrationTests {
   }
 
   @IsTest
-  static void legacyMappingWithoutNameFieldsBlocksMigration() {
+  static void migratesLegacyMappingWithoutNameFields() {
     insert new iManageSettings__c(
       Client_Id__c = 'test-client',
       Url__c = 'https://example.invalid',
@@ -129,18 +129,81 @@ private class IManageMappingMigrationTests {
       Mapping_MatterIdField__c = 'Id'
     );
 
-    try {
-      IManageMappingMigration.migrateLegacyMapping();
-      System.assert(false, 'An incomplete configured mapping must fail.');
-    } catch (IManageExceptions.IManageMappingException error) {
-      System.assert(error.getMessage().contains('Mapping_ClientNameField__c'));
-      System.assert(error.getMessage().contains('Mapping_MatterNameField__c'));
-      System.assert(error.getMessage().contains('Setup > Custom Settings'));
-    }
+    IManageMappingMigration.migrateLegacyMapping();
+
+    List<IManage_Mapping_Configuration__c> rows = [
+      SELECT Entity_Type__c, Client_Name_Field__c, Matter_Name_Field__c
+      FROM IManage_Mapping_Configuration__c
+    ];
+    System.assertEquals(
+      1,
+      rows.size(),
+      'A legacy mapping without name fields must still migrate.'
+    );
+    System.assertEquals('Opportunity', rows[0].Entity_Type__c);
+    System.assertEquals(null, rows[0].Client_Name_Field__c);
+    System.assertEquals(null, rows[0].Matter_Name_Field__c);
+  }
+
+  @IsTest
+  static void migratesDefaultEntityTypeWithOptionalSettingOnly() {
+    insert new iManageSettings__c(
+      Client_Id__c = 'test-client',
+      Url__c = 'https://example.invalid',
+      Customer_Id__c = 'test-customer',
+      Mapping_EntityType__c = 'litify_pm__Matter__c',
+      iManage_UseOnlyCustom2__c = true
+    );
+
+    IManageMappingMigration.migrateLegacyMapping();
+
+    List<IManage_Mapping_Configuration__c> rows = [
+      SELECT Entity_Type__c, Use_Only_Custom2__c, Client_Id_Field__c
+      FROM IManage_Mapping_Configuration__c
+    ];
+    System.assertEquals(
+      1,
+      rows.size(),
+      'An explicit optional setting is user data and must be preserved.'
+    );
+    System.assertEquals('litify_pm__Matter__c', rows[0].Entity_Type__c);
+    System.assertEquals(true, rows[0].Use_Only_Custom2__c);
+    System.assertEquals(null, rows[0].Client_Id_Field__c);
+  }
+
+  @IsTest
+  static void blankEntityTypeSkipsMigrationAndLeavesDiagnostic() {
+    insert new iManageSettings__c(
+      Client_Id__c = 'test-client',
+      Url__c = 'https://example.invalid',
+      Customer_Id__c = 'test-customer',
+      Verbose_Logging__c = false,
+      Mapping_EntityType__c = null,
+      Mapping_LibraryField__c = 'Type'
+    );
+
+    IManageMappingMigration.migrateLegacyMapping();
 
     System.assertEquals(
       0,
-      [SELECT COUNT() FROM IManage_Mapping_Configuration__c]
+      [SELECT COUNT() FROM IManage_Mapping_Configuration__c],
+      'A blank entity type cannot identify a row to create.'
+    );
+    System.assertEquals(
+      'Type',
+      iManageSettings__c.getOrgDefaults().Mapping_LibraryField__c,
+      'Legacy settings must survive a skipped migration.'
+    );
+
+    List<Log__c> diagnostics = [SELECT Value__c FROM Log__c];
+    System.assertEquals(
+      1,
+      diagnostics.size(),
+      'The diagnostic must be written even with Verbose Logging off.'
+    );
+    System.assert(
+      diagnostics[0].Value__c.contains('Mapping_EntityType__c'),
+      'The diagnostic must name the setting that blocked the transfer.'
     );
   }
 

@@ -406,4 +406,141 @@ private class IManageMappingHelperTests {
     );
     System.assertEquals(value, 'Account', 'Wrong reference name');
   }
+
+  @isTest
+  static void requireMappedValueReportsUnconfiguredField() {
+    Map<String, Object> mappingData = new Map<String, Object>{
+      'entityType' => 'Account',
+      'clientNameFieldName' => null,
+      'clientName' => null
+    };
+
+    try {
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Parent Name Field',
+        'clientNameFieldName',
+        'clientName'
+      );
+      System.assert(false, 'An unconfigured name field must be reported.');
+    } catch (IManageExceptions.IManageApplicationException error) {
+      System.assert(
+        error.getMessage().contains('Account') &&
+        error.getMessage().contains('Parent Name Field'),
+        'Unexpected message: ' + error.getMessage()
+      );
+      System.assert(
+        !error.getMessage().contains('"null"'),
+        'The message must not interpolate a null field name: ' +
+        error.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void requireMappedValueReportsEmptyRecordValue() {
+    Map<String, Object> mappingData = new Map<String, Object>{
+      'entityType' => 'Account',
+      'clientNameFieldName' => 'Name',
+      'clientName' => null
+    };
+
+    try {
+      IManageMappingHelper.requireMappedValue(
+        mappingData,
+        'Parent Name Field',
+        'clientNameFieldName',
+        'clientName'
+      );
+      System.assert(false, 'An empty mapped value must be reported.');
+    } catch (IManageExceptions.IManageApplicationException error) {
+      System.assert(
+        error.getMessage().contains('"Name" field is not populated'),
+        'Unexpected message: ' + error.getMessage()
+      );
+    }
+  }
+
+  @isTest
+  static void requireMappedValueAcceptsPopulatedValue() {
+    Map<String, Object> mappingData = new Map<String, Object>{
+      'entityType' => 'Account',
+      'clientNameFieldName' => 'Name',
+      'clientName' => 'Acme'
+    };
+
+    IManageMappingHelper.requireMappedValue(
+      mappingData,
+      'Parent Name Field',
+      'clientNameFieldName',
+      'clientName'
+    );
+
+    System.assertEquals(
+      'Acme',
+      (String) mappingData.get('clientName'),
+      'A populated value must pass through untouched.'
+    );
+  }
+
+  @isTest
+  static void getIManageDataFromSObjectNamesTheUnconfiguredIdentifier() {
+    TestUtils.setupMockActiveLicense();
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Opportunity',
+      Entity_Client_Id_Object_Field__c = 'Opportunity',
+      Client_Id_Field__c = null,
+      Entity_Matter_Id_Object_Field__c = 'Opportunity',
+      Matter_Id_Field__c = 'Id'
+    );
+
+    Opportunity opp = new Opportunity(
+      Name = 'Test Opportunity',
+      CloseDate = System.today(),
+      StageName = 'Prospecting'
+    );
+    insert opp;
+
+    Test.startTest();
+    try {
+      IManageMappingHelper.getIManageDataFromSObject(opp.Id);
+      System.assert(false, 'A missing identifier field must be reported.');
+    } catch (IManageExceptions.IManageMappingException error) {
+      System.assert(
+        error.getMessage().contains('Parent ID Field'),
+        'Unexpected message: ' + error.getMessage()
+      );
+    }
+    Test.stopTest();
+  }
+
+  @isTest
+  static void getIManageDataFromSObjectAllowsMissingNameFields() {
+    TestUtils.setupMockActiveLicense();
+    insert new IManage_Mapping_Configuration__c(
+      Entity_Type__c = 'Opportunity',
+      Entity_Client_Id_Object_Field__c = 'Opportunity',
+      Client_Id_Field__c = 'Id',
+      Entity_Matter_Id_Object_Field__c = 'Opportunity',
+      Matter_Id_Field__c = 'Id'
+    );
+
+    Opportunity opp = new Opportunity(
+      Name = 'Test Opportunity',
+      CloseDate = System.today(),
+      StageName = 'Prospecting'
+    );
+    insert opp;
+
+    Test.startTest();
+    Map<String, Object> result = IManageMappingHelper.getIManageDataFromSObject(
+      opp.Id
+    );
+    Test.stopTest();
+
+    System.assertEquals(opp.Id, String.valueOf(result.get('clientId')));
+    System.assertEquals(null, result.get('clientName'));
+    System.assertEquals(null, result.get('matterName'));
+    System.assertEquals('Opportunity', String.valueOf(result.get('entityType')));
+  }
 }

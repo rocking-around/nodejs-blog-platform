@@ -234,19 +234,19 @@ public with sharing class IManageMappingHelper {
     cachedMappings = null;
   }
 
+  // Name fields are deliberately absent: they are optional, and the
+  // operations that need them report a missing name themselves.
   private static void validateMapping(IManageMapping mapping) {
     if (
       mapping == null ||
       String.isBlank(mapping.EntityType) ||
       String.isBlank(mapping.EntityClientIdObjectField) ||
       String.isBlank(mapping.ClientIdField) ||
-      String.isBlank(mapping.ClientNameField) ||
       String.isBlank(mapping.EntityMatterIdObjectField) ||
-      String.isBlank(mapping.MatterIdField) ||
-      String.isBlank(mapping.MatterNameField)
+      String.isBlank(mapping.MatterIdField)
     ) {
       throw new IManageExceptions.IManageMappingException(
-        'Entity, parent, and child mapping fields are required.'
+        'Entity, parent, and child identifier mapping fields are required.'
       );
     }
   }
@@ -499,7 +499,23 @@ public with sharing class IManageMappingHelper {
         throw missingMappingException(entityIdSObjName, logPrefix);
       }
     }
-    
+
+    // The query below cannot be built without these four. Checked here so a
+    // partially configured mapping reports the missing setting by name
+    // instead of failing later on malformed SOQL.
+    requireMappedField(
+      mapping.EntityType,
+      'Parent ID Object',
+      entityClientIdObjectField
+    );
+    requireMappedField(mapping.EntityType, 'Parent ID Field', clientIdField);
+    requireMappedField(
+      mapping.EntityType,
+      'Child ID Object',
+      entityMatterIdObjectField
+    );
+    requireMappedField(mapping.EntityType, 'Child ID Field', matterIdField);
+
     // Client fields
     Set<String> recordFields = new Set<String>();
     if (entityIdSObjName.equals(entityClientIdObjectField)) {
@@ -579,6 +595,7 @@ public with sharing class IManageMappingHelper {
     }
 
     Map<String, Object> result = new Map<String, Object> {
+      'entityType' => mapping.EntityType,
       'clientId' => clientId,
       'matterId' => matterId,
       'clientName' => clientName,
@@ -600,6 +617,49 @@ public with sharing class IManageMappingHelper {
       );
 
     return result;
+  }
+
+  // Separates "the mapping has no field for this" from "the field is mapped
+  // but empty on the record". The first is a configuration problem, the
+  // second is data entry, and the admin needs to know which one they have.
+  public static void requireMappedValue(
+    Map<String, Object> mappingData,
+    String fieldLabel,
+    String fieldNameKey,
+    String valueKey
+  ) {
+    String mappedFieldName = (String) mappingData.get(fieldNameKey);
+    if (String.isBlank(mappedFieldName)) {
+      throw new IManageExceptions.IManageApplicationException(
+        'The iManage mapping for ' +
+          (String) mappingData.get('entityType') +
+          ' has no ' +
+          fieldLabel +
+          ' configured.'
+      );
+    }
+    if (String.isBlank((String) mappingData.get(valueKey))) {
+      throw new IManageExceptions.IManageApplicationException(
+        'The "' + mappedFieldName + '" field is not populated.'
+      );
+    }
+  }
+
+  private static void requireMappedField(
+    String entityType,
+    String fieldLabel,
+    String mappedFieldName
+  ) {
+    if (String.isNotBlank(mappedFieldName)) {
+      return;
+    }
+    throw new IManageExceptions.IManageMappingException(
+      'The iManage mapping for ' +
+        entityType +
+        ' has no ' +
+        fieldLabel +
+        ' configured.'
+    );
   }
 
   private static IManageExceptions.IManageMappingException missingMappingException(
