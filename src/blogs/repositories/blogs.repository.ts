@@ -1,46 +1,51 @@
-import * as crypto from "node:crypto";
-import { db } from "../../db/db.js";
+import { ObjectId, type WithId } from "mongodb";
+import { blogsCollection } from "../../db/collections.js";
 import type { BlogInputDto } from "../dto/blog.input.dto.js";
 import type { Blog } from "../types/blog.js";
 
 export const blogsRepository = {
-  createId(): string {
-    return crypto.randomUUID();
+  async findAll(): Promise<WithId<Blog>[]> {
+    return blogsCollection.find({}).toArray();
   },
 
-  findAll(): Blog[] {
-    return db.blogs;
+  async findById(id: string): Promise<WithId<Blog> | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+
+    return blogsCollection.findOne({ _id: new ObjectId(id) });
   },
 
-  findById(id: string): Blog | undefined {
-    return db.blogs.find((blog) => blog.id === id);
+  async create(blog: Blog): Promise<WithId<Blog>> {
+    const result = await blogsCollection.insertOne(blog);
+    return { ...blog, _id: result.insertedId };
   },
 
-  create(blog: Blog): void {
-    db.blogs.push(blog);
-  },
-
-  update(id: string, input: BlogInputDto): boolean {
-    const blog = this.findById(id);
-
-    if (!blog) {
+  async update(id: string, input: BlogInputDto): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
       return false;
     }
 
-    blog.name = input.name;
-    blog.description = input.description;
-    blog.websiteUrl = input.websiteUrl;
-    return true;
+    const result = await blogsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          name: input.name,
+          description: input.description,
+          websiteUrl: input.websiteUrl,
+        },
+      },
+    );
+
+    return result.matchedCount === 1;
   },
 
-  delete(id: string): boolean {
-    const index = db.blogs.findIndex((blog) => blog.id === id);
-
-    if (index === -1) {
+  async delete(id: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
       return false;
     }
 
-    db.blogs.splice(index, 1);
-    return true;
+    const result = await blogsCollection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount === 1;
   },
 };

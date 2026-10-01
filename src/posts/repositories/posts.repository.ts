@@ -1,48 +1,57 @@
-import * as crypto from "node:crypto";
-import { db } from "../../db/db.js";
+import { ObjectId, type WithId } from "mongodb";
+import { postsCollection } from "../../db/collections.js";
 import type { PostInputDto } from "../dto/post.input.dto.js";
 import type { Post } from "../types/post.js";
 
 export const postsRepository = {
-  createId(): string {
-    return crypto.randomUUID();
+  async findAll(): Promise<WithId<Post>[]> {
+    return postsCollection.find({}).toArray();
   },
 
-  findAll(): Post[] {
-    return db.posts;
+  async findById(id: string): Promise<WithId<Post> | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+
+    return postsCollection.findOne({ _id: new ObjectId(id) });
   },
 
-  findById(id: string): Post | undefined {
-    return db.posts.find((post) => post.id === id);
+  async create(post: Post): Promise<WithId<Post>> {
+    const result = await postsCollection.insertOne(post);
+    return { ...post, _id: result.insertedId };
   },
 
-  create(post: Post): void {
-    db.posts.push(post);
-  },
-
-  update(id: string, input: PostInputDto, blogName: string): boolean {
-    const post = this.findById(id);
-
-    if (!post) {
+  async update(
+    id: string,
+    input: PostInputDto,
+    blogName: string,
+  ): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
       return false;
     }
 
-    post.title = input.title;
-    post.shortDescription = input.shortDescription;
-    post.content = input.content;
-    post.blogId = input.blogId;
-    post.blogName = blogName;
-    return true;
+    const result = await postsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          title: input.title,
+          shortDescription: input.shortDescription,
+          content: input.content,
+          blogId: input.blogId,
+          blogName,
+        },
+      },
+    );
+
+    return result.matchedCount === 1;
   },
 
-  delete(id: string): boolean {
-    const index = db.posts.findIndex((post) => post.id === id);
-
-    if (index === -1) {
+  async delete(id: string): Promise<boolean> {
+    if (!ObjectId.isValid(id)) {
       return false;
     }
 
-    db.posts.splice(index, 1);
-    return true;
+    const result = await postsCollection.deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount === 1;
   },
 };

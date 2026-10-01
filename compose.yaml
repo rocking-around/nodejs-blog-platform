@@ -5,20 +5,50 @@ services:
     build:
       context: .
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
-      - "5001:5001"
+      - "${PORT:-5001}:${PORT:-5001}"
     environment:
       NODE_ENV: production
-      PORT: "5001"
+      MONGO_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${DB_NAME}?authSource=admin
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      mongo:
+        condition: service_healthy
     healthcheck:
       test:
         [
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:5001/ht_02/api/blogs').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))",
+          "fetch('http://127.0.0.1:${PORT:-5001}/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))",
         ]
       interval: 10s
       timeout: 3s
       retries: 5
-      start_period: 10s
+      start_period: 20s
+
+  mongo:
+    image: ${MONGO_IMAGE:-mongo:8.0}
+    container_name: blog-platform-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --quiet --username \"$$MONGO_INITDB_ROOT_USERNAME\" --password \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"quit(db.adminCommand('ping').ok ? 0 : 2)\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  mongo_data:

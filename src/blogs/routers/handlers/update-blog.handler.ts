@@ -3,11 +3,11 @@ import { HTTP_STATUSES } from "../../../core/types/http-statuses.js";
 import type { BlogInputDto } from "../../dto/blog.input.dto.js";
 import { blogsRepository } from "../../repositories/blogs.repository.js";
 
-export const updateBlogHandler = (
+export const updateBlogHandler = async (
   req: Request<{ id: string }, void, BlogInputDto>,
   res: Response,
-) => {
-  const isUpdated = blogsRepository.update(req.params.id, req.body);
+): Promise<Response> => {
+  const isUpdated = await blogsRepository.update(req.params.id, req.body);
 
   if (!isUpdated) {
     return res.sendStatus(HTTP_STATUSES.NOT_FOUND);

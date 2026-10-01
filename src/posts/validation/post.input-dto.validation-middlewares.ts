@@ -40,8 +40,8 @@ export const postInputValidationMiddlewares = [
     .notEmpty()
     .withMessage("blogId is required")
     .bail()
-    .custom((blogId: string) => {
-      if (!blogsRepository.findById(blogId)) {
+    .custom(async (blogId: string) => {
+      if (!(await blogsRepository.findById(blogId))) {
         throw new Error("blog with the specified blogId does not exist");
       }
 
