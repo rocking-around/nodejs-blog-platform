@@ -4,10 +4,6 @@ import type { PostInputDto } from "../dto/post.input.dto.js";
 import type { Post } from "../types/post.js";
 
 export const postsRepository = {
-  async findAll(): Promise<WithId<Post>[]> {
-    return postsCollection.find({}).toArray();
-  },
-
   async findById(id: string): Promise<WithId<Post> | null> {
     if (!ObjectId.isValid(id)) {
       return null;

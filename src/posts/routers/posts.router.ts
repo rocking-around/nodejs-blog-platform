@@ -1,6 +1,9 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 import { superAdminGuardMiddleware } from "../../auth/middleware/super-admin.guard.middleware.js";
 import { inputValidationResultMiddleware } from "../../core/middleware/input-validation-result.middleware.js";
+import { paginationAndSortingValidation } from "../../core/middleware/pagination-and-sorting.validation-middlewares.js";
+import { sanitizeQueryMiddleware } from "../../core/middleware/sanitize-query.middleware.js";
+import { PostSortField } from "../types/post-sort-field.js";
 import { postInputValidationMiddlewares } from "../validation/post.input-dto.validation-middlewares.js";
 import { createPostHandler } from "./handlers/create-post.handler.js";
 import { deletePostHandler } from "./handlers/delete-post.handler.js";
@@ -10,7 +13,16 @@ import { updatePostHandler } from "./handlers/update-post.handler.js";
 
 export const postsRouter: Router = Router({});
 
-postsRouter.get("/", getPostsHandler);
+postsRouter.get(
+  "/",
+  paginationAndSortingValidation(
+    Object.values(PostSortField),
+    PostSortField.CreatedAt,
+  ),
+  inputValidationResultMiddleware,
+  sanitizeQueryMiddleware,
+  getPostsHandler as unknown as RequestHandler,
+);
 postsRouter.post(
   "/",
   superAdminGuardMiddleware,

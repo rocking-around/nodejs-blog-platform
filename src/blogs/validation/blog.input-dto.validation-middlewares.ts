@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
 
 const WEBSITE_URL_PATTERN =
   /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/;
@@ -38,3 +38,9 @@ export const blogInputValidationMiddlewares = [
     .matches(WEBSITE_URL_PATTERN)
     .withMessage("websiteUrl must be a valid URL"),
 ];
+
+export const blogSearchNameTermValidationMiddleware = query("searchNameTerm")
+  .optional()
+  .isString()
+  .withMessage("searchNameTerm must be a string")
+  .trim();

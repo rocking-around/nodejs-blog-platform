@@ -4,10 +4,6 @@ import type { BlogInputDto } from "../dto/blog.input.dto.js";
 import type { Blog } from "../types/blog.js";
 
 export const blogsRepository = {
-  async findAll(): Promise<WithId<Blog>[]> {
-    return blogsCollection.find({}).toArray();
-  },
-
   async findById(id: string): Promise<WithId<Blog> | null> {
     if (!ObjectId.isValid(id)) {
       return null;

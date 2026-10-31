@@ -1,7 +1,7 @@
 import { body } from "express-validator";
 import { blogsRepository } from "../../blogs/repositories/blogs.repository.js";
 
-export const postInputValidationMiddlewares = [
+const postContentValidationMiddlewares = [
   body("title")
     .isString()
     .withMessage("title must be a string")
@@ -32,19 +32,29 @@ export const postInputValidationMiddlewares = [
     .bail()
     .isLength({ max: 1000 })
     .withMessage("content must not exceed 1000 characters"),
-  body("blogId")
-    .isString()
-    .withMessage("blogId must be a string")
-    .bail()
-    .trim()
-    .notEmpty()
-    .withMessage("blogId is required")
-    .bail()
-    .custom(async (blogId: string) => {
-      if (!(await blogsRepository.findById(blogId))) {
-        throw new Error("blog with the specified blogId does not exist");
-      }
+];
 
-      return true;
-    }),
+const blogIdValidationMiddleware = body("blogId")
+  .isString()
+  .withMessage("blogId must be a string")
+  .bail()
+  .trim()
+  .notEmpty()
+  .withMessage("blogId is required")
+  .bail()
+  .custom(async (blogId: string) => {
+    if (!(await blogsRepository.findById(blogId))) {
+      throw new Error("blog with the specified blogId does not exist");
+    }
+
+    return true;
+  });
+
+export const postInputValidationMiddlewares = [
+  ...postContentValidationMiddlewares,
+  blogIdValidationMiddleware,
+];
+
+export const postForBlogInputValidationMiddlewares = [
+  ...postContentValidationMiddlewares,
 ];
