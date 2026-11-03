@@ -3,8 +3,8 @@ import type { APIErrorResult } from "../../../core/types/APIErrorResult.js";
 import { HTTP_STATUSES } from "../../../core/types/http-statuses.js";
 import { usersService } from "../../application/users.service.js";
 import type { UserInputDto } from "../../dto/user.input.dto.js";
+import { usersQueryRepository } from "../../repositories/users.query-repository.js";
 import type { UserViewModel } from "../../types/user-view-model.js";
-import { mapToUserViewModel } from "../mappers/map-to-user-view-model.util.js";
 
 export const createUserHandler = async (
   req: Request<{}, UserViewModel | APIErrorResult, UserInputDto>,
@@ -18,7 +18,11 @@ export const createUserHandler = async (
       .send({ errorsMessages: [result.error] });
   }
 
-  return res
-    .status(HTTP_STATUSES.CREATED)
-    .send(mapToUserViewModel(result.user));
+  const createdUser = await usersQueryRepository.findById(result.userId);
+
+  if (!createdUser) {
+    throw new Error("Created user was not found by the query repository");
+  }
+
+  return res.status(HTTP_STATUSES.CREATED).send(createdUser);
 };

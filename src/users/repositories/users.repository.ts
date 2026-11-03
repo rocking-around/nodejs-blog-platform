@@ -17,9 +17,9 @@ export const usersRepository = {
     });
   },
 
-  async create(user: User): Promise<WithId<User>> {
+  async create(user: User): Promise<string> {
     const result = await usersCollection.insertOne(user);
-    return { ...user, _id: result.insertedId };
+    return result.insertedId.toString();
   },
 
   async delete(id: string): Promise<boolean> {

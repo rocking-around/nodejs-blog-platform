@@ -12,9 +12,9 @@ export const blogsRepository = {
     return blogsCollection.findOne({ _id: new ObjectId(id) });
   },
 
-  async create(blog: Blog): Promise<WithId<Blog>> {
+  async create(blog: Blog): Promise<string> {
     const result = await blogsCollection.insertOne(blog);
-    return { ...blog, _id: result.insertedId };
+    return result.insertedId.toString();
   },
 
   async update(id: string, input: BlogInputDto): Promise<boolean> {

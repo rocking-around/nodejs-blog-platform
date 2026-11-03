@@ -12,9 +12,9 @@ export const postsRepository = {
     return postsCollection.findOne({ _id: new ObjectId(id) });
   },
 
-  async create(post: Post): Promise<WithId<Post>> {
+  async create(post: Post): Promise<string> {
     const result = await postsCollection.insertOne(post);
-    return { ...post, _id: result.insertedId };
+    return result.insertedId.toString();
   },
 
   async update(

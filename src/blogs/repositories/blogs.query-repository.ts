@@ -1,6 +1,10 @@
-import { ObjectId, type Filter, type WithId } from "mongodb";
+import { ObjectId, type Filter } from "mongodb";
+import { mapToPaginatedViewModel } from "../../core/mappers/map-to-paginated-view-model.util.js";
+import type { PaginatedViewModel } from "../../core/types/paginated-view-model.js";
 import { blogsCollection } from "../../db/collections.js";
+import { mapToBlogViewModel } from "../routers/mappers/map-to-blog-view-model.util.js";
 import type { BlogQueryInput } from "../types/blog-query-input.js";
+import type { BlogViewModel } from "../types/blog-view-model.js";
 import type { Blog } from "../types/blog.js";
 
 const escapeRegExp = (value: string): string =>
@@ -9,7 +13,7 @@ const escapeRegExp = (value: string): string =>
 export const blogsQueryRepository = {
   async findMany(
     query: BlogQueryInput,
-  ): Promise<{ items: WithId<Blog>[]; totalCount: number }> {
+  ): Promise<PaginatedViewModel<BlogViewModel>> {
     const filter: Filter<Blog> = {};
 
     if (query.searchNameTerm) {
@@ -30,14 +34,23 @@ export const blogsQueryRepository = {
       blogsCollection.countDocuments(filter),
     ]);
 
-    return { items, totalCount };
+    return mapToPaginatedViewModel(
+      items,
+      {
+        pageNumber: query.pageNumber,
+        pageSize: query.pageSize,
+        totalCount,
+      },
+      mapToBlogViewModel,
+    );
   },
 
-  async findById(id: string): Promise<WithId<Blog> | null> {
+  async findById(id: string): Promise<BlogViewModel | null> {
     if (!ObjectId.isValid(id)) {
       return null;
     }
 
-    return blogsCollection.findOne({ _id: new ObjectId(id) });
+    const blog = await blogsCollection.findOne({ _id: new ObjectId(id) });
+    return blog ? mapToBlogViewModel(blog) : null;
   },
 };

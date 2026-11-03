@@ -1,10 +1,9 @@
-import type { WithId } from "mongodb";
 import type { BlogInputDto } from "../dto/blog.input.dto.js";
 import { blogsRepository } from "../repositories/blogs.repository.js";
 import type { Blog } from "../types/blog.js";
 
 export const blogsService = {
-  async create(input: BlogInputDto): Promise<WithId<Blog>> {
+  async create(input: BlogInputDto): Promise<string> {
     const blog: Blog = {
       name: input.name,
       description: input.description,

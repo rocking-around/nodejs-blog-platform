@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { HTTP_STATUSES } from "../../../core/types/http-statuses.js";
 import { postsQueryRepository } from "../../repositories/posts.query-repository.js";
 import type { PostViewModel } from "../../types/post-view-model.js";
-import { mapToPostViewModel } from "../mappers/map-to-post-view-model.util.js";
 
 export const getPostHandler = async (
   req: Request<{ id: string }>,
@@ -14,5 +13,5 @@ export const getPostHandler = async (
     return res.sendStatus(HTTP_STATUSES.NOT_FOUND);
   }
 
-  return res.status(HTTP_STATUSES.OK).send(mapToPostViewModel(post));
+  return res.status(HTTP_STATUSES.OK).send(post);
 };

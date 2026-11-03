@@ -59,11 +59,17 @@ matching either condition are returned (`$or`).
 Plain-text passwords are never persisted. User creation follows this flow:
 
 ```text
-UserInputDto -> usersService -> bcrypt hash -> usersRepository -> MongoDB
+UserInputDto -> usersService -> bcrypt hash -> usersRepository -> user ID
+handler -> usersQueryRepository.findById(user ID) -> UserViewModel -> 201
 ```
 
 The implementation uses bcrypt with 10 rounds. Only the resulting
 `passwordHash` is stored.
+
+The command side does not return a MongoDB document or `UserViewModel`. It
+returns only the created ID; the presentation layer obtains the response model
+from the query repository. The same CQS flow is used when blogs and posts are
+created.
 
 ## Login
 
