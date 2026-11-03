@@ -17,10 +17,10 @@ The API prefix is configured with `API_PATH` and defaults to the universal
 `MONGO_PASSWORD`, and `DB_NAME`, then passes the ready connection string to the
 application. The database port is intentionally not published to the host.
 
-MongoDB creates the `blogs` and `posts` collections on first use. The application
-uses native MongoDB `ObjectId` identifiers and maps them to string `id` values in
-API responses. A migration runner should be introduced only when existing
-persisted documents require a backfill or another data transformation.
+MongoDB creates the `blogs`, `posts`, and `users` collections on first use. The
+application uses native MongoDB `ObjectId` identifiers and maps them to string
+`id` values in API responses. A migration runner should be introduced only when
+existing persisted documents require a backfill or another data transformation.
 
 ## Homework changelog
 
@@ -28,3 +28,4 @@ Homework-specific requirements and implementation notes are documented from
 homework 4 onward:
 
 - [Homework 4](./home-work-4.md)
+- [Homework 5](./home-work-5.md)

@@ -1,4 +1,6 @@
 import express, { type Express } from "express";
+import { AUTH_PATH } from "./auth/constants/auth-paths.js";
+import { authRouter } from "./auth/routers/auth.router.js";
 import { BLOGS_PATH } from "./blogs/constants/blogs-paths.js";
 import { blogsRouter } from "./blogs/routers/blogs.router.js";
 import { env } from "./core/config/env.js";
@@ -6,6 +8,8 @@ import { pingDb } from "./db/mongo.db.js";
 import { POSTS_PATH } from "./posts/constants/posts-paths.js";
 import { postsRouter } from "./posts/routers/posts.router.js";
 import { testingRouter } from "./testing/routers/testing.router.js";
+import { USERS_PATH } from "./users/constants/users-paths.js";
+import { usersRouter } from "./users/routers/users.router.js";
 
 export const setupApp = (app: Express) => {
   app.use(express.json());
@@ -15,6 +19,8 @@ export const setupApp = (app: Express) => {
   });
   app.use(`${env.apiPath}${BLOGS_PATH}`, blogsRouter);
   app.use(`${env.apiPath}${POSTS_PATH}`, postsRouter);
+  app.use(`${env.apiPath}${USERS_PATH}`, usersRouter);
+  app.use(`${env.apiPath}${AUTH_PATH}`, authRouter);
   app.use(`${env.apiPath}/testing`, testingRouter);
 
   return app;
