@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { inputValidationResultMiddleware } from "../../core/middleware/input-validation-result.middleware.js";
+import { bearerAuthMiddleware } from "../middleware/bearer-auth.middleware.js";
 import { loginInputValidationMiddlewares } from "../validation/login.input-dto.validation-middlewares.js";
 import { loginHandler } from "./handlers/login.handler.js";
+import { meHandler } from "./handlers/me.handler.js";
 
 export const authRouter: Router = Router({});
 
@@ -11,3 +13,4 @@ authRouter.post(
   inputValidationResultMiddleware,
   loginHandler,
 );
+authRouter.get("/me", bearerAuthMiddleware, meHandler);

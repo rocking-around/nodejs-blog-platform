@@ -1,5 +1,10 @@
 import { Router, type RequestHandler } from "express";
 import { superAdminGuardMiddleware } from "../../auth/middleware/super-admin.guard.middleware.js";
+import { bearerAuthMiddleware } from "../../auth/middleware/bearer-auth.middleware.js";
+import { createPostCommentHandler } from "../../comments/routers/handlers/create-post-comment.handler.js";
+import { getPostCommentsHandler } from "../../comments/routers/handlers/get-post-comments.handler.js";
+import { CommentSortField } from "../../comments/types/comment-sort-field.js";
+import { commentInputValidationMiddlewares } from "../../comments/validation/comment.input-dto.validation-middlewares.js";
 import { inputValidationResultMiddleware } from "../../core/middleware/input-validation-result.middleware.js";
 import { paginationAndSortingValidation } from "../../core/middleware/pagination-and-sorting.validation-middlewares.js";
 import { sanitizeQueryMiddleware } from "../../core/middleware/sanitize-query.middleware.js";
@@ -29,6 +34,23 @@ postsRouter.post(
   postInputValidationMiddlewares,
   inputValidationResultMiddleware,
   createPostHandler,
+);
+postsRouter.get(
+  "/:postId/comments",
+  paginationAndSortingValidation(
+    Object.values(CommentSortField),
+    CommentSortField.CreatedAt,
+  ),
+  inputValidationResultMiddleware,
+  sanitizeQueryMiddleware,
+  getPostCommentsHandler as unknown as RequestHandler,
+);
+postsRouter.post(
+  "/:postId/comments",
+  bearerAuthMiddleware,
+  commentInputValidationMiddlewares,
+  inputValidationResultMiddleware,
+  createPostCommentHandler,
 );
 postsRouter.get("/:id", getPostHandler);
 postsRouter.put(

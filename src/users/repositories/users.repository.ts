@@ -3,6 +3,14 @@ import { usersCollection } from "../../db/collections.js";
 import type { User } from "../types/user.js";
 
 export const usersRepository = {
+  async findById(id: string): Promise<WithId<User> | null> {
+    if (!ObjectId.isValid(id)) {
+      return null;
+    }
+
+    return usersCollection.findOne({ _id: new ObjectId(id) });
+  },
+
   async findByLogin(login: string): Promise<WithId<User> | null> {
     return usersCollection.findOne({ login });
   },

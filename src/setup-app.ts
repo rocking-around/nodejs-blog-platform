@@ -3,6 +3,8 @@ import { AUTH_PATH } from "./auth/constants/auth-paths.js";
 import { authRouter } from "./auth/routers/auth.router.js";
 import { BLOGS_PATH } from "./blogs/constants/blogs-paths.js";
 import { blogsRouter } from "./blogs/routers/blogs.router.js";
+import { COMMENTS_PATH } from "./comments/constants/comments-paths.js";
+import { commentsRouter } from "./comments/routers/comments.router.js";
 import { env } from "./core/config/env.js";
 import { pingDb } from "./db/mongo.db.js";
 import { POSTS_PATH } from "./posts/constants/posts-paths.js";
@@ -21,6 +23,7 @@ export const setupApp = (app: Express) => {
   app.use(`${env.apiPath}${POSTS_PATH}`, postsRouter);
   app.use(`${env.apiPath}${USERS_PATH}`, usersRouter);
   app.use(`${env.apiPath}${AUTH_PATH}`, authRouter);
+  app.use(`${env.apiPath}${COMMENTS_PATH}`, commentsRouter);
   app.use(`${env.apiPath}/testing`, testingRouter);
 
   return app;
